@@ -17,7 +17,7 @@ import {
 import UserStatusCard from "@/components/UserStatusCard";
 import NearbyPeopleList from "@/components/NearbyPeopleList";
 import EventsList from "@/components/events/EventsList";
-import AddStoryButton from "@/components/stories/AddStoryButton";
+import StoriesList from "@/components/stories/StoriesList";
 
 
 const interests = [
@@ -50,21 +50,11 @@ const PlaceholderContent = ({ tab }: { tab: string }) => (
 
 const HomePage = () => {
   return (
-    <div className="grid lg:grid-cols-[1fr_350px] gap-6 p-4 md:p-6">
+    <div className="grid lg:grid-cols-[1fr_350px] gap-6 md:gap-8">
       <div className="flex flex-col gap-6">
-        <div className="flex items-center gap-4">
-            <AddStoryButton />
-            <Card className="flex-1 bg-gradient-to-r from-purple-500 to-orange-500 text-primary-foreground border-0">
-              <CardContent className="p-4">
-                <h1 className="text-xl font-bold">Good morning! Ready to discover new connections?</h1>
-                <p className="mt-1 text-sm text-primary-foreground/80">
-                    Discover people with shared interests and connect with your local community.
-                </p>
-              </CardContent>
-            </Card>
-        </div>
+        <StoriesList />
 
-        <div className="space-y-3">
+        <div className="space-y-3 px-4 md:px-0">
             <h2 className="text-lg font-semibold">Interests</h2>
             <div className="flex flex-wrap gap-2">
                 {interests.map(interest => (
@@ -77,7 +67,7 @@ const HomePage = () => {
         </div>
         
         <Tabs defaultValue="people" className="w-full">
-          <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center justify-between flex-wrap gap-2 px-4 md:px-0">
             <TabsList className="bg-transparent p-0">
               {tabs.map(tab => (
                  <TabsTrigger key={tab.value} value={tab.value} className="gap-2 text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
@@ -102,14 +92,14 @@ const HomePage = () => {
           <TabsContent value="people" className="mt-4">
             <ProfileGrid />
           </TabsContent>
-          <TabsContent value="nearby" className="mt-4">
+          <TabsContent value="nearby" className="mt-4 px-4 md:px-0">
             <div className="space-y-6">
               <UserStatusCard />
               <NearbyPeopleList />
             </div>
           </TabsContent>
           {tabs.filter(t => t.value !== 'people' && t.value !== 'nearby').map(tab => (
-            <TabsContent key={tab.value} value={tab.value} className="mt-4">
+            <TabsContent key={tab.value} value={tab.value} className="mt-4 px-4 md:px-0">
                {tab.value === 'events' ? <EventsList /> : <PlaceholderContent tab={tab.label} />}
             </TabsContent>
           ))}
@@ -117,7 +107,7 @@ const HomePage = () => {
 
       </div>
       
-      <div className="space-y-6">
+      <div className="space-y-6 hidden lg:block">
         <PeopleNearYou />
       </div>
 

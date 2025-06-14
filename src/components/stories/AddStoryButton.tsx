@@ -3,12 +3,14 @@ import React, { useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from "@/components/ui/use-toast";
+import { useQueryClient } from '@tanstack/react-query';
 
 const AddStoryButton = () => {
     const { user } = useAuth();
     const { toast } = useToast();
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const queryClient = useQueryClient();
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.files || event.target.files.length === 0) {
@@ -59,6 +61,7 @@ const AddStoryButton = () => {
                 title: 'Success!',
                 description: 'Your story has been added.',
             });
+            queryClient.invalidateQueries({ queryKey: ['stories'] });
         } catch (error: any) {
             toast({
                 title: 'Error uploading story',
@@ -78,7 +81,7 @@ const AddStoryButton = () => {
     };
 
     return (
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-1 shrink-0">
             <input
                 type="file"
                 ref={fileInputRef}
