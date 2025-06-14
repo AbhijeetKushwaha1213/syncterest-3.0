@@ -70,7 +70,7 @@ const CreateGroupDialog = () => {
 
       // @ts-ignore - Bypassing TypeScript error due to out-of-sync DB types.
       const { error: memberError } = await supabase.from("group_members").insert({
-        group_id: groupData.id,
+        group_id: (groupData as any).id,
         user_id: user.id,
       });
 
