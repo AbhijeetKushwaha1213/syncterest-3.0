@@ -11,22 +11,6 @@ export type ConversationWithOtherParticipant = Conversation & {
 
 export const getConversations = async (userId: string): Promise<ConversationWithOtherParticipant[]> => {
   if (!userId) return [];
-  
-  const { data: convIdsData, error: convIdsError } = await supabase
-    .from('conversation_participants')
-    .select('conversation_id')
-    .eq('user_id', userId);
-
-  if (convIdsError) {
-    console.error("Error fetching conversation IDs:", convIdsError);
-    throw new Error(convIdsError.message);
-  }
-
-  const conversationIds = convIdsData.map(d => d.conversation_id);
-
-  if (conversationIds.length === 0) {
-    return [];
-  }
 
   const { data, error } = await supabase
     .from('conversations')
@@ -36,7 +20,6 @@ export const getConversations = async (userId: string): Promise<ConversationWith
         profiles!inner(id, username, avatar_url, full_name)
       )
     `)
-    .in('id', conversationIds)
     .order('updated_at', { ascending: false });
 
   if (error) {
