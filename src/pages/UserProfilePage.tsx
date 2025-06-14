@@ -1,3 +1,4 @@
+
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -285,13 +286,17 @@ const UserProfilePage = () => {
         </TabsList>
         <TabsContent value="posts" className="mt-4">
             <div className="grid grid-cols-3 gap-1 md:gap-2">
-                {profile.posts.map(post => (
-                    <div key={post.id} className="aspect-square bg-muted overflow-hidden rounded-md">
-                        <img src={post.image_url} alt={post.caption || "Post"} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"/>
-                    </div>
-                ))}
+                {profile.posts.length > 0
+                    ? profile.posts.map(post => (
+                        <div key={post.id} className="aspect-square bg-muted overflow-hidden rounded-md">
+                            <img src={post.image_url} alt={post.caption || "Post"} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"/>
+                        </div>
+                    ))
+                    : [...Array(9)].map((_, i) => (
+                        <div key={i} className="aspect-square bg-muted rounded-md" />
+                    ))
+                }
             </div>
-             {profile.posts.length === 0 && <p className="text-muted-foreground text-center mt-8 text-sm">No posts yet.</p>}
         </TabsContent>
         <TabsContent value="reels">
             <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
