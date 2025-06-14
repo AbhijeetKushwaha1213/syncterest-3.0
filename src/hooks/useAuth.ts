@@ -13,42 +13,45 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetcher = async (session: Session | null) => {
-      setLoading(true);
+    const fetchProfileData = async (user: User | null) => {
+      if (!user) {
+        setProfile(null);
+        return;
+      }
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select(`*`)
+          .eq('id', user.id)
+          .single();
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
+        setProfile(data);
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        setProfile(null);
+      }
+    };
+
+    const initializeSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
       const currentUser = session?.user ?? null;
       setUser(currentUser);
-
-      if (currentUser) {
-        try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select(`*`)
-            .eq('id', currentUser.id)
-            .single();
-          if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
-            throw error;
-          }
-          setProfile(data);
-        } catch (error) {
-          console.error('Error fetching profile:', error);
-          setProfile(null);
-        }
-      } else {
-        setProfile(null);
-      }
+      await fetchProfileData(currentUser);
       setLoading(false);
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      fetcher(session);
-    });
+    initializeSession();
 
-    // Initial fetch
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        setLoading(false);
-      }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      // Use setTimeout to defer profile fetching and avoid potential issues.
+      setTimeout(() => {
+        fetchProfileData(session?.user ?? null);
+      }, 0);
     });
 
     return () => {
