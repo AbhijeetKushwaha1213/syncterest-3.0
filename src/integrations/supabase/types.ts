@@ -109,6 +109,8 @@ export type Database = {
           full_name: string | null
           id: string
           interests: string[] | null
+          last_active_at: string | null
+          status: string | null
           updated_at: string | null
           username: string | null
         }
@@ -118,6 +120,8 @@ export type Database = {
           full_name?: string | null
           id: string
           interests?: string[] | null
+          last_active_at?: string | null
+          status?: string | null
           updated_at?: string | null
           username?: string | null
         }
@@ -127,6 +131,8 @@ export type Database = {
           full_name?: string | null
           id?: string
           interests?: string[] | null
+          last_active_at?: string | null
+          status?: string | null
           updated_at?: string | null
           username?: string | null
         }

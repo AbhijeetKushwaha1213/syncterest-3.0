@@ -6,69 +6,80 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { MapPin, Clock, Users } from "lucide-react";
+import { Clock, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { formatDistanceToNow } from 'date-fns';
+import type { Database } from "@/integrations/supabase/types";
 
-const fetchProfiles = async () => {
+type ProfileRow = Database['public']['Tables']['profiles']['Row'];
+
+interface ProfileWithStyle extends ProfileRow {
+  status_color: string;
+  badge_classes: string;
+}
+
+const statusStyles: { [key: string]: { status_color: string; badge_classes: string } } = {
+  "Looking to chat": {
+    status_color: "bg-green-500",
+    badge_classes: "bg-green-100 text-green-800 border-green-200 hover:bg-green-200",
+  },
+  "Open to meetup": {
+    status_color: "bg-blue-500",
+    badge_classes: "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200",
+  },
+  "Studying": {
+    status_color: "bg-yellow-500",
+    badge_classes: "bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200",
+  },
+  "Exploring": {
+    status_color: "bg-purple-500",
+    badge_classes: "bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200",
+  },
+  "default": {
+    status_color: "bg-gray-400",
+    badge_classes: "bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200",
+  }
+};
+
+const fetchProfiles = async (currentUserId?: string): Promise<ProfileWithStyle[]> => {
+  if (!currentUserId) return [];
+
   const { data, error } = await supabase
     .from("profiles")
     .select(`*`)
     .not("username", "is", null)
-    .limit(3);
+    .neq('id', currentUserId)
+    .limit(10);
 
   if (error) {
     throw new Error(error.message);
   }
-  
-  const mockData = [
-    {
-      distance: "500m away",
-      last_active: "2m ago",
-      status: "Looking to chat",
-      location: "at Central Park",
-      status_color: "bg-green-500",
-      badge_classes: "bg-green-100 text-green-800 border-green-200 hover:bg-green-200",
-    },
-    {
-      distance: "1.2km away",
-      last_active: "5m ago",
-      status: "Studying",
-      location: "at Coffee Bean Café",
-      status_color: "bg-yellow-500",
-      badge_classes: "bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200",
-    },
-    {
-      distance: "2.8km away",
-      last_active: "10m ago",
-      status: "Open to meetup",
-      location: "at Library Downtown",
-      status_color: "bg-blue-500",
-      badge_classes: "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200",
-    },
-  ];
 
   if (!data) return [];
 
-  const profilesWithMockData = data.map((profile, index) => {
+  return data.map((profile) => {
+    const styles = statusStyles[profile.status || ''] || statusStyles.default;
     return {
       ...profile,
-      ...(mockData[index] || mockData[0]),
+      ...styles,
     };
   });
-  return profilesWithMockData;
 };
 
 const NearbyPeopleList = () => {
+  const { user } = useAuth();
   const { data: profiles, isLoading } = useQuery({
-    queryKey: ["profiles_nearby_list"],
-    queryFn: fetchProfiles
+    queryKey: ["profiles_nearby_list", user?.id],
+    queryFn: () => fetchProfiles(user?.id),
+    enabled: !!user
   });
 
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold flex items-center gap-2">
         <Users className="h-6 w-6" /> 
-        People Nearby ({isLoading ? '...' : profiles?.length || 0})
+        People Nearby ({isLoading || !profiles ? '...' : profiles.length})
       </h2>
       {isLoading && [...Array(3)].map((_, i) => (
         <Card key={i}>
@@ -96,20 +107,30 @@ const NearbyPeopleList = () => {
                 <div className="flex-1 space-y-1">
                     <p className="font-semibold">{profile.username}</p>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1"><MapPin className="h-4 w-4" /> {profile.distance}</span>
-                        <span className="flex items-center gap-1"><Clock className="h-4 w-4" /> {profile.last_active}</span>
+                        {profile.last_active_at && (
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" /> 
+                            {formatDistanceToNow(new Date(profile.last_active_at), { addSuffix: true })}
+                          </span>
+                        )}
                     </div>
                     <div>
                         <Badge variant="outline" className={cn("rounded-md px-2 py-1 border-transparent", profile.badge_classes)}>
-                            {profile.status}
+                            {profile.status || "Away"}
                         </Badge>
-                        <span className="text-sm text-muted-foreground ml-2">{profile.location}</span>
                     </div>
                 </div>
                 <Button>Connect</Button>
             </CardContent>
         </Card>
       ))}
+      {!isLoading && profiles?.length === 0 && (
+         <Card>
+          <CardContent className="p-6 text-center text-muted-foreground">
+            No one else is nearby right now.
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
