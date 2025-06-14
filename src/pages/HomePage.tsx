@@ -1,94 +1,122 @@
 
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Link } from "react-router-dom";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ProfileGrid from "@/components/ProfileGrid";
+import PeopleNearYou from "@/components/PeopleNearYou";
+import {
+  Flame, Dumbbell, Utensils, Palette, Music, CalendarDays, Gamepad2, Bike,
+  Users, MapPin, Wifi, Star, UserCog, MapPinned
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const fetchProfiles = async () => {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select(`*`)
-    .not("username", "is", null); // Only show profiles that are set up
 
-  if (error) {
-    throw new Error(error.message);
-  }
-  return data;
-};
+const interests = [
+  { name: "Tech", icon: Flame },
+  { name: "Fitness", icon: Dumbbell },
+  { name: "Food", icon: Utensils },
+  { name: "Art", icon: Palette },
+  { name: "Music", icon: Music },
+  { name: "Events", icon: CalendarDays },
+  { name: "Games", icon: Gamepad2 },
+  { name: "Sports", icon: Bike },
+];
+
+const tabs = [
+  { value: "people", label: "People", icon: Users },
+  { value: "nearby", label: "Nearby", icon: MapPin },
+  { value: "live", label: "Live", icon: Wifi },
+  { value: "events", label: "Events", icon: CalendarDays },
+  { value: "matches", label: "Matches", icon: Star },
+  { value: "groups", label: "Groups", icon: UserCog },
+]
+
+
+const PlaceholderContent = ({ tab }: { tab: string }) => (
+  <div className="flex items-center justify-center h-64 border-2 border-dashed rounded-lg mt-4">
+    <p className="text-muted-foreground">Content for {tab} coming soon!</p>
+  </div>
+);
+
 
 const HomePage = () => {
-  const { data: profiles, isLoading, error } = useQuery({
-    queryKey: ["profiles"],
-    queryFn: fetchProfiles
-  });
-
   return (
-    <div className="p-4 md:p-6">
-      <header className="mb-6">
-        <h1 className="text-3xl font-bold">Find People</h1>
-        <p className="text-muted-foreground">Browse profiles and connect with others.</p>
-      </header>
-      
-      {isLoading && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {[...Array(8)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <div className="flex items-center gap-4">
-                  <Skeleton className="h-12 w-12 rounded-full" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-[150px]" />
-                    <Skeleton className="h-4 w-[100px]" />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full mt-2" />
-                <div className="flex flex-wrap gap-2 mt-4">
-                   <Skeleton className="h-6 w-20" />
-                   <Skeleton className="h-6 w-20" />
-                </div>
+    <div className="grid lg:grid-cols-[1fr_350px] gap-6 p-4 md:p-6">
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center gap-4">
+            <div className="flex flex-col items-center gap-1">
+                <button className="flex items-center justify-center h-16 w-16 bg-muted border-2 border-dashed rounded-full cursor-pointer hover:bg-muted/80">
+                    <span className="text-3xl text-muted-foreground">+</span>
+                </button>
+                <p className="text-xs font-medium text-muted-foreground">Your Story</p>
+            </div>
+            <Card className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-600 text-primary-foreground border-0">
+              <CardContent className="p-4">
+                <h1 className="text-xl font-bold">Good morning! Ready to discover new connections?</h1>
+                <p className="mt-1 text-sm text-primary-foreground/80">
+                    Discover people with shared interests and connect with your local community.
+                </p>
               </CardContent>
             </Card>
-          ))}
         </div>
-      )}
 
-      {error && <p className="text-destructive">Error fetching profiles: {error.message}</p>}
+        <div className="space-y-3">
+            <h2 className="text-lg font-semibold">Interests</h2>
+            <div className="flex flex-wrap gap-2">
+                {interests.map(interest => (
+                    <Button key={interest.name} variant="outline" className="gap-2 rounded-full">
+                        <interest.icon className="h-4 w-4" />
+                        {interest.name}
+                    </Button>
+                ))}
+            </div>
+        </div>
+        
+        <Tabs defaultValue="people" className="w-full">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <TabsList className="bg-transparent p-0">
+              {tabs.map(tab => (
+                 <TabsTrigger key={tab.value} value={tab.value} className="gap-2 text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
+                   <tab.icon className="h-4 w-4"/>
+                   {tab.label}
+                 </TabsTrigger>
+              ))}
+            </TabsList>
+            <div className="w-full sm:w-[180px]">
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recommended">Recommended</SelectItem>
+                  <SelectItem value="recent">Most Recent</SelectItem>
+                  <SelectItem value="nearby">Nearby</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <TabsContent value="people" className="mt-4">
+            <ProfileGrid />
+          </TabsContent>
+          {tabs.filter(t => t.value !== 'people').map(tab => (
+            <TabsContent key={tab.value} value={tab.value}>
+               <PlaceholderContent tab={tab.label} />
+            </TabsContent>
+          ))}
+        </Tabs>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {profiles?.map((profile) => (
-          <Link to={`/profile/${profile.id}`} key={profile.id} className="block">
-            <Card className="hover:shadow-lg transition-shadow h-full">
-              <CardHeader>
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={profile.avatar_url ?? ""} alt={profile.username ?? "avatar"} />
-                    <AvatarFallback>{profile.username?.charAt(0).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <CardTitle className="text-lg">{profile.username}</CardTitle>
-                    {profile.full_name && <p className="text-sm text-muted-foreground">{profile.full_name}</p>}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground line-clamp-2 h-10">{profile.bio}</p>
-                {profile.interests && profile.interests.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {profile.interests?.slice(0, 3).map((interest) => (
-                      <div key={interest} className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full">{interest}</div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
       </div>
+      
+      <div className="space-y-6">
+        <PeopleNearYou />
+      </div>
+
     </div>
   );
 };
