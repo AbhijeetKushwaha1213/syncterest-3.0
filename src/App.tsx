@@ -30,7 +30,7 @@ const App = () => (
 
           <Route element={<LoggedInLayout />}>
             <Route path="/home" element={<HomePage />} />
-            <Route path="/chat" element={<ChatPage />} />
+            <Route path="/chat/:conversationId?" element={<ChatPage />} />
             <Route path="/channels" element={<ChannelsPage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/profile/:id" element={<UserProfilePage />} />

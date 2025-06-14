@@ -3,13 +3,15 @@ import { ConversationWithOtherParticipant } from '@/api/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Paperclip, Phone, Send, Video } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ArrowLeft, Paperclip, Phone, Send, Video } from 'lucide-react';
 
 interface ChatWindowProps {
   conversation: ConversationWithOtherParticipant | null;
+  onBack: () => void;
 }
 
-const ChatWindow = ({ conversation }: ChatWindowProps) => {
+const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
   if (!conversation) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center bg-muted/20">
@@ -24,9 +26,12 @@ const ChatWindow = ({ conversation }: ChatWindowProps) => {
   const otherParticipant = conversation.other_participant;
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full bg-background w-full">
       <header className="flex items-center justify-between gap-4 p-3 border-b">
         <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="md:hidden" onClick={onBack}>
+              <ArrowLeft className="h-5 w-5"/>
+            </Button>
             <Avatar>
                 <AvatarImage src={otherParticipant.avatar_url ?? ''} />
                 <AvatarFallback>{otherParticipant.username?.charAt(0).toUpperCase()}</AvatarFallback>

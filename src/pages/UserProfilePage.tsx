@@ -1,5 +1,4 @@
-
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -84,6 +83,7 @@ const UserProfilePage = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: profile, isLoading, error } = useQuery({
     queryKey: ["profile", id, user?.id],
@@ -112,6 +112,24 @@ const UserProfilePage = () => {
       onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: ['profile', id] });
       }
+  });
+
+  const sendMessageMutation = useMutation({
+    mutationFn: async () => {
+        if (!user || !id) throw new Error("User or profile ID is missing");
+        if (user.id === id) throw new Error("You cannot message yourself");
+
+        const { data, error } = await supabase.rpc('find_or_create_conversation', { p_other_user_id: id });
+
+        if (error) throw error;
+        return data as string;
+    },
+    onSuccess: (conversationId) => {
+        navigate(`/chat/${conversationId}`);
+    },
+    onError: (error) => {
+        console.error("Error sending message:", error);
+    }
   });
 
   if (isLoading) {
@@ -198,7 +216,9 @@ const UserProfilePage = () => {
                   </Button>
                 ) : (
                   <>
-                    <Button>Send Message</Button>
+                    <Button onClick={() => sendMessageMutation.mutate()} disabled={sendMessageMutation.isPending}>
+                        {sendMessageMutation.isPending ? 'Starting chat...' : 'Send Message'}
+                    </Button>
                     {profile.is_following ? (
                       <Button variant="outline" onClick={() => unfollowMutation.mutate()} disabled={unfollowMutation.isPending}>
                         {unfollowMutation.isPending ? 'Unfollowing...' : 'Unfollow'}

@@ -1,16 +1,48 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import ConversationList from "@/components/chat/ConversationList";
 import ChatWindow from "@/components/chat/ChatWindow";
-import { ConversationWithOtherParticipant } from "@/api/chat";
+import { getConversations, ConversationWithOtherParticipant } from "@/api/chat";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 
 const ChatPage = () => {
+  const { conversationId } = useParams<{ conversationId: string }>();
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  
   const [selectedConversation, setSelectedConversation] = useState<ConversationWithOtherParticipant | null>(null);
-  const { profile, loading } = useAuth();
 
-  if (loading) {
+  const { data: conversations, isLoading: conversationsLoading, error } = useQuery({
+    queryKey: ['conversations', user?.id],
+    queryFn: () => getConversations(user!.id),
+    enabled: !!user,
+  });
+
+  useEffect(() => {
+    if (conversations) {
+      if (conversationId) {
+        const found = conversations.find(c => c.id === conversationId);
+        setSelectedConversation(found || null);
+      } else {
+        setSelectedConversation(null);
+      }
+    }
+  }, [conversationId, conversations]);
+
+  const handleSelectConversation = (conversation: ConversationWithOtherParticipant) => {
+    setSelectedConversation(conversation);
+    navigate(`/chat/${conversation.id}`);
+  };
+
+  const handleBack = () => {
+    navigate('/chat');
+  };
+
+  if (authLoading || conversationsLoading) {
     return (
         <div className="flex h-full">
             <div className="w-1/3 border-r p-4 space-y-2">
@@ -34,16 +66,28 @@ const ChatPage = () => {
     );
   }
 
-  // A basic responsive approach: on mobile, clicking a conversation would navigate
-  // to a new view. For now, we'll just show the list on mobile and the full view on desktop.
-  // The ChatWindow will be hidden on mobile screens.
   return (
-    <div className="flex h-full">
-      <div className="w-full md:w-1/3 lg:w-1/4 border-r bg-background overflow-y-auto">
-        <ConversationList onSelectConversation={setSelectedConversation} />
+    <div className="flex h-full bg-background">
+      <div className={cn(
+          "w-full md:w-1/3 lg:w-1/4 border-r bg-background overflow-y-auto",
+          { "hidden md:flex flex-col": !!conversationId }
+      )}>
+        <ConversationList 
+          conversations={conversations}
+          error={error}
+          selectedConversationId={selectedConversation?.id}
+          onSelectConversation={handleSelectConversation}
+        />
       </div>
-      <div className="hidden md:flex flex-1">
-        <ChatWindow conversation={selectedConversation} />
+      <div className={cn(
+        "flex-1",
+        { "hidden md:flex": !conversationId },
+        { "flex": !!conversationId }
+      )}>
+        <ChatWindow 
+            conversation={selectedConversation} 
+            onBack={handleBack} 
+        />
       </div>
     </div>
   );

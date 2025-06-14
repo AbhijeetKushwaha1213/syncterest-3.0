@@ -1,29 +1,18 @@
 
-import { useQuery } from '@tanstack/react-query';
-import { getConversations, ConversationWithOtherParticipant } from '@/api/chat';
-import { useAuth } from '@/hooks/useAuth';
-import { Skeleton } from '@/components/ui/skeleton';
+import { ConversationWithOtherParticipant } from '@/api/chat';
 import ConversationListItem from './ConversationListItem';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 interface ConversationListProps {
+  conversations: ConversationWithOtherParticipant[] | undefined;
+  error: Error | null;
+  selectedConversationId: string | undefined;
   onSelectConversation: (conversation: ConversationWithOtherParticipant) => void;
 }
 
-const ConversationList = ({ onSelectConversation }: ConversationListProps) => {
-  const { user } = useAuth();
-  const { data: conversations, isLoading, error } = useQuery({
-    queryKey: ['conversations', user?.id],
-    queryFn: () => getConversations(user!.id),
-    enabled: !!user,
-  });
-
-  if (isLoading) {
-    return <div className="p-4 space-y-2">{[...Array(8)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}</div>;
-  }
-
+const ConversationList = ({ conversations, error, selectedConversationId, onSelectConversation }: ConversationListProps) => {
   if (error) {
     return <p className="p-4 text-destructive">Error: {error.message}</p>;
   }
@@ -44,6 +33,7 @@ const ConversationList = ({ onSelectConversation }: ConversationListProps) => {
               <ConversationListItem 
                 key={conversation.id} 
                 conversation={conversation} 
+                isSelected={conversation.id === selectedConversationId}
                 onClick={() => onSelectConversation(conversation)} 
               />
             ))

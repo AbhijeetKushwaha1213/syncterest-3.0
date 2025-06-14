@@ -249,6 +249,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      find_or_create_conversation: {
+        Args: { p_other_user_id: string }
+        Returns: string
+      }
       get_my_conversation_ids: {
         Args: Record<PropertyKey, never>
         Returns: string[]

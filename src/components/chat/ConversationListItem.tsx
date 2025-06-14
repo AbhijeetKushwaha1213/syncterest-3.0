@@ -1,13 +1,15 @@
 
 import { ConversationWithOtherParticipant } from '@/api/chat';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from '@/lib/utils';
 
 interface ConversationListItemProps {
   conversation: ConversationWithOtherParticipant;
+  isSelected: boolean;
   onClick: () => void;
 }
 
-const ConversationListItem = ({ conversation, onClick }: ConversationListItemProps) => {
+const ConversationListItem = ({ conversation, isSelected, onClick }: ConversationListItemProps) => {
   const otherParticipant = conversation.other_participant;
 
   if (!otherParticipant) {
@@ -16,7 +18,10 @@ const ConversationListItem = ({ conversation, onClick }: ConversationListItemPro
 
   return (
     <div 
-      className="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+      className={cn(
+        "flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors",
+        { "bg-muted": isSelected }
+      )}
       onClick={onClick}
     >
       <Avatar className="h-12 w-12">
