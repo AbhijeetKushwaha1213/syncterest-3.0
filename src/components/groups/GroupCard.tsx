@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
@@ -33,16 +32,14 @@ const GroupCard = ({ group, isMember }: GroupCardProps) => {
       if (!user) throw new Error("You must be logged in.");
 
       if (isMember) {
-        // @ts-ignore - Bypassing TypeScript error due to out-of-sync DB types.
-        const { error } = await supabase
-          .from("group_members")
+        const { error } = await (supabase
+          .from("group_members") as any)
           .delete()
           .match({ group_id: group.id, user_id: user.id });
         if (error) throw error;
       } else {
-        // @ts-ignore - Bypassing TypeScript error due to out-of-sync DB types.
-        const { error } = await supabase
-          .from("group_members")
+        const { error } = await (supabase
+          .from("group_members") as any)
           .insert({ group_id: group.id, user_id: user.id });
         if (error) throw error;
       }

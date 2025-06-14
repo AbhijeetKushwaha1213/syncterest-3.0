@@ -12,9 +12,8 @@ const GroupsPage = () => {
   const { data: groups, isLoading: isLoadingGroups } = useQuery<Group[]>({
     queryKey: ["groups"],
     queryFn: async () => {
-      // @ts-ignore - Bypassing TypeScript error due to out-of-sync DB types.
-      const { data, error } = await supabase
-        .from("groups")
+      const { data, error } = await (supabase
+        .from("groups") as any)
         .select("*, group_members(count)")
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -22,13 +21,14 @@ const GroupsPage = () => {
     },
   });
 
-  const { data: myMemberships, isLoading: isLoadingMyGroups } = useQuery<string[]>({
+  const { data: myMemberships, isLoading: isLoadingMyGroups } = useQuery<
+    string[]
+  >({
     queryKey: ["my-groups"],
     queryFn: async () => {
       if (!user) return [];
-      // @ts-ignore - Bypassing TypeScript error due to out-of-sync DB types.
-      const { data, error } = await supabase
-        .from("group_members")
+      const { data, error } = await (supabase
+        .from("group_members") as any)
         .select("group_id")
         .eq("user_id", user.id);
       if (error) throw error;
