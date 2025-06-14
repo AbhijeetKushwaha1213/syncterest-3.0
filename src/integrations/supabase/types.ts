@@ -272,6 +272,8 @@ export type Database = {
           id: string
           interests: string[] | null
           last_active_at: string | null
+          latitude: number | null
+          longitude: number | null
           status: string | null
           updated_at: string | null
           username: string | null
@@ -283,6 +285,8 @@ export type Database = {
           id: string
           interests?: string[] | null
           last_active_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
           status?: string | null
           updated_at?: string | null
           username?: string | null
@@ -294,6 +298,8 @@ export type Database = {
           id?: string
           interests?: string[] | null
           last_active_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
           status?: string | null
           updated_at?: string | null
           username?: string | null
@@ -348,6 +354,22 @@ export type Database = {
       get_my_conversation_ids: {
         Args: Record<PropertyKey, never>
         Returns: string[]
+      }
+      get_nearby_users: {
+        Args: { p_latitude: number; p_longitude: number; p_radius_km: number }
+        Returns: {
+          avatar_url: string | null
+          bio: string | null
+          full_name: string | null
+          id: string
+          interests: string[] | null
+          last_active_at: string | null
+          latitude: number | null
+          longitude: number | null
+          status: string | null
+          updated_at: string | null
+          username: string | null
+        }[]
       }
     }
     Enums: {

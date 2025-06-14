@@ -27,6 +27,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import MatchesList from "@/components/matches/MatchesList";
+import NearbyTab from "@/components/nearby/NearbyTab";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -161,10 +162,7 @@ const HomePage = () => {
             )}
           </TabsContent>
           <TabsContent value="nearby" className="mt-4 px-4 md:px-0">
-            <div className="space-y-6">
-              <UserStatusCard />
-              <NearbyPeopleList />
-            </div>
+            <NearbyTab />
           </TabsContent>
           {tabs.filter(t => t.value !== 'people' && t.value !== 'nearby').map(tab => (
             <TabsContent key={tab.value} value={tab.value} className="mt-4 px-4 md:px-0">

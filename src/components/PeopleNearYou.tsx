@@ -7,30 +7,59 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
 import { UserPlus } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import type { Database } from "@/integrations/supabase/types";
+import { Link } from "react-router-dom";
 
-const fetchProfiles = async () => {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select(`*`)
-    .not("username", "is", null)
-    .limit(5);
-
-  if (error) {
-    throw new Error(error.message);
-  }
-  return data;
-};
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 const PeopleNearYou = () => {
-  const { data: profiles, isLoading } = useQuery({
-    queryKey: ["profiles_nearby"],
-    queryFn: fetchProfiles
+  const { profile } = useAuth();
+
+  const { data: profiles, isLoading } = useQuery<Profile[]>({
+    queryKey: ["profiles_nearby_sidebar", profile?.id, profile?.latitude, profile?.longitude],
+    queryFn: async () => {
+      if (profile && profile.latitude && profile.longitude) {
+        const { data, error } = await supabase.rpc('get_nearby_users', {
+          p_latitude: profile.latitude,
+          p_longitude: profile.longitude,
+          p_radius_km: 20 // A smaller radius for the sidebar
+        });
+
+        if (error) {
+          console.error("Error fetching nearby users:", error);
+        } else if (data && data.length > 0) {
+          return data;
+        }
+      }
+
+      // Fallback to fetching random profiles
+      const { data, error } = await supabase
+        .from("profiles")
+        .select(`*`)
+        .not("username", "is", null)
+        .not('id', 'eq', profile?.id || '')
+        .limit(5);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+      return data || [];
+    },
+    enabled: !!profile,
   });
+  
+  const getSubtext = (p: Profile) => {
+    if (p.latitude && p.longitude && profile?.latitude && profile?.longitude) {
+        return "Nearby";
+    }
+    return "From the community";
+  }
 
   return (
     <Card className="hidden lg:block">
       <CardHeader>
-        <CardTitle>People Near You</CardTitle>
+        <CardTitle>People You May Like</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {isLoading && [...Array(5)].map((_, i) => (
@@ -43,22 +72,25 @@ const PeopleNearYou = () => {
             <Skeleton className="h-8 w-8" />
           </div>
         ))}
-        {profiles?.map(profile => (
-          <div key={profile.id} className="flex items-center gap-2">
+        {profiles?.map(p => (
+          <Link to={`/profile/${p.id}`} key={p.id} className="flex items-center gap-2 hover:bg-muted/50 p-2 rounded-lg -m-2">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={profile.avatar_url ?? ""} alt={profile.username ?? "avatar"} />
-              <AvatarFallback>{profile.username?.charAt(0).toUpperCase()}</AvatarFallback>
+              <AvatarImage src={p.avatar_url ?? ""} alt={p.username ?? "avatar"} />
+              <AvatarFallback>{p.username?.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <p className="font-semibold text-sm">{profile.username}</p>
-              <p className="text-xs text-muted-foreground">3 km away</p>
+              <p className="font-semibold text-sm">{p.full_name || p.username}</p>
+              <p className="text-xs text-muted-foreground">{getSubtext(p)}</p>
             </div>
             <Badge variant="outline" className="border-orange-400 text-orange-400">Active</Badge>
             <Button variant="ghost" size="icon">
               <UserPlus className="h-4 w-4" />
             </Button>
-          </div>
+          </Link>
         ))}
+        {!isLoading && (!profiles || profiles.length === 0) && (
+             <p className="text-sm text-muted-foreground text-center py-4">Can't find anyone right now.</p>
+         )}
       </CardContent>
     </Card>
   )
