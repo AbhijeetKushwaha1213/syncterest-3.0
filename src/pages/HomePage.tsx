@@ -17,6 +17,7 @@ import {
 import UserStatusCard from "@/components/UserStatusCard";
 import NearbyPeopleList from "@/components/NearbyPeopleList";
 import EventsList from "@/components/events/EventsList";
+import AddStoryButton from "@/components/stories/AddStoryButton";
 
 
 const interests = [
@@ -52,12 +53,7 @@ const HomePage = () => {
     <div className="grid lg:grid-cols-[1fr_350px] gap-6 p-4 md:p-6">
       <div className="flex flex-col gap-6">
         <div className="flex items-center gap-4">
-            <div className="flex flex-col items-center gap-1">
-                <button className="flex items-center justify-center h-16 w-16 bg-muted border-2 border-dashed rounded-full cursor-pointer hover:bg-muted/80">
-                    <span className="text-3xl text-muted-foreground">+</span>
-                </button>
-                <p className="text-xs font-medium text-muted-foreground">Your Story</p>
-            </div>
+            <AddStoryButton />
             <Card className="flex-1 bg-gradient-to-r from-purple-500 to-orange-500 text-primary-foreground border-0">
               <CardContent className="p-4">
                 <h1 className="text-xl font-bold">Good morning! Ready to discover new connections?</h1>
