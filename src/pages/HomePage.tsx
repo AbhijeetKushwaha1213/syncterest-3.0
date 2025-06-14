@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,6 +26,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
+import MatchesList from "@/components/matches/MatchesList";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -168,7 +168,7 @@ const HomePage = () => {
           </TabsContent>
           {tabs.filter(t => t.value !== 'people' && t.value !== 'nearby').map(tab => (
             <TabsContent key={tab.value} value={tab.value} className="mt-4 px-4 md:px-0">
-               {tab.value === 'events' ? <EventsList /> : tab.value === 'groups' ? <GroupsPage /> : <PlaceholderContent tab={tab.label} />}
+               {tab.value === 'events' ? <EventsList /> : tab.value === 'groups' ? <GroupsPage /> : tab.value === 'matches' ? <MatchesList /> : <PlaceholderContent tab={tab.label} />}
             </TabsContent>
           ))}
         </Tabs>

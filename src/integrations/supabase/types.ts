@@ -341,6 +341,10 @@ export type Database = {
         Args: { p_other_user_id: string }
         Returns: string
       }
+      get_matches: {
+        Args: Record<PropertyKey, never>
+        Returns: string[]
+      }
       get_my_conversation_ids: {
         Args: Record<PropertyKey, never>
         Returns: string[]
