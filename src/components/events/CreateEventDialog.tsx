@@ -61,7 +61,8 @@ const CreateEventDialog = () => {
 
   const createEventMutation = useMutation({
     mutationFn: async (newEvent: Omit<EventFormValues, 'event_time'> & { event_time: string; created_by: string }) => {
-      const { data, error } = await supabase.from("events").insert({ ...newEvent, image_url: newEvent.image_url || null }).select().single();
+      const payload = { ...newEvent, image_url: newEvent.image_url || null };
+      const { data, error } = await supabase.from("events").insert(payload).select().single();
       if (error) throw error;
       return data;
     },
