@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,13 +15,18 @@ interface StoryViewerProps {
   onClose: () => void;
   onNextUser: () => void;
   onPrevUser: () => void;
+  initialStoryIndex?: number;
 }
 
-const StoryViewer: React.FC<StoryViewerProps> = ({ userStories, onClose, onNextUser, onPrevUser }) => {
-  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
+const StoryViewer: React.FC<StoryViewerProps> = ({ userStories, onClose, onNextUser, onPrevUser, initialStoryIndex = 0 }) => {
+  const [currentStoryIndex, setCurrentStoryIndex] = useState(initialStoryIndex);
   const [progress, setProgress] = useState(0);
 
   const currentStory = userStories.stories[currentStoryIndex];
+
+  useEffect(() => {
+    setCurrentStoryIndex(initialStoryIndex);
+  }, [initialStoryIndex]);
 
   useEffect(() => {
     setProgress(0);
@@ -37,7 +41,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({ userStories, onClose, onNextU
     }, 100);
 
     return () => clearInterval(timer);
-  }, [currentStoryIndex]);
+  }, [currentStoryIndex, userStories.stories.length]);
 
   useEffect(() => {
     if (progress >= 100) {

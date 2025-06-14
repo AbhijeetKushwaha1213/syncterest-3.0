@@ -4,6 +4,7 @@ import { Tables } from "@/integrations/supabase/types";
 
 export type ProfileWithDetails = Tables<'profiles'> & {
   posts: Tables<'posts'>[];
+  stories: Tables<'stories'>[];
   posts_count: number;
   followers_count: number;
   following_count: number;
@@ -36,6 +37,18 @@ export const fetchProfileData = async (profileId: string, currentUserId?: string
     throw postsError;
   }
 
+  const { data: stories, error: storiesError } = await supabase
+    .from('stories')
+    .select('*')
+    .eq('user_id', profileId)
+    .gt('expires_at', new Date().toISOString())
+    .order('created_at', { ascending: false });
+
+  if (storiesError) {
+    console.error("Error fetching stories:", storiesError);
+    throw storiesError;
+  }
+
   const { count: followersCount, error: followersError } = await supabase
     .from('followers')
     .select('*', { count: 'exact', head: true })
@@ -65,6 +78,7 @@ export const fetchProfileData = async (profileId: string, currentUserId?: string
   return {
     ...profile,
     posts: posts ?? [],
+    stories: stories ?? [],
     posts_count: postsCount ?? 0,
     followers_count: followersCount ?? 0,
     following_count: followingCount ?? 0,
