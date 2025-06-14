@@ -3,8 +3,11 @@ import { Outlet } from "react-router-dom";
 import AppHeader from "./AppHeader";
 import DesktopSidebar from "./DesktopSidebar";
 import MobileBottomNav from "./MobileBottomNav";
+import { usePresence } from "@/hooks/usePresence";
 
 const LoggedInLayout = () => {
+  usePresence();
+
   return (
     <div className="flex min-h-screen w-full bg-background">
       <DesktopSidebar />
