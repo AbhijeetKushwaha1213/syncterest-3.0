@@ -58,7 +58,7 @@ const HomePage = () => {
                 </button>
                 <p className="text-xs font-medium text-muted-foreground">Your Story</p>
             </div>
-            <Card className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-600 text-primary-foreground border-0">
+            <Card className="flex-1 bg-gradient-to-r from-purple-500 to-orange-500 text-primary-foreground border-0">
               <CardContent className="p-4">
                 <h1 className="text-xl font-bold">Good morning! Ready to discover new connections?</h1>
                 <p className="mt-1 text-sm text-primary-foreground/80">
