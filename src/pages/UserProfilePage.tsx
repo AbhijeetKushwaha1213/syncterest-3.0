@@ -1,3 +1,4 @@
+
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Grid3x3, Clapperboard, Tag } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
+import { Tables } from "@/integrations/supabase/types";
 
 const fetchProfileData = async (profileId: string, currentUserId?: string) => {
   if (!profileId) throw new Error("Profile ID is required");
@@ -23,8 +25,16 @@ const fetchProfileData = async (profileId: string, currentUserId?: string) => {
   
   if (!profile) return null;
 
-  // DUMMY posts count for now. Will be implemented next.
-  const postsCount = 123;
+  const { data: posts, count: postsCount, error: postsError } = await supabase
+    .from('posts')
+    .select('*', { count: 'exact' })
+    .eq('user_id', profileId)
+    .order('created_at', { ascending: false });
+
+  if (postsError) {
+    console.error("Error fetching posts:", postsError);
+    throw postsError;
+  }
 
   const { count: followersCount, error: followersError } = await supabase
     .from('followers')
@@ -54,11 +64,20 @@ const fetchProfileData = async (profileId: string, currentUserId?: string) => {
 
   return {
     ...profile,
-    posts_count: postsCount,
+    posts: posts ?? [],
+    posts_count: postsCount ?? 0,
     followers_count: followersCount ?? 0,
     following_count: followingCount ?? 0,
     is_following: isFollowing,
   };
+};
+
+type ProfileWithPosts = Tables<'profiles'> & {
+  posts: Tables<'posts'>[];
+  posts_count: number;
+  followers_count: number;
+  following_count: number;
+  is_following: boolean;
 };
 
 const UserProfilePage = () => {
@@ -68,7 +87,7 @@ const UserProfilePage = () => {
 
   const { data: profile, isLoading, error } = useQuery({
     queryKey: ["profile", id, user?.id],
-    queryFn: () => fetchProfileData(id!, user?.id),
+    queryFn: (): Promise<ProfileWithPosts | null> => fetchProfileData(id!, user?.id),
     enabled: !!id,
   });
 
@@ -149,7 +168,7 @@ const UserProfilePage = () => {
   
   const isOwnProfile = user?.id === profile.id;
 
-  // Dummy data for highlights and posts.
+  // Dummy data for highlights.
   const highlights = [
     { id: 1, label: 'Travel', image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=200&h=200&fit=crop' },
     { id: 2, label: 'Food', image: 'https://images.unsplash.com/photo-1484723050470-264b152abde7?w=200&h=200&fit=crop' },
@@ -157,18 +176,6 @@ const UserProfilePage = () => {
     { id: 4, label: 'Friends', image: 'https://images.unsplash.com/photo-1530541930197-58944de4b33d?w=200&h=200&fit=crop' },
     { id: 5, label: 'Fitness', image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=200&h=200&fit=crop' },
     { id: 6, label: 'Hobbies', image: 'https://images.unsplash.com/photo-1534447677768-64483a0f72d1?w=200&h=200&fit=crop' },
-  ];
-
-  const posts = [
-    { id: 1, imageUrl: `https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=400&h=400&fit=crop` },
-    { id: 2, imageUrl: `https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=400&fit=crop` },
-    { id: 3, imageUrl: `https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=400&fit=crop` },
-    { id: 4, imageUrl: `https://images.unsplash.com/photo-1721322800607-8c38375eef04?w=400&h=400&fit=crop` },
-    { id: 5, imageUrl: `https://images.unsplash.com/photo-1517694712202-1428bc3835b9?w=400&h=400&fit=crop` },
-    { id: 6, imageUrl: `https://images.unsplash.com/photo-1542744095-291d1f69b253?w=400&h=400&fit=crop` },
-    { id: 7, imageUrl: `https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=400&fit=crop` },
-    { id: 8, imageUrl: `https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=400&fit=crop` },
-    { id: 9, imageUrl: `https://images.unsplash.com/photo-1522252234503-e356532cafd5?w=400&h=400&fit=crop` },
   ];
 
   return (
@@ -256,13 +263,13 @@ const UserProfilePage = () => {
         </TabsList>
         <TabsContent value="posts" className="mt-4">
             <div className="grid grid-cols-3 gap-1 md:gap-2">
-                {posts.map(post => (
+                {profile.posts.map(post => (
                     <div key={post.id} className="aspect-square bg-muted overflow-hidden rounded-md">
-                        <img src={post.imageUrl} alt="Post" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"/>
+                        <img src={post.image_url} alt={post.caption || "Post"} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"/>
                     </div>
                 ))}
             </div>
-             {posts.length === 0 && <p className="text-muted-foreground text-center mt-8 text-sm">No posts yet.</p>}
+             {profile.posts.length === 0 && <p className="text-muted-foreground text-center mt-8 text-sm">No posts yet.</p>}
         </TabsContent>
         <TabsContent value="reels">
             <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
