@@ -95,3 +95,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* For hiding scrollbar in highlights */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
