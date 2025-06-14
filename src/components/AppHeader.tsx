@@ -21,7 +21,7 @@ const AppHeader = () => {
           <Settings className="h-5 w-5" />
         </Button>
       </Link>
-      <Link to="/account">
+      <Link to={profile ? `/profile/${profile.id}` : "/account"}>
         <Avatar className="h-9 w-9">
           <AvatarImage src={profile?.avatar_url ?? ""} alt={profile?.username ?? "avatar"} />
           <AvatarFallback>{profile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
