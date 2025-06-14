@@ -1,24 +1,48 @@
 
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
+  const { session, loading } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <header className="px-4 lg:px-6 h-14 flex items-center">
         <Link to="/" className="flex items-center justify-center">
           <span className="text-xl font-bold">Spark</span>
         </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link
-            to="/login"
-            className="text-sm font-medium hover:underline underline-offset-4"
-          >
-            Login
-          </Link>
-          <Link to="/signup">
-            <Button variant="outline">Sign Up</Button>
-          </Link>
+        <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
+          {loading ? (
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-6 w-12" />
+              <Skeleton className="h-9 w-20" />
+            </div>
+          ) : session ? (
+            <Button onClick={handleLogout} variant="outline">
+              Logout
+            </Button>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="text-sm font-medium hover:underline underline-offset-4"
+              >
+                Login
+              </Link>
+              <Link to="/signup">
+                <Button variant="outline">Sign Up</Button>
+              </Link>
+            </>
+          )}
         </nav>
       </header>
       <main className="flex-1">
