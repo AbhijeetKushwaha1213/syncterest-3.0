@@ -1,4 +1,3 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -83,13 +82,13 @@ const AccountPage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Card className="w-full max-w-2xl">
+      <div className="p-4 md:p-6">
+        <Card className="w-full max-w-2xl mx-auto">
           <CardHeader>
             <Skeleton className="h-8 w-1/4" />
             <Skeleton className="h-4 w-1/2" />
           </CardHeader>
-          <CardContent className="space-y-8">
+          <CardContent className="space-y-8 pt-6">
             <div className="space-y-2">
               <Skeleton className="h-4 w-24" />
               <Skeleton className="h-10 w-full" />
@@ -143,8 +142,8 @@ const AccountPage = () => {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background p-4">
-      <Card className="w-full max-w-2xl">
+    <div className="p-4 md:p-6">
+      <Card className="w-full max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle>Account</CardTitle>
           <CardDescription>
@@ -257,7 +256,7 @@ const AccountPage = () => {
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={formLoading || loading}>
+              <Button type="submit" disabled={formLoading || !profile}>
                 {formLoading ? 'Saving...' : 'Update profile'}
               </Button>
             </form>

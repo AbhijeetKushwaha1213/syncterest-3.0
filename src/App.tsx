@@ -9,6 +9,10 @@ import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/Login";
 import SignUpPage from "./pages/SignUp";
 import AccountPage from "./pages/Account";
+import HomePage from "./pages/HomePage";
+import ChatPage from "./pages/ChatPage";
+import UserProfilePage from "./pages/UserProfilePage";
+import LoggedInLayout from "./components/LoggedInLayout";
 
 const queryClient = new QueryClient();
 
@@ -22,7 +26,14 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
-          <Route path="/account" element={<AccountPage />} />
+
+          <Route element={<LoggedInLayout />}>
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/chat" element={<ChatPage />} />
+            <Route path="/account" element={<AccountPage />} />
+            <Route path="/profile/:id" element={<UserProfilePage />} />
+          </Route>
+
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

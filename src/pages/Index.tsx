@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,8 +19,18 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && session && !profile?.username) {
-      navigate('/account');
+    if (loading) return; // Wait until auth state is determined
+
+    if (session) {
+      // If a session exists, we shouldn't be on the landing page.
+      if (profile?.username) {
+        navigate('/home');
+      } else {
+        // This can happen briefly while profile is loading, or if profile is incomplete.
+        // useAuth hook will eventually provide the profile. If it's incomplete,
+        // the user is stuck on /account until it's fixed.
+        navigate('/account');
+      }
     }
   }, [loading, session, profile, navigate]);
 
@@ -29,6 +38,16 @@ const Index = () => {
     await supabase.auth.signOut();
     navigate("/");
   };
+  
+  // While loading or if logged in, show a spinner/loader.
+  // The useEffect above will handle redirection.
+  if (loading || session) {
+    return (
+       <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -37,52 +56,17 @@ const Index = () => {
           <span className="text-xl font-bold">Spark</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
-          {loading ? (
-            <div className="flex items-center gap-4">
-              <Skeleton className="h-9 w-9 rounded-full" />
-            </div>
-          ) : session ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage src={profile?.avatar_url ?? ""} alt={profile?.username ?? "user avatar"} />
-                    <AvatarFallback>{profile?.username?.charAt(0).toUpperCase() ?? user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{profile?.full_name || profile?.username}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user?.email}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/account">Account</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <>
-              <Link
-                to="/login"
-                className="text-sm font-medium hover:underline underline-offset-4"
-              >
-                Login
-              </Link>
-              <Link to="/signup">
-                <Button variant="outline">Sign Up</Button>
-              </Link>
-            </>
-          )}
+          <>
+            <Link
+              to="/login"
+              className="text-sm font-medium hover:underline underline-offset-4"
+            >
+              Login
+            </Link>
+            <Link to="/signup">
+              <Button variant="outline">Sign Up</Button>
+            </Link>
+          </>
         </nav>
       </header>
       <main className="flex-1">
