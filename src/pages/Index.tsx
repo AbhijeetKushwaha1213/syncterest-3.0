@@ -4,10 +4,26 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useEffect } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Index = () => {
-  const { session, loading } = useAuth();
+  const { session, user, profile, loading } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && session && !profile?.username) {
+      navigate('/account');
+    }
+  }, [loading, session, profile, navigate]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -23,13 +39,37 @@ const Index = () => {
         <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
           {loading ? (
             <div className="flex items-center gap-4">
-              <Skeleton className="h-6 w-12" />
-              <Skeleton className="h-9 w-20" />
+              <Skeleton className="h-9 w-9 rounded-full" />
             </div>
           ) : session ? (
-            <Button onClick={handleLogout} variant="outline">
-              Logout
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={profile?.avatar_url ?? ""} alt={profile?.username ?? "user avatar"} />
+                    <AvatarFallback>{profile?.username?.charAt(0).toUpperCase() ?? user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{profile?.full_name || profile?.username}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user?.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/account">Account</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <>
               <Link
