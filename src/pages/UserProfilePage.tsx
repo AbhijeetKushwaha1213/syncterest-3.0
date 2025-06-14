@@ -6,7 +6,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { fetchProfileData, ProfileWithDetails } from "@/api/profiles";
 import { UserProfileSkeleton } from "@/features/profile/components/UserProfileSkeleton";
 import { ProfileHeader } from "@/features/profile/components/ProfileHeader";
-import { ProfileBio } from "@/features/profile/components/ProfileBio";
 import { StoryHighlights } from "@/features/profile/components/StoryHighlights";
 import { ProfileTabs } from "@/features/profile/components/ProfileTabs";
 import { InterestsSection } from "@/features/profile/components/InterestsSection";
@@ -49,8 +48,6 @@ const UserProfilePage = () => {
        </Button>
        
        <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} />
-
-       <ProfileBio profile={profile} />
 
        <StoryHighlights profile={profile} />
        

@@ -52,6 +52,9 @@ export const StoryHighlights = ({ profile }: StoryHighlightsProps) => {
                   <AvatarFallback>{index + 1}</AvatarFallback>
                 </Avatar>
               </button>
+              <p className="text-xs font-medium text-muted-foreground mt-1.5 truncate">
+                Highlight {index + 1}
+              </p>
             </div>
           ))}
         </div>

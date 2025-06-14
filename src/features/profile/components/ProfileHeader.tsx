@@ -58,51 +58,110 @@ export const ProfileHeader = ({ profile, isOwnProfile }: ProfileHeaderProps) => 
     }
   });
 
-  return (
-    <header className="flex flex-col md:flex-row items-center gap-8 md:gap-16 mb-8">
-      <div className="p-1 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 shrink-0">
-        <Avatar className="w-32 h-32 md:w-40 md:h-40 border-4 border-background">
-          <AvatarImage src={profile.avatar_url ?? ""} alt={profile.username ?? "avatar"} />
-          <AvatarFallback className="text-5xl">{profile.username?.charAt(0).toUpperCase()}</AvatarFallback>
-        </Avatar>
+  const Stats = () => (
+    <>
+      <div className="text-center">
+        <p className="font-bold text-lg">{profile.posts_count}</p>
+        <p className="text-sm text-muted-foreground">posts</p>
       </div>
-      <div className="flex flex-col gap-4 items-center md:items-start">
-        <h1 className="text-2xl md:text-3xl font-light">{profile.username}</h1>
-        <div className="flex gap-4">
+      <div className="text-center">
+        <p className="font-bold text-lg">{profile.followers_count}</p>
+        <p className="text-sm text-muted-foreground">followers</p>
+      </div>
+      <div className="text-center">
+        <p className="font-bold text-lg">{profile.following_count}</p>
+        <p className="text-sm text-muted-foreground">following</p>
+      </div>
+    </>
+  );
+
+  const Bio = () => (
+    <div>
+      {profile.full_name && <h2 className="font-semibold text-lg md:text-base">{profile.full_name}</h2>}
+      <p className="text-muted-foreground mt-1 whitespace-pre-wrap text-sm">{profile.bio || "No bio provided."}</p>
+    </div>
+  );
+
+  return (
+    <header className="mb-8">
+      {/* Desktop layout */}
+      <div className="hidden md:flex flex-row items-center gap-16">
+        <div className="shrink-0">
+          <Avatar className="w-40 h-40">
+            <AvatarImage src={profile.avatar_url ?? ""} alt={profile.username ?? "avatar"} />
+            <AvatarFallback className="text-5xl">{profile.username?.charAt(0).toUpperCase()}</AvatarFallback>
+          </Avatar>
+        </div>
+        <div className="flex flex-col gap-4 flex-grow">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-light">{profile.username}</h1>
+            <div className="flex gap-2">
+              {isOwnProfile ? (
+                <Button asChild variant="outline">
+                  <Link to="/account">Edit Profile</Link>
+                </Button>
+              ) : (
+                <>
+                  <Button onClick={() => sendMessageMutation.mutate()} disabled={sendMessageMutation.isPending}>
+                    {sendMessageMutation.isPending ? 'Starting...' : 'Message'}
+                  </Button>
+                  {profile.is_following ? (
+                    <Button variant="outline" onClick={() => unfollowMutation.mutate()} disabled={unfollowMutation.isPending}>
+                      {unfollowMutation.isPending ? 'Unfollowing...' : 'Unfollow'}
+                    </Button>
+                  ) : (
+                    <Button onClick={() => followMutation.mutate()} disabled={followMutation.isPending}>
+                      {followMutation.isPending ? 'Following...' : 'Follow'}
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-8">
+            <Stats />
+          </div>
+          <Bio />
+        </div>
+      </div>
+
+      {/* Mobile layout */}
+      <div className="md:hidden">
+        <div className="flex items-center gap-4">
+          <div className="shrink-0">
+            <Avatar className="w-20 h-20">
+              <AvatarImage src={profile.avatar_url ?? ""} alt={profile.username ?? "avatar"} />
+              <AvatarFallback className="text-3xl">{profile.username?.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+          </div>
+          <div className="flex-grow flex justify-around">
+            <Stats />
+          </div>
+        </div>
+        <div className="mt-4">
+          <Bio />
+        </div>
+        <div className="flex gap-2 mt-4 w-full">
           {isOwnProfile ? (
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" className="flex-1">
               <Link to="/account">Edit Profile</Link>
             </Button>
           ) : (
             <>
-              <Button onClick={() => sendMessageMutation.mutate()} disabled={sendMessageMutation.isPending}>
-                {sendMessageMutation.isPending ? 'Starting chat...' : 'Send Message'}
+              <Button onClick={() => sendMessageMutation.mutate()} disabled={sendMessageMutation.isPending} className="flex-1">
+                {sendMessageMutation.isPending ? 'Starting...' : 'Message'}
               </Button>
               {profile.is_following ? (
-                <Button variant="outline" onClick={() => unfollowMutation.mutate()} disabled={unfollowMutation.isPending}>
+                <Button variant="outline" onClick={() => unfollowMutation.mutate()} disabled={unfollowMutation.isPending} className="flex-1">
                   {unfollowMutation.isPending ? 'Unfollowing...' : 'Unfollow'}
                 </Button>
               ) : (
-                <Button onClick={() => followMutation.mutate()} disabled={followMutation.isPending}>
+                <Button onClick={() => followMutation.mutate()} disabled={followMutation.isPending} className="flex-1">
                   {followMutation.isPending ? 'Following...' : 'Follow'}
                 </Button>
               )}
             </>
           )}
-        </div>
-        <div className="flex gap-8 mt-4">
-          <div className="text-center">
-            <p className="font-bold text-lg">{profile.posts_count}</p>
-            <p className="text-sm text-muted-foreground">posts</p>
-          </div>
-          <div className="text-center">
-            <p className="font-bold text-lg">{profile.followers_count}</p>
-            <p className="text-sm text-muted-foreground">followers</p>
-          </div>
-          <div className="text-center">
-            <p className="font-bold text-lg">{profile.following_count}</p>
-            <p className="text-sm text-muted-foreground">following</p>
-          </div>
         </div>
       </div>
     </header>
