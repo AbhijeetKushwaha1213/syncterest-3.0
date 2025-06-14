@@ -1,7 +1,7 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ProfileGrid from "@/components/ProfileGrid";
 import PeopleNearYou from "@/components/PeopleNearYou";
 import {
   Flame, Dumbbell, Utensils, Palette, Music, CalendarDays, Gamepad2, Bike,
@@ -20,7 +20,15 @@ import NearbyPeopleList from "@/components/NearbyPeopleList";
 import EventsList from "@/components/events/EventsList";
 import StoriesList from "@/components/stories/StoriesList";
 import GroupsPage from "@/components/groups/GroupsPage";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+import { Toggle } from "@/components/ui/toggle";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Link } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 const interests = [
   { name: "Tech", icon: Flame },
@@ -51,6 +59,27 @@ const PlaceholderContent = ({ tab }: { tab: string }) => (
 
 
 const HomePage = () => {
+  const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
+
+  const { data: profiles, isLoading: isLoadingProfiles } = useQuery<Profile[]>({
+    queryKey: ['profiles', selectedInterest],
+    queryFn: async () => {
+      let query = supabase.from('profiles').select('*').not('username', 'is', null);
+
+      if (selectedInterest) {
+        query = query.contains('interests', [selectedInterest]);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const handleInterestClick = (interest: string) => {
+    setSelectedInterest(prev => prev === interest ? null : interest);
+  };
+
   return (
     <div className="grid lg:grid-cols-[1fr_350px] gap-6 md:gap-8">
       <div className="flex flex-col gap-6">
@@ -60,10 +89,16 @@ const HomePage = () => {
             <h2 className="text-lg font-semibold">Interests</h2>
             <div className="flex flex-wrap gap-2">
                 {interests.map(interest => (
-                    <Button key={interest.name} variant="outline" className="gap-2 rounded-full">
+                    <Toggle
+                        key={interest.name}
+                        pressed={selectedInterest === interest.name}
+                        onPressedChange={() => handleInterestClick(interest.name)}
+                        variant="outline"
+                        className="gap-2 rounded-full data-[state=on]:bg-primary data-[state=on]:text-primary-foreground hover:bg-muted/80"
+                    >
                         <interest.icon className="h-4 w-4" />
                         {interest.name}
-                    </Button>
+                    </Toggle>
                 ))}
             </div>
         </div>
@@ -92,7 +127,38 @@ const HomePage = () => {
             </div>
           </div>
           <TabsContent value="people" className="mt-4">
-            <ProfileGrid />
+            {isLoadingProfiles && (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-4 md:px-0">
+                {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-56 w-full" />)}
+              </div>
+            )}
+            {!isLoadingProfiles && profiles && profiles.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-4 md:px-0">
+                {profiles.map(profile => (
+                  <Card key={profile.id} className="overflow-hidden">
+                    <CardContent className="p-0 text-center">
+                      <Link to={`/profile/${profile.id}`}>
+                        <Avatar className="h-32 w-full rounded-none">
+                          <AvatarImage src={profile.avatar_url || `https://avatar.vercel.sh/${profile.username}`} alt={profile.full_name || profile.username || 'user'} className="object-cover" />
+                          <AvatarFallback className="rounded-none">{(profile.full_name || profile.username || 'U').charAt(0)}</AvatarFallback>
+                        </Avatar>
+                      </Link>
+                      <div className="p-4">
+                        <Link to={`/profile/${profile.id}`}>
+                          <h3 className="font-semibold text-base truncate">{profile.full_name || profile.username}</h3>
+                        </Link>
+                        <p className="text-xs text-muted-foreground h-8 overflow-hidden">{profile.bio || ''}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+            {!isLoadingProfiles && (!profiles || profiles.length === 0) && (
+              <div className="flex items-center justify-center h-64 border-2 border-dashed rounded-lg mt-4">
+                <p className="text-muted-foreground">No profiles found for this interest.</p>
+              </div>
+            )}
           </TabsContent>
           <TabsContent value="nearby" className="mt-4 px-4 md:px-0">
             <div className="space-y-6">
