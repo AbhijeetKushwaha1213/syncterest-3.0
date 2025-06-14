@@ -62,6 +62,7 @@ const AddStoryButton = () => {
                 description: 'Your story has been added.',
             });
             queryClient.invalidateQueries({ queryKey: ['stories'] });
+            queryClient.invalidateQueries({ queryKey: ['profile'] });
         } catch (error: any) {
             toast({
                 title: 'Error uploading story',
