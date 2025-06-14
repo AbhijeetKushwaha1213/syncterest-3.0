@@ -203,10 +203,12 @@ const UserProfilePage = () => {
        </Button>
        
        <header className="flex flex-col md:flex-row items-center gap-8 md:gap-16 mb-8">
-        <Avatar className="w-32 h-32 md:w-40 md:h-40 border-4 border-background ring-2 ring-primary shrink-0">
-            <AvatarImage src={profile.avatar_url ?? ""} alt={profile.username ?? "avatar"} />
-            <AvatarFallback className="text-5xl">{profile.username?.charAt(0).toUpperCase()}</AvatarFallback>
-        </Avatar>
+        <div className="p-1 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 shrink-0">
+          <Avatar className="w-32 h-32 md:w-40 md:h-40 border-4 border-background">
+              <AvatarImage src={profile.avatar_url ?? ""} alt={profile.username ?? "avatar"} />
+              <AvatarFallback className="text-5xl">{profile.username?.charAt(0).toUpperCase()}</AvatarFallback>
+          </Avatar>
+        </div>
         <div className="flex flex-col gap-4 items-center md:items-start">
             <h1 className="text-2xl md:text-3xl font-light">{profile.username}</h1>
             <div className="flex gap-4">
@@ -233,15 +235,15 @@ const UserProfilePage = () => {
             </div>
             <div className="flex gap-8 mt-4">
                 <div className="text-center">
-                  <p className="font-semibold text-lg">{profile.posts_count}</p>
+                  <p className="font-bold text-lg">{profile.posts_count}</p>
                   <p className="text-sm text-muted-foreground">posts</p>
                 </div>
                 <div className="text-center">
-                  <p className="font-semibold text-lg">{profile.followers_count}</p>
+                  <p className="font-bold text-lg">{profile.followers_count}</p>
                   <p className="text-sm text-muted-foreground">followers</p>
                 </div>
                 <div className="text-center">
-                  <p className="font-semibold text-lg">{profile.following_count}</p>
+                  <p className="font-bold text-lg">{profile.following_count}</p>
                   <p className="text-sm text-muted-foreground">following</p>
                 </div>
             </div>
