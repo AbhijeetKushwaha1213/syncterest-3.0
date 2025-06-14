@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProfileGrid from "@/components/ProfileGrid";
@@ -18,6 +19,7 @@ import UserStatusCard from "@/components/UserStatusCard";
 import NearbyPeopleList from "@/components/NearbyPeopleList";
 import EventsList from "@/components/events/EventsList";
 import StoriesList from "@/components/stories/StoriesList";
+import GroupsPage from "@/components/groups/GroupsPage";
 
 
 const interests = [
@@ -100,7 +102,7 @@ const HomePage = () => {
           </TabsContent>
           {tabs.filter(t => t.value !== 'people' && t.value !== 'nearby').map(tab => (
             <TabsContent key={tab.value} value={tab.value} className="mt-4 px-4 md:px-0">
-               {tab.value === 'events' ? <EventsList /> : <PlaceholderContent tab={tab.label} />}
+               {tab.value === 'events' ? <EventsList /> : tab.value === 'groups' ? <GroupsPage /> : <PlaceholderContent tab={tab.label} />}
             </TabsContent>
           ))}
         </Tabs>
