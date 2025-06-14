@@ -1,33 +1,98 @@
-
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Grid3x3, Clapperboard, Tag } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/hooks/useAuth";
 
-const fetchProfileById = async (id: string) => {
-  const { data, error } = await supabase
+const fetchProfileData = async (profileId: string, currentUserId?: string) => {
+  if (!profileId) throw new Error("Profile ID is required");
+
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select(`*`)
-    .eq("id", id)
+    .eq("id", profileId)
     .single();
 
-  if (error && error.code !== 'PGRST116') {
-    throw new Error(error.message);
+  if (profileError && profileError.code !== 'PGRST116') {
+    throw profileError;
   }
-  return data;
+  
+  if (!profile) return null;
+
+  // DUMMY posts count for now. Will be implemented next.
+  const postsCount = 123;
+
+  const { count: followersCount, error: followersError } = await supabase
+    .from('followers')
+    .select('*', { count: 'exact', head: true })
+    .eq('following_id', profileId);
+  
+  if (followersError) throw followersError;
+  
+  const { count: followingCount, error: followingError } = await supabase
+    .from('followers')
+    .select('*', { count: 'exact', head: true })
+    .eq('follower_id', profileId);
+
+  if (followingError) throw followingError;
+
+  let isFollowing = false;
+  if (currentUserId && currentUserId !== profileId) {
+      const { data: followship, error: isFollowingError } = await supabase
+          .from('followers')
+          .select('follower_id')
+          .eq('follower_id', currentUserId)
+          .eq('following_id', profileId)
+          .maybeSingle();
+      if(isFollowingError) throw isFollowingError;
+      isFollowing = !!followship;
+  }
+
+  return {
+    ...profile,
+    posts_count: postsCount,
+    followers_count: followersCount ?? 0,
+    following_count: followingCount ?? 0,
+    is_following: isFollowing,
+  };
 };
 
 const UserProfilePage = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: profile, isLoading, error } = useQuery({
-    queryKey: ["profile", id],
-    queryFn: () => fetchProfileById(id!),
+    queryKey: ["profile", id, user?.id],
+    queryFn: () => fetchProfileData(id!, user?.id),
     enabled: !!id,
+  });
+
+  const followMutation = useMutation({
+    mutationFn: async () => {
+        if (!user || !id) throw new Error("User or profile ID is missing");
+        if (user.id === id) throw new Error("You cannot follow yourself");
+        const { error } = await supabase.from('followers').insert({ follower_id: user.id, following_id: id });
+        if (error) throw error;
+    },
+    onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['profile', id] });
+    }
+  });
+
+  const unfollowMutation = useMutation({
+      mutationFn: async () => {
+          if (!user || !id) throw new Error("User or profile ID is missing");
+          const { error } = await supabase.from('followers').delete().match({ follower_id: user.id, following_id: id });
+          if (error) throw error;
+      },
+      onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['profile', id] });
+      }
   });
 
   if (isLoading) {
@@ -81,14 +146,10 @@ const UserProfilePage = () => {
        </div>
     );
   }
+  
+  const isOwnProfile = user?.id === profile.id;
 
-  // Dummy data for stats, as this is not in the database yet.
-  const stats = {
-    posts: 123,
-    followers: 4567,
-    following: 890,
-  };
-
+  // Dummy data for highlights and posts.
   const highlights = [
     { id: 1, label: 'Travel', image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=200&h=200&fit=crop' },
     { id: 2, label: 'Food', image: 'https://images.unsplash.com/photo-1484723050470-264b152abde7?w=200&h=200&fit=crop' },
@@ -124,20 +185,36 @@ const UserProfilePage = () => {
         <div className="flex flex-col gap-4 items-center md:items-start">
             <h1 className="text-2xl md:text-3xl font-light">{profile.username}</h1>
             <div className="flex gap-4">
-                <Button>Send Message</Button>
-                <Button variant="outline">Follow</Button>
+                {isOwnProfile ? (
+                  <Button asChild variant="outline">
+                    <Link to="/account">Edit Profile</Link>
+                  </Button>
+                ) : (
+                  <>
+                    <Button>Send Message</Button>
+                    {profile.is_following ? (
+                      <Button variant="outline" onClick={() => unfollowMutation.mutate()} disabled={unfollowMutation.isPending}>
+                        {unfollowMutation.isPending ? 'Unfollowing...' : 'Unfollow'}
+                      </Button>
+                    ) : (
+                      <Button onClick={() => followMutation.mutate()} disabled={followMutation.isPending}>
+                        {followMutation.isPending ? 'Following...' : 'Follow'}
+                      </Button>
+                    )}
+                  </>
+                )}
             </div>
             <div className="flex gap-8 mt-4">
                 <div className="text-center">
-                  <p className="font-semibold text-lg">{stats.posts}</p>
+                  <p className="font-semibold text-lg">{profile.posts_count}</p>
                   <p className="text-sm text-muted-foreground">posts</p>
                 </div>
                 <div className="text-center">
-                  <p className="font-semibold text-lg">{stats.followers}</p>
+                  <p className="font-semibold text-lg">{profile.followers_count}</p>
                   <p className="text-sm text-muted-foreground">followers</p>
                 </div>
                 <div className="text-center">
-                  <p className="font-semibold text-lg">{stats.following}</p>
+                  <p className="font-semibold text-lg">{profile.following_count}</p>
                   <p className="text-sm text-muted-foreground">following</p>
                 </div>
             </div>
