@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { Home, MessageCircle, User } from "lucide-react";
+import { Home, MessageCircle, User, Hash } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -13,6 +13,7 @@ const MobileBottomNav = () => {
     const navItems = [
         { href: "/home", icon: Home, label: "Home" },
         { href: "/chat", icon: MessageCircle, label: "Chat" },
+        { href: "/channels", icon: Hash, label: "Channels" },
         { href: profileLink, icon: User, label: "Profile" },
     ];
 

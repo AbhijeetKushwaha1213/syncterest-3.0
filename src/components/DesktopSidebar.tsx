@@ -1,6 +1,6 @@
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, LogOut, MessageCircle, Settings, User } from "lucide-react";
+import { Home, LogOut, MessageCircle, Settings, User, Hash } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +21,7 @@ const DesktopSidebar = () => {
   const navItems = [
     { href: "/home", icon: Home, label: "Home" },
     { href: "/chat", icon: MessageCircle, label: "Chat" },
+    { href: "/channels", icon: Hash, label: "Channels" },
     { href: profileLink, icon: User, label: "Profile" },
   ];
 
@@ -38,7 +39,10 @@ const DesktopSidebar = () => {
             to={item.href}
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-muted hover:text-primary",
-              (location.pathname === item.href || (item.label === 'Profile' && location.pathname.startsWith('/profile'))) && "bg-muted text-primary"
+              (location.pathname.startsWith(item.href) && item.href !== "/home") ||
+              (location.pathname === item.href) ||
+              (item.label === 'Profile' && location.pathname.startsWith('/profile')) && 
+              "bg-muted text-primary"
             )}
           >
             <item.icon className="h-5 w-5" />

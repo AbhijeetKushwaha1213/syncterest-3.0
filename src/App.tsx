@@ -13,6 +13,7 @@ import HomePage from "./pages/HomePage";
 import ChatPage from "./pages/ChatPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import LoggedInLayout from "./components/LoggedInLayout";
+import ChannelsPage from "./pages/ChannelsPage";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
           <Route element={<LoggedInLayout />}>
             <Route path="/home" element={<HomePage />} />
             <Route path="/chat" element={<ChatPage />} />
+            <Route path="/channels" element={<ChannelsPage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/profile/:id" element={<UserProfilePage />} />
           </Route>
