@@ -5,7 +5,7 @@ import ProfileGrid from "@/components/ProfileGrid";
 import PeopleNearYou from "@/components/PeopleNearYou";
 import {
   Flame, Dumbbell, Utensils, Palette, Music, CalendarDays, Gamepad2, Bike,
-  Users, MapPin, Wifi, Star, UserCog, MapPinned
+  Users, MapPin, Wifi, Star, UserCog,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -15,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import UserStatusCard from "@/components/UserStatusCard";
+import NearbyPeopleList from "@/components/NearbyPeopleList";
 
 
 const interests = [
@@ -104,7 +106,13 @@ const HomePage = () => {
           <TabsContent value="people" className="mt-4">
             <ProfileGrid />
           </TabsContent>
-          {tabs.filter(t => t.value !== 'people').map(tab => (
+          <TabsContent value="nearby" className="mt-4">
+            <div className="space-y-6">
+              <UserStatusCard />
+              <NearbyPeopleList />
+            </div>
+          </TabsContent>
+          {tabs.filter(t => t.value !== 'people' && t.value !== 'nearby').map(tab => (
             <TabsContent key={tab.value} value={tab.value}>
                <PlaceholderContent tab={tab.label} />
             </TabsContent>
