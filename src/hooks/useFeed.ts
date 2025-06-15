@@ -16,7 +16,7 @@ export const useFeed = (selectedInterest: string | null) => {
     if (friendsError) {
       console.error('Error fetching friends:', friendsError);
     }
-    const friendIds = (friendIdsData as string[]) || [];
+    const friendIds = (friendIdsData?.map(match => match.profile_id)) || [];
 
     // 2. Build privacy filter
     // The feed should contain content from:
