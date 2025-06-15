@@ -9,7 +9,7 @@ export const usePresence = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) return;
 
     const channel = supabase.channel(CHANNEL_NAME, {
       config: {
