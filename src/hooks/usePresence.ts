@@ -28,5 +28,5 @@ export const usePresence = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user?.id]);
 };

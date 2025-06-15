@@ -2,7 +2,7 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead, Notification } from '@/api/notifications';
 import { useAuth } from './useAuth';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/components/ui/use-toast";
 
@@ -17,8 +17,13 @@ export const useNotifications = () => {
     enabled: !!user,
   });
 
+  const toastRef = useRef(toast);
   useEffect(() => {
-    if (!user) return;
+    toastRef.current = toast;
+  });
+
+  useEffect(() => {
+    if (!user?.id) return;
 
     const channel = supabase.channel('public:notifications')
       .on<Notification>(
@@ -26,7 +31,7 @@ export const useNotifications = () => {
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
         (payload) => {
           queryClient.invalidateQueries({ queryKey: ['notifications'] });
-          toast({
+          toastRef.current({
             title: "New Notification",
             description: "You have a new notification.",
           });
@@ -37,7 +42,7 @@ export const useNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, queryClient, toast]);
+  }, [user?.id, queryClient]);
 
   const markAsReadMutation = useMutation({
     mutationFn: markNotificationAsRead,
