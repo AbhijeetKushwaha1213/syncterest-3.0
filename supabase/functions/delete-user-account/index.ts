@@ -51,15 +51,18 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    for (const { table, column } of userRelatedTables) {
-      const { error: deleteError } = await adminSupabaseClient
-        .from(table)
-        .delete()
-        .eq(column, userId);
+    // Use Promise.all to run deletions in parallel for better performance
+    const deletePromises = userRelatedTables.map(({ table, column }) =>
+      adminSupabaseClient.from(table).delete().eq(column, userId)
+    );
 
-      if (deleteError) {
-        console.error(`Error deleting from ${table} for user ${userId}:`, deleteError);
-      }
+    const deleteResults = await Promise.all(deletePromises);
+
+    // Abort if any deletion failed to ensure data consistency
+    const deleteErrors = deleteResults.map((res) => res.error).filter(Boolean);
+    if (deleteErrors.length > 0) {
+      deleteErrors.forEach((error) => console.error('Error deleting user data:', error));
+      throw new Error('Failed to delete some user data. Account deletion aborted to prevent orphaned data.');
     }
     
     const { error: authUserDeleteError } = await adminSupabaseClient.auth.admin.deleteUser(userId);
@@ -79,4 +82,3 @@ Deno.serve(async (req) => {
     });
   }
 });
-
