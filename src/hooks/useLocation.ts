@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -107,14 +106,14 @@ export const useLocation = () => {
             },
             {
               enableHighAccuracy: false,
-              timeout: 10000,
+              timeout: 20000,
               maximumAge: 60000,
             }
           );
         },
         {
           enableHighAccuracy: true,
-          timeout: 10000,
+          timeout: 20000,
           maximumAge: 0,
         }
       );
@@ -125,4 +124,3 @@ export const useLocation = () => {
 
   return { error, loading, getLocation, hasLocation, profileLocation: { latitude: profile?.latitude, longitude: profile?.longitude } };
 };
-
