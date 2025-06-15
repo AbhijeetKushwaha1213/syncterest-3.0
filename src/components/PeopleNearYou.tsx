@@ -69,24 +69,25 @@ const PeopleNearYou = () => {
               <Skeleton className="h-4 w-24" />
               <Skeleton className="h-3 w-16" />
             </div>
-            <Skeleton className="h-8 w-8" />
+            <Skeleton className="h-8 w-24" />
           </div>
         ))}
         {profiles?.map(p => (
-          <Link to={`/profile/${p.id}`} key={p.id} className="flex items-center gap-2 hover:bg-muted/50 p-2 rounded-lg -m-2">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={p.avatar_url ?? ""} alt={p.username ?? "avatar"} />
-              <AvatarFallback>{p.username?.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
+          <div key={p.id} className="flex items-center gap-4">
+             <Link to={`/profile/${p.id}`}>
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={p.avatar_url ?? ""} alt={p.username ?? "avatar"} />
+                <AvatarFallback>{p.username?.charAt(0).toUpperCase()}</AvatarFallback>
+              </Avatar>
+            </Link>
             <div className="flex-1">
-              <p className="font-semibold text-sm">{p.full_name || p.username}</p>
+              <Link to={`/profile/${p.id}`} className="font-semibold text-sm hover:underline">{p.full_name || p.username}</Link>
               <p className="text-xs text-muted-foreground">{getSubtext(p)}</p>
             </div>
-            <Badge variant="outline" className="border-orange-400 text-orange-400">Active</Badge>
-            <Button variant="ghost" size="icon">
-              <UserPlus className="h-4 w-4" />
+            <Button variant="secondary" size="sm" className="whitespace-nowrap">
+              Connect
             </Button>
-          </Link>
+          </div>
         ))}
         {!isLoading && (!profiles || profiles.length === 0) && (
              <p className="text-sm text-muted-foreground text-center py-4">Can't find anyone right now.</p>

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,6 +29,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import MatchesList from "@/components/matches/MatchesList";
 import NearbyTab from "@/components/nearby/NearbyTab";
 import LiveUsersTab from "@/components/live/LiveUsersTab";
+import { useAuth } from "@/hooks/useAuth";
+import UserCard from "@/components/UserCard";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -63,6 +64,7 @@ const PlaceholderContent = ({ tab }: { tab: string }) => (
 
 const HomePage = () => {
   const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
+  const { profile: currentUserProfile } = useAuth();
 
   const { data: profiles, isLoading: isLoadingProfiles } = useQuery<Profile[]>({
     queryKey: ['profiles', selectedInterest],
@@ -86,6 +88,14 @@ const HomePage = () => {
   return (
     <div className="grid lg:grid-cols-[1fr_350px] gap-6 md:gap-8">
       <div className="flex flex-col gap-6">
+        {currentUserProfile && (
+            <Card className="bg-gradient-to-r from-primary to-purple-600 border-none text-primary-foreground">
+              <CardContent className="p-6">
+                <h1 className="text-2xl font-bold">Welcome back, {currentUserProfile.full_name || currentUserProfile.username}!</h1>
+                <p className="opacity-80 mt-1">Ready to meet, create, and connect? Explore people and events happening around you.</p>
+              </CardContent>
+            </Card>
+        )}
         <StoriesList />
 
         <div className="space-y-3 px-4 md:px-0">
@@ -132,28 +142,13 @@ const HomePage = () => {
           <TabsContent value="people" className="mt-4">
             {isLoadingProfiles && (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-4 md:px-0">
-                {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-56 w-full" />)}
+                {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-auto aspect-[3/4] w-full" />)}
               </div>
             )}
             {!isLoadingProfiles && profiles && profiles.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-4 md:px-0">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-4 md:px-0">
                 {profiles.map(profile => (
-                  <Card key={profile.id} className="overflow-hidden">
-                    <CardContent className="p-0 text-center">
-                      <Link to={`/profile/${profile.id}`}>
-                        <Avatar className="h-32 w-full rounded-none">
-                          <AvatarImage src={profile.avatar_url || `https://avatar.vercel.sh/${profile.username}`} alt={profile.full_name || profile.username || 'user'} className="object-cover" />
-                          <AvatarFallback className="rounded-none">{(profile.full_name || profile.username || 'U').charAt(0)}</AvatarFallback>
-                        </Avatar>
-                      </Link>
-                      <div className="p-4">
-                        <Link to={`/profile/${profile.id}`}>
-                          <h3 className="font-semibold text-base truncate">{profile.full_name || profile.username}</h3>
-                        </Link>
-                        <p className="text-xs text-muted-foreground h-8 overflow-hidden">{profile.bio || ''}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <UserCard key={profile.id} profile={profile} />
                 ))}
               </div>
             )}
