@@ -3,6 +3,7 @@ import { MessageWithSender } from '@/api/chat';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { format } from 'date-fns';
 
 interface MessageBubbleProps {
   message: MessageWithSender;
@@ -22,15 +23,23 @@ const MessageBubble = ({ message }: MessageBubbleProps) => {
                     <AvatarFallback>{senderProfile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
             )}
-            <div 
-                className={cn(
-                    "max-w-xs md:max-w-md lg:max-w-lg rounded-2xl px-4 py-2 break-words shadow-sm",
-                    isSender 
-                        ? "bg-primary text-primary-foreground rounded-br-none" 
-                        : "bg-muted rounded-bl-none"
-                )}
-            >
-                <p>{message.content}</p>
+            <div className="flex flex-col max-w-xs md:max-w-md lg:max-w-lg">
+                <div 
+                    className={cn(
+                        "rounded-2xl px-4 py-2 break-words shadow-sm",
+                        isSender 
+                            ? "bg-primary text-primary-foreground rounded-br-none self-end" 
+                            : "bg-muted rounded-bl-none self-start"
+                    )}
+                >
+                    <p>{message.content}</p>
+                </div>
+                <span className={cn(
+                    "text-xs text-muted-foreground mt-1 px-1",
+                    isSender ? "self-end" : "self-start"
+                )}>
+                    {format(new Date(message.created_at), 'p')}
+                </span>
             </div>
         </div>
     )

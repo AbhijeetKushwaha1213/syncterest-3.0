@@ -24,7 +24,7 @@ export const getConversations = async (userId: string): Promise<ConversationWith
       *,
       messages ( content, created_at ),
       conversation_participants!inner(
-        profiles!inner(id, username, avatar_url, full_name)
+        profiles!inner(id, username, avatar_url, full_name, last_active_at)
       )
     `)
     .order('updated_at', { ascending: false })

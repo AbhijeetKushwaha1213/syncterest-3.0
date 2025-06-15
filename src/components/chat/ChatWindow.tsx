@@ -15,6 +15,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useChannelPresence } from '@/hooks/useChannelPresence';
+import { formatDistanceToNowStrict } from 'date-fns';
 
 interface ChatWindowProps {
   conversation: ConversationWithOtherParticipant | null;
@@ -25,11 +27,36 @@ const messageFormSchema = z.object({
   content: z.string().min(1, "Message cannot be empty.").max(1000, "Message is too long."),
 });
 
+const UserStatus = ({ participant, isOnline }: { participant: ConversationWithOtherParticipant['other_participant'], isOnline: boolean }) => {
+  if (isOnline) {
+    return (
+      <div className="flex items-center gap-1.5">
+        <span className="relative flex h-2.5 w-2.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+        </span>
+        <span className="text-sm text-muted-foreground">Online</span>
+      </div>
+    );
+  }
+
+  if (participant.last_active_at) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Active {formatDistanceToNowStrict(new Date(participant.last_active_at), { addSuffix: true })}
+      </p>
+    );
+  }
+
+  return <p className="text-sm text-muted-foreground">Offline</p>;
+};
+
 const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [messages, setMessages] = useState<MessageWithSender[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const presenceState = useChannelPresence('live-users');
 
   const form = useForm<z.infer<typeof messageFormSchema>>({
     resolver: zodResolver(messageFormSchema),
@@ -128,6 +155,7 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
   }
 
   const otherParticipant = conversation.other_participant;
+  const isOnline = !!(otherParticipant?.id && presenceState && presenceState[otherParticipant.id]);
 
   return (
     <div className="flex flex-col h-full bg-background w-full">
@@ -140,7 +168,10 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
                 <AvatarImage src={otherParticipant.avatar_url ?? ''} />
                 <AvatarFallback>{otherParticipant.username?.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
-            <p className="font-semibold">{otherParticipant.username}</p>
+            <div className="flex flex-col">
+              <p className="font-semibold">{otherParticipant.username}</p>
+              <UserStatus participant={otherParticipant} isOnline={isOnline} />
+            </div>
         </div>
         <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon"><Video className="h-5 w-5"/></Button>
