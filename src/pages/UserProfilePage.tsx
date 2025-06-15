@@ -1,7 +1,8 @@
+
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { fetchProfileData, ProfileWithDetails } from "@/api/profiles";
 import { UserProfileSkeleton } from "@/features/profile/components/UserProfileSkeleton";
@@ -9,6 +10,7 @@ import { ProfileHeader } from "@/features/profile/components/ProfileHeader";
 import { StoryHighlights } from "@/features/profile/components/StoryHighlights";
 import { ProfileTabs } from "@/features/profile/components/ProfileTabs";
 import { InterestsSection } from "@/features/profile/components/InterestsSection";
+import { EditProfileDialog } from "@/features/profile/components/EditProfileDialog";
 
 const UserProfilePage = () => {
   const { id } = useParams<{ id: string }>();
@@ -43,9 +45,19 @@ const UserProfilePage = () => {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">
-       <Button asChild variant="ghost" className="mb-6 -ml-4">
-          <Link to="/home"><ArrowLeft className="mr-2 h-4 w-4" />Back</Link>
-       </Button>
+       <div className="flex justify-between items-center mb-6">
+            <Button asChild variant="ghost" className="-ml-4">
+                <Link to="/home"><ArrowLeft className="mr-2 h-4 w-4" />Back</Link>
+            </Button>
+            {isOwnProfile && (
+                <EditProfileDialog profile={profile}>
+                    <Button variant="outline">
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit Profile Details
+                    </Button>
+                </EditProfileDialog>
+            )}
+       </div>
        
        <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} />
 
