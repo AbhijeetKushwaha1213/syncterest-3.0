@@ -30,30 +30,30 @@ export const InterestsFormSection = ({ control }: InterestsFormSectionProps) => 
             </FormDescription>
           </div>
           <Tabs defaultValue={interestsWithSubcategories[0].id} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7">
+            <TabsList className="w-full justify-start overflow-x-auto no-scrollbar">
               {interestsWithSubcategories.map((interest) => (
-                <TabsTrigger key={interest.id} value={interest.id} className="text-xs sm:text-sm">
+                <TabsTrigger key={interest.id} value={interest.id} className="text-xs sm:text-sm shrink-0">
                   <interest.icon className="mr-2 h-4 w-4 shrink-0" />
                   {interest.label}
                 </TabsTrigger>
               ))}
             </TabsList>
             {interestsWithSubcategories.map((interest) => (
-              <TabsContent key={interest.id} value={interest.id}>
-                <div className="space-y-4 rounded-md border p-4">
+              <TabsContent key={interest.id} value={interest.id} className="mt-4">
+                <div className="space-y-6 rounded-md border p-4">
                   {interest.subgroups.map((subgroup, index) => (
                     <div key={index}>
                       <FormLabel>{subgroup.label}</FormLabel>
                       {subgroup.description && <FormDescription>{subgroup.description}</FormDescription>}
                       <div className="pt-2">
                         {subgroup.type === 'multiselect' && (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                          <div className="flex flex-wrap gap-3">
                             {subgroup.options?.map(option => {
                               const value = `${interest.label}:${subgroup.label}:${option}`;
                               const isChecked = field.value?.includes(value);
 
                               return (
-                                <div key={option} className="flex items-center space-x-2">
+                                <div key={option}>
                                   <Checkbox
                                     id={`${interest.id}-${subgroup.label}-${option}`}
                                     checked={!!isChecked}
@@ -65,10 +65,11 @@ export const InterestsFormSection = ({ control }: InterestsFormSectionProps) => 
                                         field.onChange(currentValues.filter((v: string) => v !== value));
                                       }
                                     }}
+                                    className="peer sr-only"
                                   />
                                   <label
                                     htmlFor={`${interest.id}-${subgroup.label}-${option}`}
-                                    className="text-sm font-normal"
+                                    className="cursor-pointer rounded-full border bg-card px-4 py-2 text-sm font-medium text-card-foreground transition-colors hover:bg-muted/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground"
                                   >
                                     {option}
                                   </label>
