@@ -11,7 +11,10 @@ export const usePresence = () => {
   useEffect(() => {
     if (!user?.id) return;
 
-    const channel = supabase.channel(CHANNEL_NAME, {
+    let channel = supabase.channel(CHANNEL_NAME);
+    supabase.removeChannel(channel);
+
+    channel = supabase.channel(CHANNEL_NAME, {
       config: {
         presence: {
           key: user.id,

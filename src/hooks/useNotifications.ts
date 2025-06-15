@@ -25,7 +25,10 @@ export const useNotifications = () => {
   useEffect(() => {
     if (!user?.id) return;
 
-    const channel = supabase.channel('public:notifications')
+    let channel = supabase.channel('public:notifications');
+    supabase.removeChannel(channel);
+
+    channel = supabase.channel('public:notifications')
       .on<Notification>(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
@@ -42,7 +45,7 @@ export const useNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [user?.id, queryClient]);
 
   const markAsReadMutation = useMutation({
     mutationFn: markNotificationAsRead,
