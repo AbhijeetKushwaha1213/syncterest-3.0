@@ -2,7 +2,7 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { User, Shield, Bell, Paintbrush, Languages } from 'lucide-react';
+import { User, Shield, Bell, Paintbrush, Languages, Link, CreditCard, DatabaseZap, CircleSlash, HelpCircle } from 'lucide-react';
 
 const sidebarNavItems = [
   {
@@ -29,6 +29,31 @@ const sidebarNavItems = [
     title: "Language",
     href: "/settings/language",
     icon: Languages,
+  },
+  {
+    title: "Linked Accounts",
+    href: "/settings/linked-accounts",
+    icon: Link,
+  },
+  {
+    title: "Subscription",
+    href: "/settings/subscription",
+    icon: CreditCard,
+  },
+  {
+    title: "Data Management",
+    href: "/settings/data-management",
+    icon: DatabaseZap,
+  },
+  {
+    title: "Blocked Users",
+    href: "/settings/blocked-users",
+    icon: CircleSlash,
+  },
+  {
+    title: "Help & Support",
+    href: "/settings/help",
+    icon: HelpCircle,
   },
 ];
 

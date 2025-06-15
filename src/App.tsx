@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,6 +24,11 @@ import NotificationsSettingsPage from "./pages/settings/NotificationsSettingsPag
 import AppearanceSettingsPage from "./pages/settings/AppearanceSettingsPage";
 import LanguageSettingsPage from "./pages/settings/LanguageSettingsPage";
 import { ThemeProvider } from "./components/ThemeProvider";
+import BlockedUsersSettingsPage from "./pages/settings/BlockedUsersSettingsPage";
+import DataManagementSettingsPage from "./pages/settings/DataManagementSettingsPage";
+import HelpSettingsPage from "./pages/settings/HelpSettingsPage";
+import LinkedAccountsSettingsPage from "./pages/settings/LinkedAccountsSettingsPage";
+import SubscriptionSettingsPage from "./pages/settings/SubscriptionSettingsPage";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +59,11 @@ const App = () => (
                 <Route path="notifications" element={<NotificationsSettingsPage />} />
                 <Route path="appearance" element={<AppearanceSettingsPage />} />
                 <Route path="language" element={<LanguageSettingsPage />} />
+                <Route path="linked-accounts" element={<LinkedAccountsSettingsPage />} />
+                <Route path="subscription" element={<SubscriptionSettingsPage />} />
+                <Route path="data-management" element={<DataManagementSettingsPage />} />
+                <Route path="blocked-users" element={<BlockedUsersSettingsPage />} />
+                <Route path="help" element={<HelpSettingsPage />} />
               </Route>
               
               <Route path="/profile/:id" element={<UserProfilePage />} />
