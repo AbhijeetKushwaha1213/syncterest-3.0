@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -15,6 +16,7 @@ import ChannelsPage from "./pages/ChannelsPage";
 import SearchPage from "./pages/SearchPage";
 import GroupDetailPage from "./pages/GroupDetailPage";
 import EventDetailPage from "./pages/EventDetailPage";
+import ChannelDetailPage from "./pages/ChannelDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +34,7 @@ const App = () => (
             <Route path="/home" element={<HomePage />} />
             <Route path="/chat/:conversationId?" element={<ChatPage />} />
             <Route path="/channels" element={<ChannelsPage />} />
+            <Route path="/channels/:id" element={<ChannelDetailPage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/profile/:id" element={<UserProfilePage />} />
             <Route path="/search" element={<SearchPage />} />
