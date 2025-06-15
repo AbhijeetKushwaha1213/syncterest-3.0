@@ -2,7 +2,13 @@
 import { Database } from "@/integrations/supabase/types";
 type Tables = Database['public']['Tables'];
 
-export type Profile = Tables['profiles']['Row'];
+export type Profile = Tables['profiles']['Row'] & {
+  profile_visibility?: 'public' | 'friends_only' | 'private';
+  location_sharing_enabled?: boolean;
+  show_location_on_profile?: boolean;
+  show_activity_status?: boolean;
+};
+
 export type Post = Tables['posts']['Row'];
 export type Event = Tables['events']['Row'];
 
