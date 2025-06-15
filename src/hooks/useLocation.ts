@@ -17,6 +17,7 @@ export const useLocation = () => {
     setLoading(true);
     setError(null);
     try {
+      console.log("useLocation: Updating profile with location:", { latitude, longitude });
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ latitude, longitude, last_active_at: new Date().toISOString() })
@@ -38,7 +39,7 @@ export const useLocation = () => {
           description: e.message,
           variant: "destructive"
       });
-      console.error("Error updating location:", e);
+      console.error("useLocation: Error updating profile location in Supabase:", e);
     } finally {
       setLoading(false);
     }
@@ -46,8 +47,10 @@ export const useLocation = () => {
 
   const getLocation = (): Promise<{ latitude: number; longitude: number } | null> => {
     return new Promise((resolve) => {
+      console.log("useLocation: getLocation triggered.");
       if (!navigator.geolocation) {
         const msg = 'Geolocation is not supported by your browser.';
+        console.error(`useLocation: ${msg}`);
         setError(msg);
         toast({ title: "Location Error", description: msg, variant: "destructive" });
         resolve(null);
@@ -55,14 +58,17 @@ export const useLocation = () => {
       }
 
       setLoading(true);
+      console.log("useLocation: Requesting location from browser...");
 
       const handleSuccess = (position: GeolocationPosition) => {
+        console.log("useLocation: Geolocation success.", position.coords);
         const { latitude, longitude } = position.coords;
         updateProfileLocation(latitude, longitude);
         resolve({ latitude, longitude });
       };
 
       const handleError = (err: GeolocationPositionError) => {
+        console.error("useLocation: Geolocation error.", err);
         let msg = `Unable to retrieve your location: ${err.message}`;
         switch (err.code) {
           case err.PERMISSION_DENIED:
@@ -78,7 +84,6 @@ export const useLocation = () => {
         setError(msg);
         toast({ title: "Location Error", description: msg, variant: "destructive" });
         setLoading(false);
-        console.error("Geolocation error:", err);
         resolve(null);
       };
 
@@ -86,7 +91,7 @@ export const useLocation = () => {
       navigator.geolocation.getCurrentPosition(
         handleSuccess,
         (highAccuracyErr) => {
-          console.warn("High accuracy location failed, trying low accuracy.", highAccuracyErr);
+          console.warn("useLocation: High accuracy location failed, trying low accuracy.", highAccuracyErr);
           
           if (highAccuracyErr.code === highAccuracyErr.PERMISSION_DENIED) {
               handleError(highAccuracyErr);
@@ -97,7 +102,7 @@ export const useLocation = () => {
           navigator.geolocation.getCurrentPosition(
             handleSuccess,
             (lowAccuracyErr) => {
-              console.error("Low accuracy location also failed.", lowAccuracyErr);
+              console.error("useLocation: Low accuracy location also failed.", lowAccuracyErr);
               handleError(lowAccuracyErr);
             },
             {
@@ -120,3 +125,4 @@ export const useLocation = () => {
 
   return { error, loading, getLocation, hasLocation, profileLocation: { latitude: profile?.latitude, longitude: profile?.longitude } };
 };
+
