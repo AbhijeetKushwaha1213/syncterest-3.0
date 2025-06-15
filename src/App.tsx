@@ -2,7 +2,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/Login";
@@ -12,11 +12,12 @@ import HomePage from "./pages/HomePage";
 import ChatPage from "./pages/ChatPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import LoggedInLayout from "./components/LoggedInLayout";
-import ChannelsPage from "./pages/ChannelsPage";
 import SearchPage from "./pages/SearchPage";
 import GroupDetailPage from "./pages/GroupDetailPage";
 import EventDetailPage from "./pages/EventDetailPage";
 import ChannelDetailPage from "./pages/ChannelDetailPage";
+import ChannelsLayout from "./pages/ChannelsLayout";
+import ChannelPlaceholder from "./pages/ChannelPlaceholder";
 
 const queryClient = new QueryClient();
 
@@ -33,8 +34,12 @@ const App = () => (
           <Route element={<LoggedInLayout />}>
             <Route path="/home" element={<HomePage />} />
             <Route path="/chat/:conversationId?" element={<ChatPage />} />
-            <Route path="/channels" element={<ChannelsPage />} />
-            <Route path="/channels/:id" element={<ChannelDetailPage />} />
+            
+            <Route path="/channels" element={<ChannelsLayout />}>
+              <Route index element={<ChannelPlaceholder />} />
+              <Route path=":id" element={<ChannelDetailPage />} />
+            </Route>
+            
             <Route path="/account" element={<AccountPage />} />
             <Route path="/profile/:id" element={<UserProfilePage />} />
             <Route path="/search" element={<SearchPage />} />
