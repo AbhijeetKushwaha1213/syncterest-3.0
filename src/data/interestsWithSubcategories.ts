@@ -9,7 +9,7 @@ import {
   Camera,
   Earth,
   Brain,
-  Yoga,
+  yoga as Yoga,
   Laptop,
   FlaskConical,
   Microscope,
