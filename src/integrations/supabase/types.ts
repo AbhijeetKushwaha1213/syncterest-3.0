@@ -372,6 +372,7 @@ export type Database = {
           group_activity_notifications: boolean
           id: string
           interests: string[] | null
+          language: string
           last_active_at: string | null
           latitude: number | null
           longitude: number | null
@@ -392,6 +393,7 @@ export type Database = {
           group_activity_notifications?: boolean
           id: string
           interests?: string[] | null
+          language?: string
           last_active_at?: string | null
           latitude?: number | null
           longitude?: number | null
@@ -412,6 +414,7 @@ export type Database = {
           group_activity_notifications?: boolean
           id?: string
           interests?: string[] | null
+          language?: string
           last_active_at?: string | null
           latitude?: number | null
           longitude?: number | null
@@ -521,6 +524,7 @@ export type Database = {
           group_activity_notifications: boolean
           id: string
           interests: string[] | null
+          language: string
           last_active_at: string | null
           latitude: number | null
           longitude: number | null
