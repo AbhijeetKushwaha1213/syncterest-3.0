@@ -14,6 +14,23 @@ export type ProfileWithDetails = Tables<'profiles'> & {
 export const fetchProfileData = async (profileId: string, currentUserId?: string): Promise<ProfileWithDetails | null> => {
   if (!profileId) throw new Error("Profile ID is required");
 
+  if (currentUserId && profileId !== currentUserId) {
+    const { data: block, error: blockError } = await supabase
+      .from('blocked_users')
+      .select('id')
+      .or(`(user_id.eq.${profileId},blocked_user_id.eq.${currentUserId}),(user_id.eq.${currentUserId},blocked_user_id.eq.${profileId})`)
+      .maybeSingle();
+
+    if (blockError) {
+      console.error('Error checking block status:', blockError);
+      throw blockError;
+    }
+
+    if (block) {
+      return null; // A block exists, so we treat the profile as not found for privacy.
+    }
+  }
+
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select(`*`)
