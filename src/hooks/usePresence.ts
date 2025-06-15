@@ -1,46 +1,32 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { RealtimeChannel } from '@supabase/supabase-js';
+import { useSupabaseChannel } from './useSupabaseChannel';
 
 const CHANNEL_NAME = 'live-users';
 
 export const usePresence = () => {
   const { user } = useAuth();
-  const channelRef = useRef<RealtimeChannel>();
+  
+  const channelName = user?.id ? CHANNEL_NAME : '';
+  const channelOptions = useMemo(() => (user?.id ? {
+    config: {
+      presence: {
+        key: user.id,
+      },
+    },
+  } : undefined), [user?.id]);
+
+  const channel = useSupabaseChannel(channelName, channelOptions);
 
   useEffect(() => {
-    if (!user?.id) return;
-
-    const channelName = CHANNEL_NAME;
-    
-    // Ensure we don't have a lingering channel with the same topic.
-    const existingChannel = supabase.getChannels().find(c => c.topic === `realtime:${channelName}`);
-    if (existingChannel) {
-      supabase.removeChannel(existingChannel);
-    }
-    
-    const channel = supabase.channel(channelName, {
-      config: {
-        presence: {
-          key: user.id,
-        },
-      },
-    });
-    channelRef.current = channel;
+    if (!channel) return;
 
     channel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
         await channel.track({ online_at: new Date().toISOString() });
       }
     });
-
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = undefined;
-      }
-    };
-  }, [user?.id]);
+  }, [channel]);
 };

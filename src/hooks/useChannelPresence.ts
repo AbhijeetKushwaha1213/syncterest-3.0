@@ -1,35 +1,30 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { RealtimeChannel, RealtimePresenceState } from '@supabase/supabase-js';
+import { RealtimePresenceState } from '@supabase/supabase-js';
+import { useSupabaseChannel } from './useSupabaseChannel';
 
 export const useChannelPresence = (channelId: string) => {
   const { user, profile } = useAuth();
   const [presenceState, setPresenceState] = useState<RealtimePresenceState>({});
-  const channelRef = useRef<RealtimeChannel>();
+
+  const channelName = user && channelId && profile ? `channel-presence-${channelId}` : '';
+  const channelOptions = useMemo(() => (user?.id ? {
+      config: {
+          presence: {
+              key: user.id,
+          },
+      },
+  } : undefined), [user?.id]);
+
+  const channel = useSupabaseChannel(channelName, channelOptions);
 
   useEffect(() => {
-    if (!user || !channelId || !profile) {
+    if (!channel || !user || !profile) {
+      setPresenceState({});
       return;
     }
-
-    const channelName = `channel-presence-${channelId}`;
-    
-    // Ensure we don't have a lingering channel with the same topic.
-    const existingChannel = supabase.getChannels().find(c => c.topic === `realtime:${channelName}`);
-    if (existingChannel) {
-      supabase.removeChannel(existingChannel);
-    }
-
-    const channel = supabase.channel(channelName, {
-        config: {
-            presence: {
-                key: user.id,
-            },
-        },
-    });
-    channelRef.current = channel;
 
     channel.on('presence', { event: 'sync' }, () => {
         const newState = channel.presenceState();
@@ -41,19 +36,13 @@ export const useChannelPresence = (channelId: string) => {
           await channel.track({ 
             online_at: new Date().toISOString(),
             user_id: user.id,
-            username: profile?.username || 'anonymous',
-            avatar_url: profile?.avatar_url,
+            username: profile.username || 'anonymous',
+            avatar_url: profile.avatar_url,
           });
         }
     });
 
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = undefined;
-      }
-    };
-  }, [user?.id, channelId, profile]);
+  }, [channel, user, profile]);
 
   return presenceState;
 };

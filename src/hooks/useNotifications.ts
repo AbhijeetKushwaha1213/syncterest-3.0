@@ -1,11 +1,10 @@
-
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead, Notification } from '@/api/notifications';
 import { useAuth } from './useAuth';
 import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
-import { RealtimeChannel } from '@supabase/supabase-js';
+import { useSupabaseChannel } from './useSupabaseChannel';
 
 export const useNotifications = () => {
   const { user } = useAuth();
@@ -28,20 +27,13 @@ export const useNotifications = () => {
     queryClientRef.current = queryClient;
   });
 
-  const channelRef = useRef<RealtimeChannel>();
+  const channelName = user?.id ? 'public:notifications' : '';
+  const channel = useSupabaseChannel(channelName);
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || !channel) return;
 
-    const channelName = 'public:notifications';
-
-    // Ensure we don't have a lingering channel with the same topic.
-    const existingChannel = supabase.getChannels().find(c => c.topic === `realtime:${channelName}`);
-    if (existingChannel) {
-      supabase.removeChannel(existingChannel);
-    }
-
-    const channel = supabase.channel(channelName)
+    channel
       .on<Notification>(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
@@ -55,15 +47,7 @@ export const useNotifications = () => {
       )
       .subscribe();
     
-    channelRef.current = channel;
-
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = undefined;
-      }
-    };
-  }, [user?.id]);
+  }, [user?.id, channel, queryClientRef, toastRef]);
 
   const markAsReadMutation = useMutation({
     mutationFn: markNotificationAsRead,
