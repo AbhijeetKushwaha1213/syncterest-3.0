@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useChannelPresence } from '@/hooks/useChannelPresence';
@@ -9,12 +10,19 @@ import { useAuth } from '@/hooks/useAuth';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useChannel } from '@/hooks/useChannel';
 import ChannelChat from '@/components/channels/chat/ChannelChat';
+import { useChannelRole } from '@/hooks/useChannelRole';
+import { EditChannelDialog } from '@/components/channels/EditChannelDialog';
+import { Button } from '@/components/ui/button';
+import { Settings } from 'lucide-react';
 
 const ChannelDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const { onlineUsers } = useChannelPresence(id!);
   const { profile } = useAuth();
   const { data: channel, isLoading, error } = useChannel(id);
+  const { data: role } = useChannelRole(id);
+
+  const isAdmin = role === 'admin';
 
   if (isLoading) {
     return (
@@ -47,9 +55,19 @@ const ChannelDetailPage = () => {
 
   return (
     <div className="flex flex-col h-full">
-      <header className="p-4 border-b">
-        <h1 className="text-xl font-bold">{channel.name}</h1>
-        <p className="text-sm text-muted-foreground">{channel.description}</p>
+      <header className="p-4 border-b flex justify-between items-center">
+        <div>
+          <h1 className="text-xl font-bold">{channel.name}</h1>
+          <p className="text-sm text-muted-foreground">{channel.description}</p>
+        </div>
+        {isAdmin && (
+          <EditChannelDialog channel={channel}>
+            <Button variant="outline" size="icon">
+              <Settings className="h-4 w-4" />
+              <span className="sr-only">Edit Channel</span>
+            </Button>
+          </EditChannelDialog>
+        )}
       </header>
       <div className="grid md:grid-cols-3 flex-1">
         <div className="md:col-span-2 border-r flex flex-col">
