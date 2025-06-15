@@ -1,4 +1,3 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -22,7 +21,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarUploader from "@/components/settings/AvatarUploader";
 
 const accountFormSchema = z.object({
   username: z
@@ -34,7 +33,6 @@ const accountFormSchema = z.object({
     .max(50, { message: "Full name must not be longer than 50 characters." })
     .optional()
     .or(z.literal('')),
-  avatar_url: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
   bio: z.string().max(160, { message: "Bio must not be longer than 160 characters." }).optional().or(z.literal('')),
   interests: z.array(z.string()).optional(),
 });
@@ -61,7 +59,6 @@ const AccountSettingsPage = () => {
     defaultValues: {
       username: "",
       full_name: "",
-      avatar_url: "",
       bio: "",
       interests: [],
     },
@@ -72,7 +69,6 @@ const AccountSettingsPage = () => {
       form.reset({
         username: profile.username || "",
         full_name: profile.full_name || "",
-        avatar_url: profile.avatar_url || "",
         bio: profile.bio || "",
         interests: profile.interests || [],
       });
@@ -117,7 +113,6 @@ const AccountSettingsPage = () => {
     const { error } = await supabase.from("profiles").update({
       username: data.username,
       full_name: data.full_name,
-      avatar_url: data.avatar_url,
       bio: data.bio,
       interests: data.interests,
       updated_at: new Date().toISOString(),
@@ -156,28 +151,10 @@ const AccountSettingsPage = () => {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-               <FormField
-                control={form.control}
-                name="avatar_url"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Profile Picture</FormLabel>
-                     <div className="flex items-center gap-4">
-                        <Avatar className="h-20 w-20">
-                            <AvatarImage src={field.value ?? ""} alt="Avatar" />
-                            <AvatarFallback>{profile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                        <FormControl>
-                          <Input placeholder="https://example.com/avatar.png" {...field} value={field.value ?? ""} />
-                        </FormControl>
-                    </div>
-                    <FormDescription>
-                      Enter the URL of your profile picture.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormItem>
+                <FormLabel>Profile Picture</FormLabel>
+                <AvatarUploader initialAvatarUrl={profile?.avatar_url} username={profile?.username} />
+              </FormItem>
               <FormField
                 control={form.control}
                 name="username"
