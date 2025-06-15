@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { useQueryClient } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Database } from '@/integrations/supabase/types';
 
 const privacyFormSchema = z.object({
   profile_visibility: z.enum(['public', 'friends_only', 'private']),
@@ -23,6 +24,13 @@ const privacyFormSchema = z.object({
 });
 
 type PrivacyFormValues = z.infer<typeof privacyFormSchema>;
+
+type ProfileWithPrivacySettings = Database['public']['Tables']['profiles']['Row'] & {
+    profile_visibility?: 'public' | 'friends_only' | 'private';
+    location_sharing_enabled?: boolean;
+    show_location_on_profile?: boolean;
+    show_activity_status?: boolean;
+};
 
 const PrivacySettingsPage = () => {
     const { user } = useAuth();
@@ -42,11 +50,12 @@ const PrivacySettingsPage = () => {
 
     useEffect(() => {
         if (profile) {
+            const profileData = profile as ProfileWithPrivacySettings;
             form.reset({
-                profile_visibility: profile.profile_visibility as 'public' | 'friends_only' | 'private' || 'public',
-                location_sharing_enabled: profile.location_sharing_enabled ?? true,
-                show_location_on_profile: profile.show_location_on_profile ?? true,
-                show_activity_status: profile.show_activity_status ?? true,
+                profile_visibility: profileData.profile_visibility || 'public',
+                location_sharing_enabled: profileData.location_sharing_enabled ?? true,
+                show_location_on_profile: profileData.show_location_on_profile ?? true,
+                show_activity_status: profileData.show_activity_status ?? true,
             });
         }
     }, [profile, form]);
