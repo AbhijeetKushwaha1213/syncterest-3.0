@@ -22,13 +22,13 @@ const HomePage = () => {
         {currentUserProfile && (
           <WelcomeBanner currentUserProfile={currentUserProfile} />
         )}
-        <TrendingPeople />
         <StoriesList />
         <InterestsFilter 
           selectedInterest={selectedInterest} 
           onInterestClick={handleInterestClick} 
         />
         <HomeTabs selectedInterest={selectedInterest} />
+        <TrendingPeople />
       </div>
       
       <div className="space-y-6 hidden lg:block">
