@@ -4,14 +4,18 @@ import { getChannelMessages, ChannelMessageWithSender } from '@/api/channelChat'
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect } from 'react';
 import { ChannelMessageReaction } from '@/types';
+import { useAuth } from './useAuth';
+import { useMarkChannelAsRead } from './useMarkChannelAsRead';
 
 export const useChannelMessages = (channelId: string | undefined) => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { mutate: markAsRead } = useMarkChannelAsRead();
 
   const queryKey = ['channel-messages', channelId];
 
   useEffect(() => {
-    if (!channelId) return;
+    if (!channelId || !user) return;
 
     const channel = supabase
       .channel(`channel-chat:${channelId}`)
@@ -41,6 +45,12 @@ export const useChannelMessages = (channelId: string | undefined) => {
                     if (oldData.some(m => m.id === newMessage.id)) return oldData;
                     return [...oldData, newMessage as ChannelMessageWithSender];
                 });
+                
+                if (newMessage.user_id === user.id) {
+                    queryClient.invalidateQueries({ queryKey: ['joined-channels'] });
+                } else {
+                    markAsRead(channelId);
+                }
             }
         }
       )
@@ -87,7 +97,7 @@ export const useChannelMessages = (channelId: string | undefined) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [channelId, queryClient, queryKey]);
+  }, [channelId, queryClient, queryKey, user, markAsRead]);
 
   return useQuery({
     queryKey,

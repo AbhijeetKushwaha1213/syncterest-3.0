@@ -1,7 +1,5 @@
-
 import { Channel } from '@/types';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getChannelMessages, ChannelMessageWithSender } from '@/api/channelChat';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import React, { useState, useEffect } from 'react';
@@ -14,6 +12,7 @@ import ChannelMessageList from './ChannelMessageList';
 import ChannelMessageForm, { channelMessageFormSchema } from './ChannelMessageForm';
 import TypingIndicator from './TypingIndicator';
 import { useMarkChannelAsRead } from '@/hooks/useMarkChannelAsRead';
+import { useChannelMessages } from '@/hooks/useChannelMessages';
 
 interface ChannelChatProps {
     channel: Channel;
@@ -23,15 +22,10 @@ const ChannelChat = ({ channel }: ChannelChatProps) => {
     const { user } = useAuth();
     const queryClient = useQueryClient();
     const { toast } = useToast();
-    const [messages, setMessages] = useState<ChannelMessageWithSender[]>([]);
     const [attachment, setAttachment] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     
-    const { data: initialMessages, isLoading: isLoadingMessages } = useQuery({
-        queryKey: ['channel-messages', channel.id],
-        queryFn: () => getChannelMessages(channel.id),
-        enabled: !!channel.id,
-    });
+    const { data: messages, isLoading: isLoadingMessages } = useChannelMessages(channel.id);
 
     const { sendTypingEvent, typingUsers } = useChannelTyping(channel.id);
     const { mutate: markAsRead } = useMarkChannelAsRead();
@@ -40,7 +34,7 @@ const ChannelChat = ({ channel }: ChannelChatProps) => {
         if(channel.id && user) {
             markAsRead(channel.id);
         }
-    }, [channel.id, user, initialMessages, markAsRead]);
+    }, [channel.id, user, markAsRead]);
 
     const form = useForm<z.infer<typeof channelMessageFormSchema>>({
         resolver: zodResolver(channelMessageFormSchema),
@@ -48,59 +42,6 @@ const ChannelChat = ({ channel }: ChannelChatProps) => {
             content: "",
         },
     });
-
-    useEffect(() => {
-        if (initialMessages) {
-            setMessages(initialMessages);
-        }
-    }, [initialMessages]);
-
-    useEffect(() => {
-        if (!channel.id) return;
-
-        const channelSubscription = supabase
-            .channel(`channel-messages:${channel.id}`)
-            .on<ChannelMessageWithSender>(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'channel_messages',
-                    filter: `channel_id=eq.${channel.id}`,
-                },
-                async (payload) => {
-                    const { data: newMessage, error } = await supabase
-                        .from('channel_messages')
-                        .select('*, sender:profiles (*), channel_message_reactions(*)')
-                        .eq('id', payload.new.id)
-                        .single();
-
-                    if (error) {
-                        console.error("Error fetching new channel message:", error);
-                        return;
-                    }
-
-                    if (newMessage) {
-                        setMessages(currentMessages => {
-                            if (currentMessages.some(m => m.id === newMessage.id)) {
-                                return currentMessages;
-                            }
-                            return [...currentMessages, newMessage as unknown as ChannelMessageWithSender];
-                        });
-                        if(newMessage.user_id === user?.id) {
-                            queryClient.invalidateQueries({ queryKey: ['joined-channels'] });
-                        } else {
-                            markAsRead(channel.id);
-                        }
-                    }
-                }
-            )
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(channelSubscription);
-        };
-    }, [channel.id, user, queryClient, markAsRead]);
     
     const sendMessageMutation = useMutation({
         mutationFn: async ({ content, attachment: fileAttachment }: { content: string, attachment: File | null }) => {

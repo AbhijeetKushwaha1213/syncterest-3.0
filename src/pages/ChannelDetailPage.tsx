@@ -28,18 +28,29 @@ const ChannelDetailPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col h-full">
-        <header className="p-4 border-b">
-          <Skeleton className="h-7 w-48 mb-2" />
-          <Skeleton className="h-4 w-80" />
+      <div className="flex flex-col h-full bg-muted/20">
+        <header className="relative shrink-0">
+          <Skeleton className="h-32 md:h-40 w-full" />
+          <div className="absolute bottom-0 left-0 p-4 w-full flex justify-between items-end">
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-16 w-16 rounded-full border-4 border-background" />
+              <div>
+                <Skeleton className="h-7 w-48 mb-2" />
+                <Skeleton className="h-4 w-64" />
+              </div>
+            </div>
+          </div>
         </header>
-        <div className="grid md:grid-cols-3 flex-1">
-          <div className="md:col-span-2 border-r p-4">
-            <Skeleton className="h-full w-full" />
-          </div>
-          <div className="p-4">
-            <Skeleton className="h-full w-full" />
-          </div>
+        <div className="grid md:grid-cols-[1fr_280px] flex-1 overflow-hidden">
+          <div className="p-4"><Skeleton className="h-full w-full" /></div>
+          <aside className="hidden md:flex flex-col border-l p-4 gap-4 bg-muted/30">
+            <Skeleton className="h-7 w-32 mb-2" />
+            <div className="space-y-3">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          </aside>
         </div>
       </div>
     );
@@ -56,60 +67,70 @@ const ChannelDetailPage = () => {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <header className="p-4 border-b flex justify-between items-center">
-        <div>
-          <h1 className="text-xl font-bold">{channel.name}</h1>
-          <p className="text-sm text-muted-foreground">{channel.description}</p>
+    <div className="flex flex-col h-full bg-muted/20">
+      <header className="relative shrink-0">
+        <div 
+          className="h-32 md:h-40 bg-cover bg-center" 
+          style={{ backgroundImage: channel.image_url ? `url(${channel.image_url})` : `url(https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80)` }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/20" />
         </div>
-        {isAdmin && (
-          <EditChannelDialog channel={channel}>
-            <Button variant="outline" size="icon">
-              <Settings className="h-4 w-4" />
-              <span className="sr-only">Edit Channel</span>
-            </Button>
-          </EditChannelDialog>
-        )}
+        <div className="absolute bottom-0 left-0 p-4 w-full flex justify-between items-end">
+            <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16 border-4 border-background bg-muted">
+                    <AvatarImage src={channel.image_url || undefined} alt={channel.name} />
+                    <AvatarFallback className="text-2xl font-bold" style={{ backgroundColor: channel.color || undefined }}>
+                        {channel.logo_letter || channel.name.charAt(0)}
+                    </AvatarFallback>
+                </Avatar>
+                <div>
+                    <h1 className="text-2xl font-bold text-white shadow-md">{channel.name}</h1>
+                    <p className="text-sm text-gray-300 shadow-sm">{channel.description}</p>
+                </div>
+            </div>
+            {isAdmin && (
+              <EditChannelDialog channel={channel}>
+                <Button variant="secondary" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30 border">
+                  <Settings className="h-4 w-4 mr-2" />
+                  <span>Settings</span>
+                </Button>
+              </EditChannelDialog>
+            )}
+        </div>
       </header>
-      <div className="grid md:grid-cols-3 flex-1">
-        <div className="md:col-span-2 border-r flex flex-col">
+      <div className="grid md:grid-cols-[1fr_280px] flex-1 overflow-hidden">
+        <div className="flex flex-col overflow-hidden">
           {channel.type === 'voice' ? (
             <ChannelVoice channel={channel} />
           ) : (
             <ChannelChat channel={channel} />
           )}
         </div>
-        <div>
-          <Card className="rounded-none border-0 shadow-none h-full">
-            <CardHeader>
-              <CardTitle>Online Users ({onlineUsers.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[calc(100vh-12rem)]">
-                <ul className="space-y-3">
-                  {!profile ? (
-                    Array.from({length: 3}).map((_, i) => (
-                      <li key={i} className="flex items-center gap-3">
-                        <Skeleton className="h-8 w-8 rounded-full" />
-                        <Skeleton className="h-4 w-24" />
-                      </li>
-                    ))
-                  ) : onlineUsers.map((u: any) => (
-                    <li key={u.user_id} className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8 relative">
-                        <AvatarImage src={u.avatar_url} alt={u.username} />
-                        <AvatarFallback>{u.username?.charAt(0).toUpperCase()}</AvatarFallback>
-                        <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white" />
-                      </Avatar>
-                      <span>{u.username}</span>
-                      {u.user_id === profile?.id && <Badge variant="outline">You</Badge>}
-                    </li>
-                  ))}
-                </ul>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </div>
+        <aside className="hidden md:flex flex-col border-l p-4 gap-4 bg-muted/30">
+          <h2 className="font-semibold text-lg">Online — {onlineUsers.length}</h2>
+          <ScrollArea className="flex-1">
+            <ul className="space-y-3 pr-2">
+              {!profile ? (
+                Array.from({length: 3}).map((_, i) => (
+                  <li key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <Skeleton className="h-4 w-24" />
+                  </li>
+                ))
+              ) : onlineUsers.map((u: any) => (
+                <li key={u.user_id} className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8 relative">
+                    <AvatarImage src={u.avatar_url} alt={u.username} />
+                    <AvatarFallback>{u.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                    <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-background" />
+                  </Avatar>
+                  <span className="font-medium text-sm truncate">{u.username}</span>
+                  {u.user_id === profile?.id && <Badge variant="secondary">You</Badge>}
+                </li>
+              ))}
+            </ul>
+          </ScrollArea>
+        </aside>
       </div>
     </div>
   );
