@@ -42,7 +42,7 @@ export const useNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, queryClient]);
+  }, [user?.id]);
 
   const markAsReadMutation = useMutation({
     mutationFn: markNotificationAsRead,
