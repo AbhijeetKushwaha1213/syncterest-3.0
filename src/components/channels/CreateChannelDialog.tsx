@@ -21,7 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Constants, Enums } from '@/integrations/supabase/types';
+import { Constants } from '@/integrations/supabase/types';
 import { Plus } from 'lucide-react';
 
 const channelSchema = z.object({
@@ -58,7 +58,13 @@ export const CreateChannelDialog = ({ children }: CreateChannelDialogProps) => {
       if (!user) throw new Error("You must be logged in to create a channel.");
       const { data, error } = await supabase
         .from('channels')
-        .insert({ ...values, creator_id: user.id })
+        .insert({
+          name: values.name,
+          description: values.description,
+          genre: values.genre,
+          visibility: values.visibility,
+          creator_id: user.id
+        })
         .select()
         .single();
       if (error) throw error;
