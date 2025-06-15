@@ -23,47 +23,50 @@ import AccountSettingsPage from "./pages/settings/AccountSettingsPage";
 import PrivacySettingsPage from "./pages/settings/PrivacySettingsPage";
 import NotificationsSettingsPage from "./pages/settings/NotificationsSettingsPage";
 import AppearanceSettingsPage from "./pages/settings/AppearanceSettingsPage";
+import { ThemeProvider } from "./components/ThemeProvider";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignUpPage />} />
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme" attribute="class">
+      <TooltipProvider>
+        <Toaster />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
 
-          <Route element={<LoggedInLayout />}>
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/chat/:conversationId?" element={<ChatPage />} />
-            
-            <Route path="/channels" element={<ChannelsLayout />}>
-              <Route index element={<ChannelPlaceholder />} />
-              <Route path=":id" element={<ChannelDetailPage />} />
+            <Route element={<LoggedInLayout />}>
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/chat/:conversationId?" element={<ChatPage />} />
+              
+              <Route path="/channels" element={<ChannelsLayout />}>
+                <Route index element={<ChannelPlaceholder />} />
+                <Route path=":id" element={<ChannelDetailPage />} />
+              </Route>
+              
+              <Route path="/settings" element={<SettingsLayout />}>
+                <Route index element={<Navigate to="/settings/account" replace />} />
+                <Route path="account" element={<AccountSettingsPage />} />
+                <Route path="privacy" element={<PrivacySettingsPage />} />
+                <Route path="notifications" element={<NotificationsSettingsPage />} />
+                <Route path="appearance" element={<AppearanceSettingsPage />} />
+              </Route>
+              
+              <Route path="/profile/:id" element={<UserProfilePage />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/groups/:id" element={<GroupDetailPage />} />
+              <Route path="/events/:id" element={<EventDetailPage />} />
             </Route>
-            
-            <Route path="/settings" element={<SettingsLayout />}>
-              <Route index element={<Navigate to="/settings/account" replace />} />
-              <Route path="account" element={<AccountSettingsPage />} />
-              <Route path="privacy" element={<PrivacySettingsPage />} />
-              <Route path="notifications" element={<NotificationsSettingsPage />} />
-              <Route path="appearance" element={<AppearanceSettingsPage />} />
-            </Route>
-            
-            <Route path="/profile/:id" element={<UserProfilePage />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/groups/:id" element={<GroupDetailPage />} />
-            <Route path="/events/:id" element={<EventDetailPage />} />
-          </Route>
 
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
