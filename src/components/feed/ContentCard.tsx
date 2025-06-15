@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -6,20 +5,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Calendar, MessageCircle } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { FeedItem, Profile } from "./types";
-
-const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-  if (!lat1 || !lon1 || !lat2 || !lon2) return null;
-  const R = 6371; // Radius of the earth in km
-  const dLat = (lat2 - lat1) * (Math.PI / 180);
-  const dLon = (lon2 - lon1) * (Math.PI / 180);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const d = R * c; // Distance in km
-  return d.toFixed(1);
-};
+import { getDistance } from "@/lib/location";
 
 interface ContentCardProps {
   item: FeedItem;
@@ -31,10 +17,10 @@ export const ContentCard = ({ item, currentUserProfile }: ContentCardProps) => {
   if (!creator) return null;
 
   const distance = getDistance(
-    currentUserProfile?.latitude ?? 0,
-    currentUserProfile?.longitude ?? 0,
-    creator.latitude ?? 0,
-    creator.longitude ?? 0
+    currentUserProfile?.latitude,
+    currentUserProfile?.longitude,
+    creator.latitude,
+    creator.longitude
   );
 
   const isEvent = item.item_type === 'event';
@@ -73,7 +59,7 @@ export const ContentCard = ({ item, currentUserProfile }: ContentCardProps) => {
             <Link to={`/profile/${creator.id}`} className="font-semibold hover:underline">{creator.username}</Link>
             <div className="text-xs text-muted-foreground flex items-center gap-2">
               <span>{formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}</span>
-              {distance && <span>· {distance} km away</span>}
+              {distance !== null && <span>· {distance.toFixed(1)} km away</span>}
             </div>
           </div>
         </div>
