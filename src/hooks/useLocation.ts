@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -50,28 +51,56 @@ export const useLocation = () => {
     }
 
     setLoading(true);
+
+    const handleSuccess = (position: GeolocationPosition) => {
+      const { latitude, longitude } = position.coords;
+      updateProfileLocation(latitude, longitude);
+    };
+
+    const handleError = (err: GeolocationPositionError) => {
+      let msg = `Unable to retrieve your location: ${err.message}`;
+      switch (err.code) {
+        case err.PERMISSION_DENIED:
+          msg = "Location access was denied. Please enable it in your browser settings.";
+          break;
+        case err.POSITION_UNAVAILABLE:
+          msg = "Your location could not be determined. Please ensure location services are enabled on your device and try again.";
+          break;
+        case err.TIMEOUT:
+          msg = "The request to get your location timed out. Please try again.";
+          break;
+      }
+      setError(msg);
+      toast({ title: "Location Error", description: msg, variant: "destructive" });
+      setLoading(false);
+      console.error("Geolocation error:", err);
+    };
+
+    // First attempt: High accuracy
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        updateProfileLocation(latitude, longitude);
-      },
-      (err) => {
-        let msg = `Unable to retrieve your location: ${err.message}`;
-        switch (err.code) {
-          case err.PERMISSION_DENIED:
-            msg = "Location access was denied. Please enable it in your browser settings.";
-            break;
-          case err.POSITION_UNAVAILABLE:
-            msg = "Your location could not be determined. Please ensure location services are enabled on your device and try again.";
-            break;
-          case err.TIMEOUT:
-            msg = "The request to get your location timed out. Please try again.";
-            break;
+      handleSuccess,
+      (highAccuracyErr) => {
+        console.warn("High accuracy location failed, trying low accuracy.", highAccuracyErr);
+        
+        // If permission is denied, don't try again.
+        if (highAccuracyErr.code === highAccuracyErr.PERMISSION_DENIED) {
+            handleError(highAccuracyErr);
+            return;
         }
-        setError(msg);
-        toast({ title: "Location Error", description: msg, variant: "destructive" });
-        setLoading(false);
-        console.error("Geolocation error:", err);
+
+        // Second attempt: Low accuracy
+        navigator.geolocation.getCurrentPosition(
+          handleSuccess,
+          (lowAccuracyErr) => {
+            console.error("Low accuracy location also failed.", lowAccuracyErr);
+            handleError(lowAccuracyErr); // Show final error
+          },
+          {
+            enableHighAccuracy: false, // Fallback
+            timeout: 10000,
+            maximumAge: 60000,
+          }
+        );
       },
       {
         enableHighAccuracy: true,
