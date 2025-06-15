@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useGlobalSearch } from '@/hooks/useSearch';
+import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
 import SearchResultItem from '@/components/search/SearchResultItem';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Search } from 'lucide-react';
@@ -18,9 +18,7 @@ const SearchPage = () => {
     sortBy: 'compatible',
   });
 
-  // The 'filters' object is ready to be used, but the hook doesn't support it yet.
-  // This will be implemented in the next phase.
-  const { data: results, isLoading, error } = useGlobalSearch(query);
+  const { data: results, isLoading, error } = useAdvancedSearch(query, filters);
 
   const handleFiltersChange = (newFilters: Partial<SearchFiltersState>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
@@ -39,7 +37,7 @@ const SearchPage = () => {
 
         <main>
           <p className="text-muted-foreground mb-4">
-            {query ? `Showing results for "${query}"` : 'Explore people, groups, and more.'}
+            {query ? `Showing results for "${query}"` : 'Explore people using search and filters.'}
           </p>
 
           {isLoading && (
@@ -60,7 +58,7 @@ const SearchPage = () => {
             <p className="text-destructive">Error: {error.message}</p>
           )}
 
-          {!isLoading && !error && query && (!results || results.length === 0) && (
+          {!isLoading && !error && results && results.length === 0 && (
             <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-lg mt-4 text-center p-4">
               <Search className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-xl font-semibold">No results found</h3>
@@ -76,7 +74,7 @@ const SearchPage = () => {
             </div>
           )}
           
-          {!isLoading && !query && (!results || results.length === 0) && (
+          {!isLoading && !error && (!results || results.length === 0) && (
              <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-lg mt-4 text-center p-4">
               <Search className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-xl font-semibold">Discover your people</h3>

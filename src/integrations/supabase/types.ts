@@ -411,6 +411,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          created_at: string | null
           cultural_preferences: Json | null
           email_notifications_enabled: boolean
           event_reminder_notifications: boolean
@@ -437,6 +438,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          created_at?: string | null
           cultural_preferences?: Json | null
           email_notifications_enabled?: boolean
           event_reminder_notifications?: boolean
@@ -463,6 +465,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          created_at?: string | null
           cultural_preferences?: Json | null
           email_notifications_enabled?: boolean
           event_reminder_notifications?: boolean
@@ -597,6 +600,44 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      advanced_search_users: {
+        Args: {
+          p_search_term: string
+          p_intent: string
+          p_personality_tags: string[]
+          p_latitude: number
+          p_longitude: number
+          p_radius_km: number
+          p_sort_by: string
+        }
+        Returns: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          cultural_preferences: Json | null
+          email_notifications_enabled: boolean
+          event_reminder_notifications: boolean
+          full_name: string | null
+          group_activity_notifications: boolean
+          id: string
+          intent: string | null
+          interests: string[] | null
+          language: string
+          last_active_at: string | null
+          latitude: number | null
+          location_city: string | null
+          location_postal_code: string | null
+          longitude: number | null
+          new_follower_notifications: boolean
+          new_message_notifications: boolean
+          personality_tags: string[] | null
+          push_notifications_enabled: boolean
+          search_vector: unknown | null
+          status: string | null
+          updated_at: string | null
+          username: string | null
+        }[]
+      }
       find_or_create_conversation: {
         Args: { p_other_user_id: string }
         Returns: string
@@ -618,6 +659,7 @@ export type Database = {
         Returns: {
           avatar_url: string | null
           bio: string | null
+          created_at: string | null
           cultural_preferences: Json | null
           email_notifications_enabled: boolean
           event_reminder_notifications: boolean
