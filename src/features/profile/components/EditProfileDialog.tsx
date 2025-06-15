@@ -35,11 +35,14 @@ export const EditProfileDialog = ({ profile, children }: EditProfileDialogProps)
   useEffect(() => {
     if (profile) {
       setSelectedTags(profile.personality_tags || []);
-      setCulturalPreferences({
-        film: profile.cultural_preferences?.film || '',
-        music: profile.cultural_preferences?.music || '',
-        youtuber: profile.cultural_preferences?.youtuber || '',
-      });
+      if (profile.cultural_preferences && typeof profile.cultural_preferences === 'object' && !Array.isArray(profile.cultural_preferences)) {
+        const prefs = profile.cultural_preferences as any;
+        setCulturalPreferences({
+          film: prefs.film || '',
+          music: prefs.music || '',
+          youtuber: prefs.youtuber || '',
+        });
+      }
     }
   }, [profile]);
 
