@@ -30,6 +30,35 @@ export type Database = {
         }
         Relationships: []
       }
+      channel_last_read: {
+        Row: {
+          channel_id: string
+          id: number
+          last_read_at: string
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          id?: number
+          last_read_at: string
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          id?: number
+          last_read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_last_read_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       channel_members: {
         Row: {
           channel_id: string
@@ -100,6 +129,8 @@ export type Database = {
       }
       channel_messages: {
         Row: {
+          attachment_type: string | null
+          attachment_url: string | null
           channel_id: string
           content: string | null
           created_at: string
@@ -107,6 +138,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          attachment_type?: string | null
+          attachment_url?: string | null
           channel_id: string
           content?: string | null
           created_at?: string
@@ -114,6 +147,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          attachment_type?: string | null
+          attachment_url?: string | null
           channel_id?: string
           content?: string | null
           created_at?: string
@@ -148,6 +183,7 @@ export type Database = {
           image_url: string | null
           logo_letter: string | null
           name: string
+          type: Database["public"]["Enums"]["channel_type"]
           visibility: Database["public"]["Enums"]["channel_visibility"]
         }
         Insert: {
@@ -160,6 +196,7 @@ export type Database = {
           image_url?: string | null
           logo_letter?: string | null
           name: string
+          type?: Database["public"]["Enums"]["channel_type"]
           visibility?: Database["public"]["Enums"]["channel_visibility"]
         }
         Update: {
@@ -172,6 +209,7 @@ export type Database = {
           image_url?: string | null
           logo_letter?: string | null
           name?: string
+          type?: Database["public"]["Enums"]["channel_type"]
           visibility?: Database["public"]["Enums"]["channel_visibility"]
         }
         Relationships: [
@@ -805,6 +843,23 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: Database["public"]["CompositeTypes"]["conversation_details"][]
       }
+      get_joined_channels_with_unread: {
+        Args: { p_user_id: string }
+        Returns: {
+          id: string
+          created_at: string
+          name: string
+          description: string
+          genre: Database["public"]["Enums"]["channel_genre"]
+          visibility: Database["public"]["Enums"]["channel_visibility"]
+          creator_id: string
+          image_url: string
+          color: string
+          logo_letter: string
+          type: Database["public"]["Enums"]["channel_type"]
+          unread_count: number
+        }[]
+      }
       get_matches: {
         Args: Record<PropertyKey, never>
         Returns: string[]
@@ -885,6 +940,10 @@ export type Database = {
         Args: { p_channel_id: string; p_user_id: string }
         Returns: boolean
       }
+      mark_channel_as_read: {
+        Args: { p_channel_id: string }
+        Returns: undefined
+      }
       mark_messages_as_read: {
         Args: { p_conversation_id: string }
         Returns: undefined
@@ -893,6 +952,7 @@ export type Database = {
     Enums: {
       channel_genre: "general" | "music" | "reading" | "gaming" | "tech"
       channel_role: "admin" | "moderator" | "member"
+      channel_type: "text" | "voice"
       channel_visibility: "public" | "private"
     }
     CompositeTypes: {
@@ -1027,6 +1087,7 @@ export const Constants = {
     Enums: {
       channel_genre: ["general", "music", "reading", "gaming", "tech"],
       channel_role: ["admin", "moderator", "member"],
+      channel_type: ["text", "voice"],
       channel_visibility: ["public", "private"],
     },
   },
