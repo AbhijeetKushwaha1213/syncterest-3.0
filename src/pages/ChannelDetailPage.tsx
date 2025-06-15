@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useChannelPresence } from '@/hooks/useChannelPresence';
@@ -9,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useChannel } from '@/hooks/useChannel';
+import ChannelChat from '@/components/channels/chat/ChannelChat';
 
 const ChannelDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -53,14 +53,7 @@ const ChannelDetailPage = () => {
       </header>
       <div className="grid md:grid-cols-3 flex-1">
         <div className="md:col-span-2 border-r flex flex-col">
-          <Card className="flex-1 rounded-none border-0 shadow-none">
-            <CardHeader>
-              <CardTitle>Chat</CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 flex items-center justify-center text-muted-foreground bg-muted/20">
-              <p>Chat interface coming soon!</p>
-            </CardContent>
-          </Card>
+          <ChannelChat channel={channel} />
         </div>
         <div>
           <Card className="rounded-none border-0 shadow-none h-full">
