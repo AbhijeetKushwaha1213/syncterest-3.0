@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users } from "lucide-react";
+import { Link } from 'react-router-dom';
 
 // Manually defining the Group type as a temporary workaround for out-of-sync DB types.
 export type Group = {
@@ -62,12 +63,14 @@ const GroupCard = ({ group, isMember }: GroupCardProps) => {
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{group.name}</CardTitle>
-        <CardDescription>{group.description}</CardDescription>
-      </CardHeader>
-      <CardFooter className="flex justify-between">
+    <Card className="flex flex-col justify-between h-full">
+      <Link to={`/groups/${group.id}`} className="block hover:bg-muted/50 transition-colors rounded-t-lg">
+        <CardHeader>
+          <CardTitle>{group.name}</CardTitle>
+          <CardDescription>{group.description}</CardDescription>
+        </CardHeader>
+      </Link>
+      <CardFooter className="flex justify-between mt-auto">
         <div className="flex items-center text-sm text-muted-foreground">
           <Users className="mr-1 h-4 w-4" />
           {group.group_members[0]?.count ?? 0} members

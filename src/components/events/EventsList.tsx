@@ -5,6 +5,7 @@ import { Database } from "@/integrations/supabase/types";
 import EventCard from "./EventCard";
 import CreateEventDialog from "./CreateEventDialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "react-router-dom";
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -53,7 +54,9 @@ const EventsList = () => {
       {events && events.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {events.map((event) => (
-            <EventCard key={event.id} event={event} />
+            <Link key={event.id} to={`/events/${event.id}`} className="block h-full">
+              <EventCard event={event} />
+            </Link>
           ))}
         </div>
       ) : (

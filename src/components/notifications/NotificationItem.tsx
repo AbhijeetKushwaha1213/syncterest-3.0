@@ -69,8 +69,9 @@ const NotificationItem = ({ notification, onMarkAsRead }: NotificationItemProps)
         navigate(`/profile/${notification.data?.follower_id}`);
         break;
       case 'group_join':
-        // NOTE: There is no single group page yet, so navigating to channels list.
-        navigate(`/channels`);
+        if (notification.data?.group_id) {
+          navigate(`/groups/${notification.data.group_id}`);
+        }
         break;
     }
   };

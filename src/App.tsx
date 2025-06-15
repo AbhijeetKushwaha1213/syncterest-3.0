@@ -15,6 +15,8 @@ import UserProfilePage from "./pages/UserProfilePage";
 import LoggedInLayout from "./components/LoggedInLayout";
 import ChannelsPage from "./pages/ChannelsPage";
 import SearchPage from "./pages/SearchPage";
+import GroupDetailPage from "./pages/GroupDetailPage";
+import EventDetailPage from "./pages/EventDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +38,8 @@ const App = () => (
             <Route path="/account" element={<AccountPage />} />
             <Route path="/profile/:id" element={<UserProfilePage />} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/groups/:id" element={<GroupDetailPage />} />
+            <Route path="/events/:id" element={<EventDetailPage />} />
           </Route>
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
