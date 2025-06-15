@@ -30,7 +30,7 @@ const TypingIndicator = ({ typingUsers }: TypingIndicatorProps) => {
     };
 
     return (
-        <div className="text-sm text-muted-foreground h-full flex items-center">
+        <div className="h-6 px-4 text-sm text-muted-foreground flex items-center">
             <p className="truncate">{getTypingMessage()}</p>
         </div>
     );

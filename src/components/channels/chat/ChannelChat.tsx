@@ -33,8 +33,8 @@ const ChannelChat = ({ channel }: ChannelChatProps) => {
         enabled: !!channel.id,
     });
 
-    const { handleTyping, typingUsers } = useChannelTyping(channel.id);
-    const { markAsRead } = useMarkChannelAsRead();
+    const { sendTypingEvent, typingUsers } = useChannelTyping(channel.id);
+    const { mutate: markAsRead } = useMarkChannelAsRead();
 
     useEffect(() => {
         if(channel.id && user) {
@@ -71,7 +71,7 @@ const ChannelChat = ({ channel }: ChannelChatProps) => {
                 async (payload) => {
                     const { data: newMessage, error } = await supabase
                         .from('channel_messages')
-                        .select('*, sender:profiles (*), reactions:channel_message_reactions(*)')
+                        .select('*, sender:profiles (*), channel_message_reactions(*)')
                         .eq('id', payload.new.id)
                         .single();
 
@@ -85,7 +85,7 @@ const ChannelChat = ({ channel }: ChannelChatProps) => {
                             if (currentMessages.some(m => m.id === newMessage.id)) {
                                 return currentMessages;
                             }
-                            return [...currentMessages, newMessage as ChannelMessageWithSender];
+                            return [...currentMessages, newMessage as unknown as ChannelMessageWithSender];
                         });
                         if(newMessage.user_id === user?.id) {
                             queryClient.invalidateQueries({ queryKey: ['joined-channels'] });
@@ -181,12 +181,12 @@ const ChannelChat = ({ channel }: ChannelChatProps) => {
                     messages={messages}
                 />
             </main>
-            <TypingIndicator users={typingUsers} />
+            <TypingIndicator typingUsers={typingUsers} />
             <ChannelMessageForm 
                 form={form}
                 onSubmit={onSubmit}
                 isSending={sendMessageMutation.isPending || isUploading}
-                onTyping={handleTyping}
+                onTyping={sendTypingEvent}
                 attachment={attachment}
                 onFileSelect={handleFileSelect}
                 onRemoveAttachment={() => setAttachment(null)}
