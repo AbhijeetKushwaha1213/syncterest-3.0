@@ -1,6 +1,7 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Database } from '@/integrations/supabase/types';
+import { Database, TablesInsert } from '@/integrations/supabase/types';
 import { useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { useSupabaseChannel } from './useSupabaseChannel';
@@ -30,7 +31,7 @@ export const useLiveActivities = () => {
     });
 
     const { mutate: upsertActivity, isPending: isUpserting } = useMutation({
-        mutationFn: async (activity: Omit<Database['public']['Tables']['live_activities']['Row'], 'id' | 'created_at'>) => {
+        mutationFn: async (activity: TablesInsert<'live_activities'>) => {
              const { data, error } = await supabase.from('live_activities').upsert(activity, { onConflict: 'user_id' }).select();
              if (error) throw error;
              return data;

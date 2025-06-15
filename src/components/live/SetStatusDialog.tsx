@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLiveActivities } from '@/hooks/useLiveActivities';
 import { useLocation } from '@/hooks/useLocation';
@@ -74,7 +74,7 @@ export const SetStatusDialog = ({ open, onOpenChange, activityType }: SetStatusD
   const loading = isUpserting || isProcessing;
 
   // Reset custom message when dialog opens for a new activity
-  React.useEffect(() => {
+  useEffect(() => {
     if (open) {
       setCustomMessage('');
     }
