@@ -13,6 +13,8 @@ import {
   FlaskConical,
   Microscope,
   LucideProps,
+  Utensils,
+  Pencil,
 } from 'lucide-react';
 
 type IconComponent = React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>;
@@ -212,6 +214,26 @@ export const interestsWithSubcategories: {
             label: 'Interests',
             options: ['Web Development', 'Mobile Development', 'AI/ML', 'Cybersecurity', 'Gadgets', 'Startups'],
           },
+          {
+            type: 'text',
+            label: 'LinkedIn Profile',
+            placeholder: 'e.g., https://www.linkedin.com/in/username'
+          },
+          {
+            type: 'text',
+            label: 'GitHub Profile',
+            placeholder: 'e.g., https://github.com/username'
+          },
+          {
+            type: 'text',
+            label: 'LeetCode Profile',
+            placeholder: 'e.g., https://leetcode.com/username'
+          },
+          {
+            type: 'text',
+            label: 'HackerRank Profile',
+            placeholder: 'e.g., https://www.hackerrank.com/username'
+          }
         ],
     },
     {
@@ -225,6 +247,38 @@ export const interestsWithSubcategories: {
             options: ['Physics', 'Biology', 'Chemistry', 'Astronomy', 'Psychology'],
           },
         ],
+    },
+    {
+      id: "cooking",
+      label: "Cooking",
+      icon: Palette,
+      subgroups: [{
+          type: "multiselect",
+          label: "Cuisines",
+          options: ["Italian", "Mexican", "Indian", "Chinese", "Japanese", "Thai", "French", "Mediterranean"],
+      },
+      {
+          type: 'text',
+          label: 'Favorite Dishes',
+          placeholder: 'e.g., Lasagna, Tacos, Butter Chicken...'
+      }],
+    },
+    {
+      id: 'writing',
+      label: 'Writing',
+      icon: Book,
+      subgroups: [
+        {
+          type: 'multiselect',
+          label: 'Forms',
+          options: ['Poetry', 'Prose', 'Screenwriting', 'Journaling', 'Blogging', 'Technical Writing'],
+        },
+        {
+          type: 'text',
+          label: 'Current Project',
+          placeholder: 'e.g., Writing a novel, a collection of poems...'
+        }
+      ],
     },
     {
         id: 'research_projects',

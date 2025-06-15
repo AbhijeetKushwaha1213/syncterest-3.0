@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { interestsWithSubcategories } from "@/data/interestsWithSubcategories";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AddCustomOptionDialog } from "./AddCustomOptionDialog";
 
 interface InterestsFormSectionProps {
   control: Control<any>;
@@ -47,7 +48,7 @@ export const InterestsFormSection = ({ control }: InterestsFormSectionProps) => 
                       {subgroup.description && <FormDescription>{subgroup.description}</FormDescription>}
                       <div className="pt-2">
                         {subgroup.type === 'multiselect' && (
-                          <div className="flex flex-wrap gap-3">
+                          <div className="flex flex-wrap items-center gap-3">
                             {subgroup.options?.map(option => {
                               const value = `${interest.label}:${subgroup.label}:${option}`;
                               const isChecked = field.value?.includes(value);
@@ -76,6 +77,15 @@ export const InterestsFormSection = ({ control }: InterestsFormSectionProps) => 
                                 </div>
                               );
                             })}
+                            <AddCustomOptionDialog 
+                              onAdd={(customOption) => {
+                                const value = `${interest.label}:${subgroup.label}:${customOption}`;
+                                const currentValues = field.value || [];
+                                if (!currentValues.includes(value)) {
+                                  field.onChange([...currentValues, value]);
+                                }
+                              }}
+                            />
                           </div>
                         )}
                         {subgroup.type === 'text' && (
