@@ -23,7 +23,7 @@ export const getNotifications = async (): Promise<Notification[]> => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('notifications')
     .select('*')
     .eq('user_id', user.id)
@@ -38,7 +38,7 @@ export const getNotifications = async (): Promise<Notification[]> => {
 };
 
 export const markNotificationAsRead = async (notificationId: string) => {
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('notifications')
     .update({ is_read: true })
     .eq('id', notificationId);
@@ -52,7 +52,7 @@ export const markNotificationAsRead = async (notificationId: string) => {
 export const markAllNotificationsAsRead = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('notifications')
       .update({ is_read: true })
       .eq('user_id', user.id)
