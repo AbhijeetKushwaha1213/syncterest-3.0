@@ -26,6 +26,7 @@ const DataManagementSettingsPage = () => {
         followingRes,
         eventsRes,
         groupMembershipsRes,
+        subscriptionRes,
       ] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user.id).single(),
         supabase.from('posts').select('*').eq('user_id', user.id),
@@ -34,10 +35,11 @@ const DataManagementSettingsPage = () => {
         supabase.from('followers').select('follower_id').eq('following_id', user.id), // Users that follow this user
         supabase.from('events').select('*').eq('created_by', user.id),
         supabase.from('group_members').select('group_id').eq('user_id', user.id),
+        supabase.from('subscribers').select('subscribed, subscription_tier, subscription_end').eq('user_id', user.id).maybeSingle(),
       ]);
 
       // Error handling for all promises
-      const errors = [profileRes.error, postsRes.error, storiesRes.error, followersRes.error, followingRes.error, eventsRes.error, groupMembershipsRes.error].filter(Boolean);
+      const errors = [profileRes.error, postsRes.error, storiesRes.error, followersRes.error, followingRes.error, eventsRes.error, groupMembershipsRes.error, subscriptionRes.error].filter(Boolean);
       if (errors.length > 0) {
         throw new Error(errors.map(e => e?.message).join(', '));
       }
@@ -49,6 +51,7 @@ const DataManagementSettingsPage = () => {
       const { data: following } = followingRes;
       const { data: events } = eventsRes;
       const { data: groupMemberships } = groupMembershipsRes;
+      const { data: subscription } = subscriptionRes;
 
       // Fetch full group details based on memberships
       const groupIds = groupMemberships?.map(gm => gm.group_id) || [];
@@ -67,6 +70,7 @@ const DataManagementSettingsPage = () => {
         following: following?.map(f => f.follower_id),
         events,
         groups,
+        subscription,
         // Note: Exporting direct messages is complex and omitted for privacy and simplicity.
       };
 
