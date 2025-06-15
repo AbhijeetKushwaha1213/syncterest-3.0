@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from '@/hooks/useLocation';
@@ -9,7 +8,7 @@ import { Database } from '@/integrations/supabase/types';
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
 export const useAdvancedSearch = (searchTerm: string, filters: SearchFiltersState) => {
-  const { location } = useLocation();
+  const { profileLocation: location } = useLocation();
 
   const isSearchTermPresent = searchTerm.trim().length > 0;
   const arePersonalityTagsPresent = filters.personality_tags.length > 0;
