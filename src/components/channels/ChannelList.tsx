@@ -7,6 +7,7 @@ import { Hash, Plus } from 'lucide-react';
 import { useJoinedChannels } from '@/hooks/useJoinedChannels';
 import { Skeleton } from '../ui/skeleton';
 import { CreateChannelDialog } from './CreateChannelDialog';
+import { Badge } from '@/components/ui/badge';
 
 const ChannelList = () => {
   const { data: channels, isLoading, error } = useJoinedChannels();
@@ -45,7 +46,12 @@ const ChannelList = () => {
             <span className={cn('p-2 rounded-md', channel.color ? channel.color : 'bg-muted')}>
                 <Hash className="h-4 w-4 text-white" />
             </span>
-            <span>{channel.name}</span>
+            <span className="truncate flex-1">{channel.name}</span>
+            {channel.unread_count > 0 && (
+                <Badge className="h-5 min-w-[1.25rem] flex items-center justify-center p-1 text-xs shrink-0">
+                    {channel.unread_count > 99 ? '99+' : channel.unread_count}
+                </Badge>
+            )}
             </NavLink>
         ))}
         {!isLoading && channels?.length === 0 && (

@@ -6,6 +6,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Channel } from '@/types';
 import { useChannelTyping } from '@/hooks/useChannelTyping';
 import TypingIndicator from './TypingIndicator';
+import { useEffect } from 'react';
+import { useMarkChannelAsRead } from '@/hooks/useMarkChannelAsRead';
 
 interface ChannelChatProps {
     channel: Channel;
@@ -14,6 +16,13 @@ interface ChannelChatProps {
 const ChannelChat = ({ channel }: ChannelChatProps) => {
     const { data: messages, isLoading } = useChannelMessages(channel.id);
     const { typingUsers, sendTypingEvent } = useChannelTyping(channel.id);
+    const { mutate: markAsRead } = useMarkChannelAsRead();
+
+    useEffect(() => {
+        if (channel.id) {
+            markAsRead(channel.id);
+        }
+    }, [channel.id, markAsRead]);
 
     return (
         <div className="flex flex-col h-full bg-muted/20">
