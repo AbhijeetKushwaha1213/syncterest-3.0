@@ -845,6 +845,14 @@ export type Database = {
         Args: { search_term: string }
         Returns: Database["public"]["CompositeTypes"]["global_search_result"][]
       }
+      is_channel_admin: {
+        Args: { p_channel_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      is_channel_member: {
+        Args: { p_channel_id: string; p_user_id: string }
+        Returns: boolean
+      }
       mark_messages_as_read: {
         Args: { p_conversation_id: string }
         Returns: undefined
