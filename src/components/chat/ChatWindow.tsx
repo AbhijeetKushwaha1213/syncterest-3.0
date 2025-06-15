@@ -82,7 +82,7 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
         async (payload) => {
           const { data: newMessage, error } = await supabase
             .from('messages')
-            .select('*, sender:profiles (id, username, avatar_url)')
+            .select('*, sender:profiles (id, username, avatar_url), reactions(*)')
             .eq('id', payload.new.id)
             .single();
           

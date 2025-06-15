@@ -2,11 +2,13 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
-import { Paperclip, Send } from 'lucide-react';
+import { Paperclip, Send, Smile } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 import React from 'react';
 import AttachmentPreview from './AttachmentPreview';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
 export const messageFormSchema = z.object({
   content: z.string().max(1000, "Message is too long."),
@@ -39,6 +41,10 @@ const MessageForm = ({ form, onSubmit, isSending, attachment, onFileSelect, onRe
         if(event.target) {
             event.target.value = '';
         }
+    };
+
+    const handleEmojiClick = (emojiData: EmojiClickData) => {
+        form.setValue('content', form.getValues('content') + emojiData.emoji);
     };
 
     const disableSend = isSending || (!form.getValues("content").trim() && !attachment);
@@ -81,6 +87,16 @@ const MessageForm = ({ form, onSubmit, isSending, attachment, onFileSelect, onRe
                             </FormItem>
                         )}
                     />
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button type="button" variant="ghost" size="icon" disabled={isSending}>
+                                <Smile className="h-5 w-5" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 mb-2 border-none" side="top" align="end">
+                            <EmojiPicker onEmojiClick={handleEmojiClick} />
+                        </PopoverContent>
+                    </Popover>
                     <Button type="submit" disabled={disableSend}>
                         <Send className="h-5 w-5"/>
                     </Button>
