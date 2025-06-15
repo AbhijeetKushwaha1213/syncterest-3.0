@@ -220,6 +220,24 @@ export type Database = {
         }
         Relationships: []
       }
+      intent_options: {
+        Row: {
+          description: string | null
+          id: number
+          name: string
+        }
+        Insert: {
+          description?: string | null
+          id?: number
+          name: string
+        }
+        Update: {
+          description?: string | null
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
       live_activities: {
         Row: {
           activity_type: string
@@ -339,6 +357,24 @@ export type Database = {
         }
         Relationships: []
       }
+      personality_tags_options: {
+        Row: {
+          description: string | null
+          id: number
+          name: string
+        }
+        Insert: {
+          description?: string | null
+          id?: number
+          name: string
+        }
+        Update: {
+          description?: string | null
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           caption: string | null
@@ -375,18 +411,23 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          cultural_preferences: Json | null
           email_notifications_enabled: boolean
           event_reminder_notifications: boolean
           full_name: string | null
           group_activity_notifications: boolean
           id: string
+          intent: string | null
           interests: string[] | null
           language: string
           last_active_at: string | null
           latitude: number | null
+          location_city: string | null
+          location_postal_code: string | null
           longitude: number | null
           new_follower_notifications: boolean
           new_message_notifications: boolean
+          personality_tags: string[] | null
           push_notifications_enabled: boolean
           search_vector: unknown | null
           status: string | null
@@ -396,18 +437,23 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          cultural_preferences?: Json | null
           email_notifications_enabled?: boolean
           event_reminder_notifications?: boolean
           full_name?: string | null
           group_activity_notifications?: boolean
           id: string
+          intent?: string | null
           interests?: string[] | null
           language?: string
           last_active_at?: string | null
           latitude?: number | null
+          location_city?: string | null
+          location_postal_code?: string | null
           longitude?: number | null
           new_follower_notifications?: boolean
           new_message_notifications?: boolean
+          personality_tags?: string[] | null
           push_notifications_enabled?: boolean
           search_vector?: unknown | null
           status?: string | null
@@ -417,25 +463,38 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          cultural_preferences?: Json | null
           email_notifications_enabled?: boolean
           event_reminder_notifications?: boolean
           full_name?: string | null
           group_activity_notifications?: boolean
           id?: string
+          intent?: string | null
           interests?: string[] | null
           language?: string
           last_active_at?: string | null
           latitude?: number | null
+          location_city?: string | null
+          location_postal_code?: string | null
           longitude?: number | null
           new_follower_notifications?: boolean
           new_message_notifications?: boolean
+          personality_tags?: string[] | null
           push_notifications_enabled?: boolean
           search_vector?: unknown | null
           status?: string | null
           updated_at?: string | null
           username?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_intent"
+            columns: ["intent"]
+            isOneToOne: false
+            referencedRelation: "intent_options"
+            referencedColumns: ["name"]
+          },
+        ]
       }
       reactions: {
         Row: {
@@ -559,18 +618,23 @@ export type Database = {
         Returns: {
           avatar_url: string | null
           bio: string | null
+          cultural_preferences: Json | null
           email_notifications_enabled: boolean
           event_reminder_notifications: boolean
           full_name: string | null
           group_activity_notifications: boolean
           id: string
+          intent: string | null
           interests: string[] | null
           language: string
           last_active_at: string | null
           latitude: number | null
+          location_city: string | null
+          location_postal_code: string | null
           longitude: number | null
           new_follower_notifications: boolean
           new_message_notifications: boolean
+          personality_tags: string[] | null
           push_notifications_enabled: boolean
           search_vector: unknown | null
           status: string | null

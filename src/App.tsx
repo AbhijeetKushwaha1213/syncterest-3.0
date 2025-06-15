@@ -29,6 +29,7 @@ import BlockedUsersSettingsPage from "./pages/settings/BlockedUsersSettingsPage"
 import DataManagementSettingsPage from "./pages/settings/DataManagementSettingsPage";
 import HelpSettingsPage from "./pages/settings/HelpSettingsPage";
 import LinkedAccountsSettingsPage from "./pages/settings/LinkedAccountsSettingsPage";
+import DiscoverySettingsPage from './pages/settings/DiscoverySettingsPage';
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,7 @@ const App = () => (
                 <Route path="notifications" element={<NotificationsSettingsPage />} />
                 <Route path="appearance" element={<AppearanceSettingsPage />} />
                 <Route path="language" element={<LanguageSettingsPage />} />
+                <Route path="discovery" element={<DiscoverySettingsPage />} />
                 <Route path="linked-accounts" element={<LinkedAccountsSettingsPage />} />
                 <Route path="data-management" element={<DataManagementSettingsPage />} />
                 <Route path="blocked-users" element={<BlockedUsersSettingsPage />} />
