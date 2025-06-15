@@ -6,7 +6,7 @@ import { RealtimeChannel, RealtimePresenceState } from '@supabase/supabase-js';
 
 export const useChannelPresence = (channelId: string) => {
   const { user, profile } = useAuth();
-  const [onlineUsers, setOnlineUsers] = useState<RealtimePresenceState>({});
+  const [presenceState, setPresenceState] = useState<RealtimePresenceState>({});
   const channelRef = useRef<RealtimeChannel | null>(null);
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export const useChannelPresence = (channelId: string) => {
 
     channel.on('presence', { event: 'sync' }, () => {
         const newState = channel.presenceState();
-        setOnlineUsers(newState);
+        setPresenceState(newState);
     });
 
     channel.subscribe(async (status) => {
@@ -52,7 +52,7 @@ export const useChannelPresence = (channelId: string) => {
     };
   }, [user?.id, channelId, profile]);
 
-  const onlineUserList = Object.values(onlineUsers).flat();
+  const onlineUsers = Object.values(presenceState).flat();
 
   return { onlineUsers };
 };
