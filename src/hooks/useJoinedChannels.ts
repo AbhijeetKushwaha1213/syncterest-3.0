@@ -1,4 +1,3 @@
-
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -47,7 +46,9 @@ export const useJoinedChannels = () => {
         console.error('Error fetching joined channels:', error);
         throw error;
       }
-      return data as ChannelWithUnread[];
+      // Because the auto-generated Supabase types are out of sync,
+      // we use a more forceful type assertion here to satisfy TypeScript.
+      return data as unknown as ChannelWithUnread[];
     },
     enabled: !!user?.id,
   });
