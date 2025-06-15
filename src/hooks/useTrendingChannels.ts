@@ -1,6 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { Channel } from '@/types';
 
 const fetchTrendingChannels = async () => {
   const { data, error } = await supabase
@@ -15,7 +16,7 @@ const fetchTrendingChannels = async () => {
     throw error;
   }
   
-  return data;
+  return data as unknown as (Channel & { channel_members: { count: number }[] })[];
 };
 
 export const useTrendingChannels = () => {
