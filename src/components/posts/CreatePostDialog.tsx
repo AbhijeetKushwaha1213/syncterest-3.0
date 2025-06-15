@@ -75,7 +75,11 @@ const CreatePostDialog = () => {
       toast({ title: "Authentication error", description: "You must be logged in to create a post.", variant: "destructive" });
       return;
     }
-    mutation.mutate({ ...values, user_id: user.id });
+    mutation.mutate({
+      user_id: user.id,
+      image_url: values.image_url,
+      caption: values.caption,
+    });
   };
 
   return (

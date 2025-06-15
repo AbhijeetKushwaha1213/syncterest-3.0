@@ -75,7 +75,11 @@ const CreateReelDialog = () => {
       toast({ title: "Authentication error", description: "You must be logged in to create a reel.", variant: "destructive" });
       return;
     }
-    mutation.mutate({ ...values, user_id: user.id });
+    mutation.mutate({
+      user_id: user.id,
+      video_url: values.video_url,
+      caption: values.caption,
+    });
   };
 
   return (
