@@ -23,6 +23,7 @@ import AccountSettingsPage from "./pages/settings/AccountSettingsPage";
 import PrivacySettingsPage from "./pages/settings/PrivacySettingsPage";
 import NotificationsSettingsPage from "./pages/settings/NotificationsSettingsPage";
 import AppearanceSettingsPage from "./pages/settings/AppearanceSettingsPage";
+import LanguageSettingsPage from "./pages/settings/LanguageSettingsPage";
 import { ThemeProvider } from "./components/ThemeProvider";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,7 @@ const App = () => (
                 <Route path="privacy" element={<PrivacySettingsPage />} />
                 <Route path="notifications" element={<NotificationsSettingsPage />} />
                 <Route path="appearance" element={<AppearanceSettingsPage />} />
+                <Route path="language" element={<LanguageSettingsPage />} />
               </Route>
               
               <Route path="/profile/:id" element={<UserProfilePage />} />

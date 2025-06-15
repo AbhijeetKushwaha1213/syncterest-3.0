@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { User, Shield, Bell, Paintbrush } from 'lucide-react';
+import { User, Shield, Bell, Paintbrush, Languages } from 'lucide-react';
 
 const sidebarNavItems = [
   {
@@ -23,6 +24,11 @@ const sidebarNavItems = [
     title: "Appearance",
     href: "/settings/appearance",
     icon: Paintbrush,
+  },
+  {
+    title: "Language",
+    href: "/settings/language",
+    icon: Languages,
   },
 ];
 
