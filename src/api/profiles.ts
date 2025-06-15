@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 
@@ -15,6 +16,7 @@ export type ProfileWithDetails = Tables<'profiles'> & {
 export const fetchProfileData = async (profileId: string, currentUserId?: string): Promise<ProfileWithDetails | null> => {
   if (!profileId) throw new Error("Profile ID is required");
 
+  // 1. Check for blocks
   if (currentUserId && profileId !== currentUserId) {
     const { data: block, error: blockError } = await supabase
       .from('blocked_users')
@@ -32,6 +34,7 @@ export const fetchProfileData = async (profileId: string, currentUserId?: string
     }
   }
 
+  // 2. Fetch basic profile data to check privacy settings
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select(`*`)
@@ -44,6 +47,38 @@ export const fetchProfileData = async (profileId: string, currentUserId?: string
   
   if (!profile) return null;
 
+  // 3. Perform privacy checks before fetching detailed data
+  let isFollowing = false;
+  if (currentUserId && currentUserId !== profileId) {
+      // Check for mutual follow (friendship) to decide on visibility
+      const { data: followship, error: isFollowingError } = await supabase
+          .from('followers')
+          .select('follower_id')
+          .eq('follower_id', currentUserId)
+          .eq('following_id', profileId)
+          .maybeSingle();
+      if(isFollowingError) throw isFollowingError;
+      isFollowing = !!followship;
+
+      const { data: followedByShip, error: isFollowedByError } = await supabase
+          .from('followers')
+          .select('follower_id')
+          .eq('follower_id', profileId)
+          .eq('following_id', currentUserId)
+          .maybeSingle();
+      if(isFollowedByError) throw isFollowedByError;
+      const isFriend = isFollowing && !!followedByShip;
+
+      // Apply privacy rules
+      if (profile.profile_visibility === 'private') {
+          return null; // Don't show private profiles to others
+      }
+      if (profile.profile_visibility === 'friends_only' && !isFriend) {
+          return null; // Don't show friends_only profiles to non-friends
+      }
+  }
+
+  // 4. If privacy checks pass, fetch all remaining details
   const { data: posts, count: postsCount, error: postsError } = await supabase
     .from('posts')
     .select('*', { count: 'exact' })
@@ -102,18 +137,6 @@ export const fetchProfileData = async (profileId: string, currentUserId?: string
     .eq('follower_id', profileId);
 
   if (followingError) throw followingError;
-
-  let isFollowing = false;
-  if (currentUserId && currentUserId !== profileId) {
-      const { data: followship, error: isFollowingError } = await supabase
-          .from('followers')
-          .select('follower_id')
-          .eq('follower_id', currentUserId)
-          .eq('following_id', profileId)
-          .maybeSingle();
-      if(isFollowingError) throw isFollowingError;
-      isFollowing = !!followship;
-  }
 
   return {
     ...profile,
