@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -131,6 +132,13 @@ const PeopleNearYou = () => {
                             </div>
                             <Link to={`/profile/${p.id}`} className="font-semibold text-sm hover:underline truncate w-full" title={p.full_name || p.username || ''}>{p.full_name || p.username}</Link>
                             <p className="text-xs text-muted-foreground">{getSubtext(p)}</p>
+                            <div className="flex flex-wrap gap-1 justify-center w-full min-h-[22px] items-center">
+                              {p.interests?.slice(0, 2).map((interest) => (
+                                <span key={interest} className="text-[10px] bg-primary/10 text-primary font-medium px-1.5 py-0.5 rounded-full truncate">
+                                  {interest}
+                                </span>
+                              ))}
+                            </div>
                           </div>
                           <Button variant="secondary" size="sm" className="w-full mt-2 whitespace-nowrap">
                             Connect
