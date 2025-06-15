@@ -51,6 +51,7 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
       console.error("Failed to mark messages as read", error);
     }
   });
+  const { mutate: doMarkAsRead } = markAsReadMutation;
 
   useEffect(() => {
     if (initialMessages) {
@@ -60,22 +61,23 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
 
   useEffect(() => {
     if (conversation?.id) {
-      markAsReadMutation.mutate(conversation.id);
+      doMarkAsRead(conversation.id);
     }
-  }, [conversation?.id, markAsReadMutation]);
+  }, [conversation?.id, doMarkAsRead]);
 
   useEffect(() => {
     if (!conversation) return;
+    const conversationId = conversation.id;
 
     const channel = supabase
-      .channel(`chat:${conversation.id}`)
+      .channel(`chat:${conversationId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `conversation_id=eq.${conversation.id}`,
+          filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload) => {
           const { data: newMessage, error } = await supabase
@@ -99,7 +101,7 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
             
             // Mark as read if it's an incoming message
             if (newMessage.sender_id !== user?.id) {
-                markAsReadMutation.mutate(conversation.id);
+                doMarkAsRead(conversationId);
             } else {
                 // If we sent the message, just invalidate conversations to update list
                 queryClient.invalidateQueries({ queryKey: ['conversations', user?.id] });
@@ -113,7 +115,7 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'reactions' },
         (payload) => {
           setMessages(currentMessages => {
-            const messageInState = currentMessages.some(m => m.conversation_id === conversation.id);
+            const messageInState = currentMessages.some(m => m.conversation_id === conversationId);
             if (!messageInState) return currentMessages;
 
             if (payload.eventType === 'INSERT') {
@@ -146,7 +148,7 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
       supabase.removeChannel(channel);
       supabase.removeChannel(reactionChannel);
     };
-  }, [conversation, queryClient, user?.id, markAsReadMutation]);
+  }, [conversation?.id, queryClient, user?.id, doMarkAsRead]);
   
   // Typing indicator logic
   useEffect(() => {
