@@ -4,8 +4,12 @@ import { useSearchParams } from 'react-router-dom';
 import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
 import SearchResultItem from '@/components/search/SearchResultItem';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search } from 'lucide-react';
+import { Search, LayoutGrid, List } from 'lucide-react';
 import SearchFilters, { SearchFiltersState } from '@/components/search/SearchFilters';
+import UserCard from '@/components/UserCard';
+import type { GlobalSearchResult } from '@/hooks/useSearch';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Card, CardContent } from '@/components/ui/card';
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -17,11 +21,16 @@ const SearchPage = () => {
     distance: 50,
     sortBy: 'compatible',
   });
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const { data: results, isLoading, error } = useAdvancedSearch(query, filters);
 
   const handleFiltersChange = (newFilters: Partial<SearchFiltersState>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
+  };
+
+  const handleViewChange = (value: 'grid' | 'list') => {
+    if (value) setViewMode(value);
   };
 
   return (
@@ -36,22 +45,40 @@ const SearchPage = () => {
         </aside>
 
         <main>
-          <p className="text-muted-foreground mb-4">
-            {query ? `Showing results for "${query}"` : 'Explore people using search and filters.'}
-          </p>
+          <div className="flex justify-between items-center mb-4">
+            <p className="text-muted-foreground">
+              {query ? `Showing results for "${query}"` : 'Explore people using search and filters.'}
+            </p>
+             <ToggleGroup type="single" value={viewMode} onValueChange={handleViewChange} defaultValue="grid">
+              <ToggleGroupItem value="list" aria-label="List view">
+                <List className="h-4 w-4" />
+              </ToggleGroupItem>
+              <ToggleGroupItem value="grid" aria-label="Grid view">
+                <LayoutGrid className="h-4 w-4" />
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
 
           {isLoading && (
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
-                    <Skeleton className="h-12 w-12 rounded-full" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-1/2" />
-                      <Skeleton className="h-4 w-3/4" />
-                    </div>
-                  </div>
-              ))}
-            </div>
+             viewMode === 'list' ? (
+                <div className="space-y-4">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
+                        <Skeleton className="h-12 w-12 rounded-full" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-1/2" />
+                          <Skeleton className="h-4 w-3/4" />
+                        </div>
+                      </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {[...Array(6)].map((_, i) => (
+                    <Skeleton key={i} className="rounded-lg aspect-[3/4]" />
+                  ))}
+                </div>
+              )
           )}
 
           {error && (
@@ -75,11 +102,28 @@ const SearchPage = () => {
                 </div>
               )}
               {results && results.length > 0 && (
-                <div className="space-y-4">
-                  {results.map((result) => (
-                    <SearchResultItem key={`${result.type}-${result.id}`} result={result} />
-                  ))}
-                </div>
+                viewMode === 'grid' ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {results.map((profile) => (
+                      <UserCard key={profile.id} profile={profile} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {results.map((profile) => {
+                      const resultItem: GlobalSearchResult = {
+                        id: profile.id,
+                        type: 'profile',
+                        title: profile.username || 'Unnamed User',
+                        description: profile.bio || '',
+                        image_url: profile.avatar_url,
+                        url_path: `/profile/${profile.id}`,
+                        rank: 0,
+                      };
+                      return <SearchResultItem key={resultItem.id} result={resultItem} />;
+                    })}
+                  </div>
+                )
               )}
             </>
           )}
