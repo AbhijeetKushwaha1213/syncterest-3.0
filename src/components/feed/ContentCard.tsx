@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -59,7 +60,7 @@ export const ContentCard = ({ item, currentUserProfile }: ContentCardProps) => {
             <Link to={`/profile/${creator.id}`} className="font-semibold hover:underline">{creator.username}</Link>
             <div className="text-xs text-muted-foreground flex items-center gap-2">
               <span>{formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}</span>
-              {distance !== null && <span>· {distance.toFixed(1)} km away</span>}
+              {distance !== null && creator.show_location_on_profile && <span>· {distance.toFixed(1)} km away</span>}
             </div>
           </div>
         </div>
