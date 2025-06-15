@@ -22,10 +22,17 @@ export const useNotifications = () => {
     toastRef.current = toast;
   });
 
+  const queryClientRef = useRef(queryClient);
+  useEffect(() => {
+    queryClientRef.current = queryClient;
+  });
+
   useEffect(() => {
     if (!user?.id) return;
 
     let channel = supabase.channel('public:notifications');
+    // To prevent subscription errors in React StrictMode,
+    // it's important to remove the channel before subscribing.
     supabase.removeChannel(channel);
 
     channel = supabase.channel('public:notifications')
@@ -33,7 +40,7 @@ export const useNotifications = () => {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
         (payload) => {
-          queryClient.invalidateQueries({ queryKey: ['notifications'] });
+          queryClientRef.current.invalidateQueries({ queryKey: ['notifications'] });
           toastRef.current({
             title: "New Notification",
             description: "You have a new notification.",
@@ -45,7 +52,7 @@ export const useNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, queryClient]);
+  }, [user?.id]);
 
   const markAsReadMutation = useMutation({
     mutationFn: markNotificationAsRead,
