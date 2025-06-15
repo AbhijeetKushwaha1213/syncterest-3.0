@@ -1,5 +1,4 @@
-
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 
 // WARNING: This function will delete all data associated with a user and then delete the user themselves.
