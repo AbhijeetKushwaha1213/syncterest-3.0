@@ -345,12 +345,18 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          email_notifications_enabled: boolean
+          event_reminder_notifications: boolean
           full_name: string | null
+          group_activity_notifications: boolean
           id: string
           interests: string[] | null
           last_active_at: string | null
           latitude: number | null
           longitude: number | null
+          new_follower_notifications: boolean
+          new_message_notifications: boolean
+          push_notifications_enabled: boolean
           search_vector: unknown | null
           status: string | null
           updated_at: string | null
@@ -359,12 +365,18 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          email_notifications_enabled?: boolean
+          event_reminder_notifications?: boolean
           full_name?: string | null
+          group_activity_notifications?: boolean
           id: string
           interests?: string[] | null
           last_active_at?: string | null
           latitude?: number | null
           longitude?: number | null
+          new_follower_notifications?: boolean
+          new_message_notifications?: boolean
+          push_notifications_enabled?: boolean
           search_vector?: unknown | null
           status?: string | null
           updated_at?: string | null
@@ -373,12 +385,18 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          email_notifications_enabled?: boolean
+          event_reminder_notifications?: boolean
           full_name?: string | null
+          group_activity_notifications?: boolean
           id?: string
           interests?: string[] | null
           last_active_at?: string | null
           latitude?: number | null
           longitude?: number | null
+          new_follower_notifications?: boolean
+          new_message_notifications?: boolean
+          push_notifications_enabled?: boolean
           search_vector?: unknown | null
           status?: string | null
           updated_at?: string | null
@@ -440,12 +458,18 @@ export type Database = {
         Returns: {
           avatar_url: string | null
           bio: string | null
+          email_notifications_enabled: boolean
+          event_reminder_notifications: boolean
           full_name: string | null
+          group_activity_notifications: boolean
           id: string
           interests: string[] | null
           last_active_at: string | null
           latitude: number | null
           longitude: number | null
+          new_follower_notifications: boolean
+          new_message_notifications: boolean
+          push_notifications_enabled: boolean
           search_vector: unknown | null
           status: string | null
           updated_at: string | null
