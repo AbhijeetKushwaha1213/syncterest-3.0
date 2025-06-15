@@ -1,83 +1,109 @@
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { useMutation } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
-import { Send } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { sendChannelMessage } from '@/api/channelChat';
+import { Paperclip, Send, Smile } from 'lucide-react';
+import { UseFormReturn } from 'react-hook-form';
+import { z } from 'zod';
+import React from 'react';
+import AttachmentPreview from '@/components/chat/AttachmentPreview';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
-const messageSchema = z.object({
-  content: z.string().min(1, "Message cannot be empty.").max(1000, "Message is too long."),
+export const channelMessageFormSchema = z.object({
+  content: z.string().max(1000, "Message is too long."),
 });
 
-type MessageFormValues = z.infer<typeof messageSchema>;
+type MessageFormValues = z.infer<typeof channelMessageFormSchema>;
 
 interface ChannelMessageFormProps {
-  channelId: string;
-  channelName: string;
-  onTyping: () => void;
+    form: UseFormReturn<MessageFormValues>;
+    onSubmit: (values: MessageFormValues) => void;
+    isSending: boolean;
+    attachment: File | null;
+    onFileSelect: (file: File) => void;
+    onRemoveAttachment: () => void;
+    onTyping: () => void;
 }
 
-const ChannelMessageForm = ({ channelId, channelName, onTyping }: ChannelMessageFormProps) => {
-  const { toast } = useToast();
-  const form = useForm<MessageFormValues>({
-    resolver: zodResolver(messageSchema),
-    defaultValues: { content: "" },
-  });
+const ChannelMessageForm = ({ form, onSubmit, isSending, attachment, onFileSelect, onRemoveAttachment, onTyping }: ChannelMessageFormProps) => {
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const sendMessageMutation = useMutation({
-    mutationFn: (values: MessageFormValues) => sendChannelMessage({ channelId, content: values.content }),
-    onSuccess: () => {
-      form.reset();
-    },
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        title: "Failed to send message",
-        description: error.message,
-      });
-    },
-  });
+    const handlePaperclipClick = () => {
+        fileInputRef.current?.click();
+    };
 
-  const onSubmit = (values: MessageFormValues) => {
-    sendMessageMutation.mutate(values);
-  };
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            onFileSelect(file);
+        }
+        if(event.target) {
+            event.target.value = '';
+        }
+    };
 
-  return (
-    <div className="p-4 border-t bg-background shrink-0">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-center gap-3">
-          <FormField
-            control={form.control}
-            name="content"
-            render={({ field }) => (
-              <FormItem className="flex-1">
-                <FormControl>
-                  <Input
-                    placeholder={`Message #${channelName}`}
-                    {...field}
-                    onChange={(e) => {
-                      field.onChange(e);
-                      onTyping();
-                    }}
-                    autoComplete="off"
-                    disabled={sendMessageMutation.isPending}
-                  />
-                </FormControl>
-              </FormItem>
+    const handleEmojiClick = (emojiData: EmojiClickData) => {
+        form.setValue('content', form.getValues('content') + emojiData.emoji);
+    };
+
+    const disableSend = isSending || (!form.getValues("content").trim() && !attachment);
+
+    return (
+        <footer className="p-3 border-t bg-background shrink-0">
+             {attachment && (
+                <div className="px-1 pb-3">
+                    <AttachmentPreview file={attachment} onRemove={onRemoveAttachment} />
+                </div>
             )}
-          />
-          <Button type="submit" disabled={sendMessageMutation.isPending || !form.formState.isValid}>
-            <Send className="h-5 w-5"/>
-          </Button>
-        </form>
-      </Form>
-    </div>
-  );
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-center gap-3">
+                    <Input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleFileChange}
+                        className="hidden"
+                    />
+                    <Button type="button" variant="ghost" size="icon" disabled={isSending} onClick={handlePaperclipClick}>
+                        <Paperclip className="h-5 w-5"/>
+                    </Button>
+                    <FormField
+                        control={form.control}
+                        name="content"
+                        render={({ field }) => (
+                            <FormItem className="flex-1">
+                                <FormControl>
+                                    <Input 
+                                        placeholder="Message in channel..." 
+                                        {...field} 
+                                        autoComplete="off" 
+                                        disabled={isSending} 
+                                        onChange={(e) => {
+                                            field.onChange(e);
+                                            onTyping();
+                                        }}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button type="button" variant="ghost" size="icon" disabled={isSending}>
+                                <Smile className="h-5 w-5" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 mb-2 border-none" side="top" align="end">
+                            <EmojiPicker onEmojiClick={handleEmojiClick} />
+                        </PopoverContent>
+                    </Popover>
+                    <Button type="submit" disabled={disableSend}>
+                        <Send className="h-5 w-5"/>
+                    </Button>
+                </form>
+            </Form>
+        </footer>
+    );
 };
 
 export default ChannelMessageForm;

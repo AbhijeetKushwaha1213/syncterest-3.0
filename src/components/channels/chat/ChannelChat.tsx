@@ -1,12 +1,18 @@
 
-import { useChannelMessages } from '@/hooks/useChannelMessages';
-import ChannelMessageList from './ChannelMessageList';
-import ChannelMessageForm from './ChannelMessageForm';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Channel } from '@/types';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getChannelMessages, ChannelMessageWithSender } from '@/api/channelChat';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useToast } from '@/hooks/use-toast';
 import { useChannelTyping } from '@/hooks/useChannelTyping';
+import ChannelMessageList from './ChannelMessageList';
+import ChannelMessageForm, { channelMessageFormSchema } from './ChannelMessageForm';
 import TypingIndicator from './TypingIndicator';
-import { useEffect } from 'react';
 import { useMarkChannelAsRead } from '@/hooks/useMarkChannelAsRead';
 
 interface ChannelChatProps {
@@ -14,30 +20,179 @@ interface ChannelChatProps {
 }
 
 const ChannelChat = ({ channel }: ChannelChatProps) => {
-    const { data: messages, isLoading } = useChannelMessages(channel.id);
-    const { typingUsers, sendTypingEvent } = useChannelTyping(channel.id);
-    const { mutate: markAsRead } = useMarkChannelAsRead();
+    const { user } = useAuth();
+    const queryClient = useQueryClient();
+    const { toast } = useToast();
+    const [messages, setMessages] = useState<ChannelMessageWithSender[]>([]);
+    const [attachment, setAttachment] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    
+    const { data: initialMessages, isLoading: isLoadingMessages } = useQuery({
+        queryKey: ['channel-messages', channel.id],
+        queryFn: () => getChannelMessages(channel.id),
+        enabled: !!channel.id,
+    });
+
+    const { handleTyping, typingUsers } = useChannelTyping(channel.id);
+    const { markAsRead } = useMarkChannelAsRead();
 
     useEffect(() => {
-        if (channel.id) {
+        if(channel.id && user) {
             markAsRead(channel.id);
         }
-    }, [channel.id, markAsRead]);
+    }, [channel.id, user, initialMessages, markAsRead]);
+
+    const form = useForm<z.infer<typeof channelMessageFormSchema>>({
+        resolver: zodResolver(channelMessageFormSchema),
+        defaultValues: {
+            content: "",
+        },
+    });
+
+    useEffect(() => {
+        if (initialMessages) {
+            setMessages(initialMessages);
+        }
+    }, [initialMessages]);
+
+    useEffect(() => {
+        if (!channel.id) return;
+
+        const channelSubscription = supabase
+            .channel(`channel-messages:${channel.id}`)
+            .on<ChannelMessageWithSender>(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'channel_messages',
+                    filter: `channel_id=eq.${channel.id}`,
+                },
+                async (payload) => {
+                    const { data: newMessage, error } = await supabase
+                        .from('channel_messages')
+                        .select('*, sender:profiles (*), reactions:channel_message_reactions(*)')
+                        .eq('id', payload.new.id)
+                        .single();
+
+                    if (error) {
+                        console.error("Error fetching new channel message:", error);
+                        return;
+                    }
+
+                    if (newMessage) {
+                        setMessages(currentMessages => {
+                            if (currentMessages.some(m => m.id === newMessage.id)) {
+                                return currentMessages;
+                            }
+                            return [...currentMessages, newMessage as ChannelMessageWithSender];
+                        });
+                        if(newMessage.user_id === user?.id) {
+                            queryClient.invalidateQueries({ queryKey: ['joined-channels'] });
+                        } else {
+                            markAsRead(channel.id);
+                        }
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channelSubscription);
+        };
+    }, [channel.id, user, queryClient, markAsRead]);
+    
+    const sendMessageMutation = useMutation({
+        mutationFn: async ({ content, attachment: fileAttachment }: { content: string, attachment: File | null }) => {
+            let attachmentPath: string | undefined;
+            let attachmentType: string | undefined;
+
+            if (fileAttachment) {
+                setIsUploading(true);
+                const fileExt = fileAttachment.name.split('.').pop();
+                const fileName = `${Date.now()}.${fileExt}`;
+                const path = `channels/${channel.id}/${fileName}`;
+                
+                const { error: uploadError } = await supabase.storage
+                    .from('channel_attachments')
+                    .upload(path, fileAttachment);
+                
+                if (uploadError) {
+                    setIsUploading(false);
+                    throw new Error(`Failed to upload attachment: ${uploadError.message}`);
+                }
+                attachmentPath = path;
+                attachmentType = fileAttachment.type;
+            }
+
+            if (!content.trim() && !attachmentPath) return;
+
+            const { error: insertError } = await supabase.from('channel_messages').insert({
+                channel_id: channel.id,
+                user_id: user!.id,
+                content: content || null,
+                attachment_url: attachmentPath,
+                attachment_type: attachmentType,
+            });
+
+            if (insertError) {
+                // TODO: In a real app, you might want to delete the uploaded file if the message fails to send.
+                throw new Error(`Failed to send message: ${insertError.message}`);
+            }
+        },
+        onSuccess: () => {
+            form.reset();
+            setAttachment(null);
+        },
+        onError: (error) => {
+            console.error("Failed to send message", error);
+            toast({
+                variant: "destructive",
+                title: "Failed to send message",
+                description: error.message,
+            });
+        },
+        onSettled: () => {
+            setIsUploading(false);
+        }
+    });
+
+    const onSubmit = (values: z.infer<typeof channelMessageFormSchema>) => {
+        sendMessageMutation.mutate({ content: values.content, attachment });
+    };
+
+    const handleFileSelect = (file: File) => {
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            toast({
+                variant: "destructive",
+                title: "File too large",
+                description: "Please select a file smaller than 5MB.",
+            });
+            return;
+        }
+        setAttachment(file);
+    };
 
     return (
         <div className="flex flex-col h-full bg-muted/20">
-            <ScrollArea className="flex-1">
-                <ChannelMessageList isLoading={isLoading} messages={messages} />
-            </ScrollArea>
-            <div className="h-6 px-4">
-                <TypingIndicator typingUsers={typingUsers} />
-            </div>
-            <ChannelMessageForm
-                channelId={channel.id}
-                channelName={channel.name}
-                onTyping={sendTypingEvent}
+            <main className="flex-1 p-4 overflow-y-auto">
+                <ChannelMessageList 
+                    isLoading={isLoadingMessages} 
+                    messages={messages}
+                />
+            </main>
+            <TypingIndicator users={typingUsers} />
+            <ChannelMessageForm 
+                form={form}
+                onSubmit={onSubmit}
+                isSending={sendMessageMutation.isPending || isUploading}
+                onTyping={handleTyping}
+                attachment={attachment}
+                onFileSelect={handleFileSelect}
+                onRemoveAttachment={() => setAttachment(null)}
             />
         </div>
     );
 };
+
 export default ChannelChat;
