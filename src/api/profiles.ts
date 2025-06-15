@@ -36,7 +36,7 @@ export const fetchProfileData = async (profileId: string, currentUserId?: string
   }
 
   // 2. Fetch basic profile data to check privacy settings
-  const { data: profile, error: profileError } = await supabase
+  const { data: profileData, error: profileError } = await supabase
     .from("profiles")
     .select(`*`)
     .eq("id", profileId)
@@ -45,6 +45,8 @@ export const fetchProfileData = async (profileId: string, currentUserId?: string
   if (profileError && profileError.code !== 'PGRST116') {
     throw profileError;
   }
+  
+  const profile = profileData as Profile | null;
   
   if (!profile) return null;
 
