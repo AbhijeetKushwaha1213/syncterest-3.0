@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import GroupCard, { type Group } from "./GroupCard";
 import CreateGroupDialog from "./CreateGroupDialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import TrendingChannels from "@/components/home/TrendingChannels";
 
 const GroupsPage = () => {
   const { user } = useAuth();
@@ -74,6 +75,8 @@ const GroupsPage = () => {
           </p>
         </div>
       )}
+
+      <TrendingChannels />
     </div>
   );
 };
