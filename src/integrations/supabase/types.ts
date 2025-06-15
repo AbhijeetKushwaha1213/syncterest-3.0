@@ -30,6 +30,128 @@ export type Database = {
         }
         Relationships: []
       }
+      channel_members: {
+        Row: {
+          channel_id: string
+          created_at: string
+          role: Database["public"]["Enums"]["channel_role"]
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string
+          role?: Database["public"]["Enums"]["channel_role"]
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          role?: Database["public"]["Enums"]["channel_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_members_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      channel_messages: {
+        Row: {
+          channel_id: string
+          content: string | null
+          created_at: string
+          id: number
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          content?: string | null
+          created_at?: string
+          id?: number
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          content?: string | null
+          created_at?: string
+          id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_messages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      channels: {
+        Row: {
+          color: string | null
+          created_at: string
+          creator_id: string | null
+          description: string | null
+          genre: Database["public"]["Enums"]["channel_genre"]
+          id: string
+          image_url: string | null
+          logo_letter: string | null
+          name: string
+          visibility: Database["public"]["Enums"]["channel_visibility"]
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          creator_id?: string | null
+          description?: string | null
+          genre?: Database["public"]["Enums"]["channel_genre"]
+          id?: string
+          image_url?: string | null
+          logo_letter?: string | null
+          name: string
+          visibility?: Database["public"]["Enums"]["channel_visibility"]
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          creator_id?: string | null
+          description?: string | null
+          genre?: Database["public"]["Enums"]["channel_genre"]
+          id?: string
+          image_url?: string | null
+          logo_letter?: string | null
+          name?: string
+          visibility?: Database["public"]["Enums"]["channel_visibility"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channels_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_participants: {
         Row: {
           conversation_id: string
@@ -729,7 +851,9 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      channel_genre: "general" | "music" | "reading" | "gaming" | "tech"
+      channel_role: "admin" | "moderator" | "member"
+      channel_visibility: "public" | "private"
     }
     CompositeTypes: {
       conversation_details: {
@@ -860,6 +984,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      channel_genre: ["general", "music", "reading", "gaming", "tech"],
+      channel_role: ["admin", "moderator", "member"],
+      channel_visibility: ["public", "private"],
+    },
   },
 } as const

@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { channelsData } from '@/data/channels';
 import { useChannelPresence } from '@/hooks/useChannelPresence';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,18 +8,39 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useChannel } from '@/hooks/useChannel';
 
 const ChannelDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const { onlineUsers } = useChannelPresence(id!);
   const { profile } = useAuth();
+  const { data: channel, isLoading, error } = useChannel(id);
 
-  const channel = channelsData.find(c => c.id.toString() === id);
+  if (isLoading) {
+    return (
+      <div className="flex flex-col h-full">
+        <header className="p-4 border-b">
+          <Skeleton className="h-7 w-48 mb-2" />
+          <Skeleton className="h-4 w-80" />
+        </header>
+        <div className="grid md:grid-cols-3 flex-1">
+          <div className="md:col-span-2 border-r p-4">
+            <Skeleton className="h-full w-full" />
+          </div>
+          <div className="p-4">
+            <Skeleton className="h-full w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  if (!channel) {
+  if (error || !channel) {
     return (
         <div className="flex h-full flex-col items-center justify-center bg-background">
-            <p className="mt-4 text-lg text-muted-foreground">Channel not found</p>
+            <p className="mt-4 text-lg text-muted-foreground">
+              {error ? 'Error loading channel.' : 'Channel not found'}
+            </p>
         </div>
     );
   }
