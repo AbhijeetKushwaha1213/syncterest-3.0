@@ -34,22 +34,27 @@ export const useFeed = (selectedInterest: string | null) => {
     }
     const privacyFilter = orFilterParts.join(',');
 
-    const buildQuery = (table: 'posts' | 'events') => {
-      let query = supabase
-        .from(table)
-        .select('*, profiles!inner(*)')
-        .or(privacyFilter, { foreignTable: 'profiles' });
+    let postsQuery = supabase
+      .from('posts')
+      .select('*, profiles!inner(*)')
+      .or(privacyFilter, { foreignTable: 'profiles' });
 
-      if (selectedInterest) {
-        query = query.contains('profiles.interests', [selectedInterest]);
-      }
+    if (selectedInterest) {
+      postsQuery = postsQuery.contains('profiles.interests', [selectedInterest]);
+    }
 
-      return query.order('created_at', { ascending: false }).limit(20);
-    };
+    let eventsQuery = supabase
+      .from('events')
+      .select('*, profiles!inner(*)')
+      .or(privacyFilter, { foreignTable: 'profiles' });
+
+    if (selectedInterest) {
+      eventsQuery = eventsQuery.contains('profiles.interests', [selectedInterest]);
+    }
 
     const [{ data: posts, error: postsError }, { data: events, error: eventsError }] = await Promise.all([
-      buildQuery('posts'),
-      buildQuery('events')
+      postsQuery.order('created_at', { ascending: false }).limit(20),
+      eventsQuery.order('created_at', { ascending: false }).limit(20)
     ]);
     
     if (postsError) {
