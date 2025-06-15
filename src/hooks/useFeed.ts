@@ -67,8 +67,8 @@ export const useFeed = (selectedInterest: string | null) => {
     }
 
     const combined: FeedItem[] = [
-      ...(posts || []).map(p => ({ ...p, item_type: 'post' as const })),
-      ...(events || []).map(e => ({ ...e, item_type: 'event' as const }))
+      ...((posts as any[]) || []).map(p => ({ ...p, item_type: 'post' as const })),
+      ...((events as any[]) || []).map(e => ({ ...e, item_type: 'event' as const }))
     ];
 
     combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());

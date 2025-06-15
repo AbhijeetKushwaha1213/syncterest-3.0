@@ -1,8 +1,9 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
+import { Profile } from "@/components/feed/types";
 
-export type ProfileWithDetails = Tables<'profiles'> & {
+export type ProfileWithDetails = Profile & {
   posts: Tables<'posts'>[];
   stories: Tables<'stories'>[];
   events: Tables<'events'>[];
