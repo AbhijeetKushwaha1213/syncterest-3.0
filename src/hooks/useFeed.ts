@@ -52,9 +52,23 @@ export const useFeed = (selectedInterest: string | null) => {
       eventsQuery = eventsQuery.contains('profiles.interests', [selectedInterest]);
     }
 
-    const [{ data: posts, error: postsError }, { data: events, error: eventsError }] = await Promise.all([
+    let reelsQuery = supabase
+      .from('reels')
+      .select('*, profiles!inner(*)')
+      .or(privacyFilter, { foreignTable: 'profiles' });
+
+    if (selectedInterest) {
+      reelsQuery = reelsQuery.contains('profiles.interests', [selectedInterest]);
+    }
+
+    const [
+      { data: posts, error: postsError }, 
+      { data: events, error: eventsError },
+      { data: reels, error: reelsError }
+    ] = await Promise.all([
       postsQuery.order('created_at', { ascending: false }).limit(20),
-      eventsQuery.order('created_at', { ascending: false }).limit(20)
+      eventsQuery.order('created_at', { ascending: false }).limit(20),
+      reelsQuery.order('created_at', { ascending: false }).limit(20)
     ]);
     
     if (postsError) {
@@ -65,10 +79,15 @@ export const useFeed = (selectedInterest: string | null) => {
       console.error("Error fetching events:", eventsError);
       throw eventsError;
     }
+    if (reelsError) {
+      console.error("Error fetching reels:", reelsError);
+      throw reelsError;
+    }
 
     const combined: FeedItem[] = [
       ...((posts as any[]) || []).map(p => ({ ...p, item_type: 'post' as const })),
-      ...((events as any[]) || []).map(e => ({ ...e, item_type: 'event' as const }))
+      ...((events as any[]) || []).map(e => ({ ...e, item_type: 'event' as const })),
+      ...((reels as any[]) || []).map(r => ({ ...r, item_type: 'reel' as const }))
     ];
 
     combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());

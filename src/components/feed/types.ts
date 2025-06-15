@@ -11,10 +11,14 @@ export type Profile = Tables['profiles']['Row'] & {
 
 export type Post = Tables['posts']['Row'];
 export type Event = Tables['events']['Row'];
+export type Reel = Tables['reels']['Row'];
 
 export type PostWithProfile = Post & { profiles: Profile | null };
 export type EventWithProfile = Event & { profiles: Profile | null };
+export type ReelWithProfile = Reel & { profiles: Profile | null };
 
 export type FeedItem =
   | (PostWithProfile & { item_type: 'post' })
-  | (EventWithProfile & { item_type: 'event' });
+  | (EventWithProfile & { item_type: 'event' })
+  | (ReelWithProfile & { item_type: 'reel' });
+

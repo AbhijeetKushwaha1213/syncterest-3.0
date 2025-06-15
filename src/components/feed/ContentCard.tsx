@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { FileText, Calendar, MessageCircle } from "lucide-react";
+import { FileText, Calendar, MessageCircle, Video } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { FeedItem, Profile } from "./types";
 import { getDistance } from "@/lib/location";
@@ -25,19 +25,36 @@ export const ContentCard = ({ item, currentUserProfile }: ContentCardProps) => {
   );
 
   const isEvent = item.item_type === 'event';
-  const itemPath = isEvent ? `/events/${item.id}` : `/profile/${creator.id}`; // Posts don't have detail pages yet
+  const isReel = item.item_type === 'reel';
+  
+  const itemPath = isEvent ? `/events/${item.id}` : `/profile/${creator.id}`;
 
-  const ItemIcon = isEvent ? Calendar : FileText;
-  const title = isEvent ? item.title : (item.caption || "Post");
-  const description = isEvent ? item.description : item.caption;
-  const imageUrl = item.image_url;
+  const ItemIcon = isEvent ? Calendar : isReel ? Video : FileText;
+  
+  let title, description, mediaUrl;
+
+  if (isEvent) {
+    title = item.title;
+    description = item.description;
+    mediaUrl = item.image_url;
+  } else if (isReel) {
+    title = item.caption || "Reel";
+    description = item.caption;
+    mediaUrl = item.video_url;
+  } else { // Post
+    title = item.caption || "Post";
+    description = item.caption;
+    mediaUrl = item.image_url;
+  }
 
   return (
     <Card className="flex flex-col h-full group overflow-hidden transition-shadow hover:shadow-lg">
       <Link to={itemPath} className="block">
         <div className="relative overflow-hidden aspect-video">
-          {imageUrl ? (
-            <img src={imageUrl} alt={title || ""} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+          {isReel && mediaUrl ? (
+            <video src={mediaUrl} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" controls muted autoPlay loop playsInline />
+          ) : mediaUrl ? (
+            <img src={mediaUrl} alt={title || ""} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
           ) : (
             <div className="w-full h-full bg-muted flex items-center justify-center">
               <ItemIcon className="h-12 w-12 text-muted-foreground/50" />
