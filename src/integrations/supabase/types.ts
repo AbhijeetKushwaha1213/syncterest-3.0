@@ -835,6 +835,10 @@ export type Database = {
           compatibility_score: number
         }[]
       }
+      calculate_compatibility_score: {
+        Args: { user1_id: string; user2_id: string }
+        Returns: number
+      }
       find_or_create_conversation: {
         Args: { p_other_user_id: string }
         Returns: string
@@ -862,7 +866,10 @@ export type Database = {
       }
       get_matches: {
         Args: Record<PropertyKey, never>
-        Returns: string[]
+        Returns: {
+          profile_id: string
+          compatibility_score: number
+        }[]
       }
       get_my_conversation_ids: {
         Args: Record<PropertyKey, never>
