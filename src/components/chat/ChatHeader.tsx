@@ -9,9 +9,10 @@ interface ChatHeaderProps {
   otherParticipant: ConversationWithOtherParticipant['other_participant'];
   isOnline: boolean;
   onBack: () => void;
+  isTyping: boolean;
 }
 
-const ChatHeader = ({ otherParticipant, isOnline, onBack }: ChatHeaderProps) => {
+const ChatHeader = ({ otherParticipant, isOnline, onBack, isTyping }: ChatHeaderProps) => {
   return (
     <header className="flex items-center justify-between gap-4 p-3 border-b shrink-0">
       <div className="flex items-center gap-3">
@@ -24,7 +25,11 @@ const ChatHeader = ({ otherParticipant, isOnline, onBack }: ChatHeaderProps) => 
         </Avatar>
         <div className="flex flex-col">
           <p className="font-semibold">{otherParticipant.username}</p>
-          <UserStatus participant={otherParticipant} isOnline={isOnline} />
+          {isTyping ? (
+            <p className="text-sm text-primary animate-pulse">typing...</p>
+          ) : (
+            <UserStatus participant={otherParticipant} isOnline={isOnline} />
+          )}
         </div>
       </div>
       <div className="flex items-center gap-2">

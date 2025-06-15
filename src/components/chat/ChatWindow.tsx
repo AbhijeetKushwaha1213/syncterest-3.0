@@ -1,4 +1,3 @@
-
 import { ConversationWithOtherParticipant } from '@/api/chat';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMessages, sendMessage, MessageWithSender, markMessagesAsRead, uploadAttachment } from '@/api/chat';
@@ -28,6 +27,8 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const presenceState = useChannelPresence('live-users');
+  const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const form = useForm<z.infer<typeof messageFormSchema>>({
     resolver: zodResolver(messageFormSchema),
@@ -60,7 +61,7 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
     if (conversation?.id) {
       markAsReadMutation.mutate(conversation.id);
     }
-  }, [conversation?.id]);
+  }, [conversation?.id, markAsReadMutation]);
 
   useEffect(() => {
     if (!conversation) return;
@@ -111,6 +112,53 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
       supabase.removeChannel(channel);
     };
   }, [conversation, queryClient, user?.id, markAsReadMutation]);
+  
+  // Typing indicator logic
+  useEffect(() => {
+    if (!conversation?.id || !user?.id) {
+      setIsOtherUserTyping(false);
+      return;
+    }
+
+    const typingChannel = supabase.channel(`typing:${conversation.id}`);
+
+    const onTypingEvent = (payload: { event: string, type: string, payload: { userId: string, isTyping: boolean }}) => {
+      if (payload.payload.userId !== user.id) {
+        setIsOtherUserTyping(payload.payload.isTyping);
+      }
+    };
+    
+    typingChannel
+      .on('broadcast', { event: 'typing' }, onTypingEvent)
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(typingChannel);
+      setIsOtherUserTyping(false);
+    };
+  }, [conversation?.id, user?.id]);
+
+  const sendTypingEvent = (isTyping: boolean) => {
+    if (!conversation || !user) return;
+    const typingChannel = supabase.channel(`typing:${conversation.id}`);
+    typingChannel.send({
+      type: 'broadcast',
+      event: 'typing',
+      payload: { userId: user.id, isTyping },
+    });
+  };
+
+  const handleTyping = () => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    sendTypingEvent(true);
+
+    typingTimeoutRef.current = setTimeout(() => {
+      sendTypingEvent(false);
+    }, 2000); // 2-second timeout
+  };
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView();
@@ -209,6 +257,7 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
         otherParticipant={otherParticipant}
         isOnline={isOnline}
         onBack={onBack}
+        isTyping={isOtherUserTyping}
       />
       <main className="flex-1 p-4 overflow-y-auto bg-muted/20">
         <MessageList 
@@ -224,6 +273,7 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
         attachment={attachment}
         onFileSelect={handleFileSelect}
         onRemoveAttachment={() => setAttachment(null)}
+        onTyping={handleTyping}
       />
     </div>
   );

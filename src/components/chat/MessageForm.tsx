@@ -21,9 +21,10 @@ interface MessageFormProps {
     attachment: File | null;
     onFileSelect: (file: File) => void;
     onRemoveAttachment: () => void;
+    onTyping: () => void;
 }
 
-const MessageForm = ({ form, onSubmit, isSending, attachment, onFileSelect, onRemoveAttachment }: MessageFormProps) => {
+const MessageForm = ({ form, onSubmit, isSending, attachment, onFileSelect, onRemoveAttachment, onTyping }: MessageFormProps) => {
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     const handlePaperclipClick = () => {
@@ -66,7 +67,16 @@ const MessageForm = ({ form, onSubmit, isSending, attachment, onFileSelect, onRe
                         render={({ field }) => (
                             <FormItem className="flex-1">
                                 <FormControl>
-                                    <Input placeholder="Type a message..." {...field} autoComplete="off" disabled={isSending} />
+                                    <Input 
+                                        placeholder="Type a message..." 
+                                        {...field} 
+                                        autoComplete="off" 
+                                        disabled={isSending} 
+                                        onChange={(e) => {
+                                            field.onChange(e);
+                                            onTyping();
+                                        }}
+                                    />
                                 </FormControl>
                             </FormItem>
                         )}
