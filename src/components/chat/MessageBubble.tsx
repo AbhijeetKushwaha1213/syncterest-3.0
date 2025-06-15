@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from 'date-fns';
+import { Check, CheckCheck } from 'lucide-react';
 
 interface MessageBubbleProps {
   message: MessageWithSender;
@@ -34,12 +35,19 @@ const MessageBubble = ({ message }: MessageBubbleProps) => {
                 >
                     <p>{message.content}</p>
                 </div>
-                <span className={cn(
-                    "text-xs text-muted-foreground mt-1 px-1",
+                <div className={cn(
+                    "flex items-center gap-1.5 text-xs text-muted-foreground mt-1 px-1",
                     isSender ? "self-end" : "self-start"
                 )}>
-                    {format(new Date(message.created_at), 'p')}
-                </span>
+                    <span>{format(new Date(message.created_at), 'p')}</span>
+                    {isSender && (
+                        message.read_at ? (
+                            <CheckCheck className="h-4 w-4 text-blue-500" />
+                        ) : (
+                            <Check className="h-4 w-4" />
+                        )
+                    )}
+                </div>
             </div>
         </div>
     )

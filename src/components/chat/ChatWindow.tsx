@@ -1,7 +1,6 @@
-
 import { ConversationWithOtherParticipant } from '@/api/chat';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getMessages, sendMessage, MessageWithSender } from '@/api/chat';
+import { getMessages, sendMessage, MessageWithSender, markMessagesAsRead } from '@/api/chat';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect, useRef } from 'react';
@@ -36,11 +35,27 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
     enabled: !!conversation,
   });
 
+  const markAsReadMutation = useMutation({
+    mutationFn: markMessagesAsRead,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['conversations', user?.id] });
+    },
+    onError: (error) => {
+      console.error("Failed to mark messages as read", error);
+    }
+  });
+
   useEffect(() => {
     if (initialMessages) {
       setMessages(initialMessages);
     }
   }, [initialMessages]);
+
+  useEffect(() => {
+    if (conversation?.id) {
+      markAsReadMutation.mutate(conversation.id);
+    }
+  }, [conversation?.id]);
 
   useEffect(() => {
     if (!conversation) return;
@@ -74,7 +89,14 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
               }
               return [...currentMessages, newMessage as MessageWithSender];
             });
-            queryClient.invalidateQueries({ queryKey: ['conversations', user?.id] });
+            
+            // Mark as read if it's an incoming message
+            if (newMessage.sender_id !== user?.id) {
+                markAsReadMutation.mutate(conversation.id);
+            } else {
+                // If we sent the message, just invalidate conversations to update list
+                queryClient.invalidateQueries({ queryKey: ['conversations', user?.id] });
+            }
           }
         }
       )
@@ -83,7 +105,7 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversation, queryClient, user?.id]);
+  }, [conversation, queryClient, user?.id, markAsReadMutation]);
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView();

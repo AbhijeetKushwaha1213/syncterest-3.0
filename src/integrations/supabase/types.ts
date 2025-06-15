@@ -270,6 +270,7 @@ export type Database = {
           conversation_id: string
           created_at: string
           id: string
+          read_at: string | null
           sender_id: string
         }
         Insert: {
@@ -277,6 +278,7 @@ export type Database = {
           conversation_id: string
           created_at?: string
           id?: string
+          read_at?: string | null
           sender_id: string
         }
         Update: {
@@ -284,6 +286,7 @@ export type Database = {
           conversation_id?: string
           created_at?: string
           id?: string
+          read_at?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -505,6 +508,10 @@ export type Database = {
         Args: { p_other_user_id: string }
         Returns: string
       }
+      get_conversations_for_user: {
+        Args: { p_user_id: string }
+        Returns: Database["public"]["CompositeTypes"]["conversation_details"][]
+      }
       get_matches: {
         Args: Record<PropertyKey, never>
         Returns: string[]
@@ -541,11 +548,23 @@ export type Database = {
         Args: { search_term: string }
         Returns: Database["public"]["CompositeTypes"]["global_search_result"][]
       }
+      mark_messages_as_read: {
+        Args: { p_conversation_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
     }
     CompositeTypes: {
+      conversation_details: {
+        id: string | null
+        created_at: string | null
+        updated_at: string | null
+        other_participant: Json | null
+        last_message: Json | null
+        unread_count: number | null
+      }
       global_search_result: {
         id: string | null
         type: string | null
