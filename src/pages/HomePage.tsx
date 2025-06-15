@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import WelcomeBanner from "@/components/home/WelcomeBanner";
 import InterestsFilter from "@/components/home/InterestsFilter";
 import HomeTabs from "@/components/home/HomeTabs";
+import TrendingPeople from "@/components/home/TrendingPeople";
 
 const HomePage = () => {
   const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
@@ -21,6 +22,7 @@ const HomePage = () => {
         {currentUserProfile && (
           <WelcomeBanner currentUserProfile={currentUserProfile} />
         )}
+        <TrendingPeople />
         <StoriesList />
         <InterestsFilter 
           selectedInterest={selectedInterest} 
