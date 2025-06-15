@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,8 +14,21 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { differenceInMinutes } from "date-fns";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
+type UserStatus = 'online' | 'recent' | 'offline';
+
+const getUserStatus = (lastActiveAt: string | null): UserStatus => {
+  if (!lastActiveAt) return 'offline';
+  const now = new Date();
+  const lastActive = new Date(lastActiveAt);
+  const diffInMinutes = differenceInMinutes(now, lastActive);
+
+  if (diffInMinutes < 5) return 'online';
+  if (diffInMinutes < 60) return 'recent';
+  return 'offline';
+};
 
 const PeopleNearYou = () => {
   const { profile } = useAuth();
@@ -93,29 +105,42 @@ const PeopleNearYou = () => {
         {!isLoading && profiles && profiles.length > 0 && (
           <Carousel opts={{ align: "start", loop: profiles.length > 2 }} className="w-full">
             <CarouselContent className="-ml-2">
-              {profiles.map(p => (
-                <CarouselItem key={p.id} className="pl-2 basis-[55%] sm:basis-1/2">
-                  <div className="p-1 h-full">
-                    <Card className="text-center h-full flex flex-col hover:shadow-md transition-shadow">
-                      <CardContent className="p-4 flex flex-col items-center gap-2 flex-1 justify-between">
-                        <div className="flex flex-col items-center gap-2">
-                          <Link to={`/profile/${p.id}`}>
-                            <Avatar className="h-16 w-16 border-2 border-primary/50">
-                              <AvatarImage src={p.avatar_url ?? ""} alt={p.username ?? "avatar"} />
-                              <AvatarFallback>{p.username?.charAt(0).toUpperCase()}</AvatarFallback>
-                            </Avatar>
-                          </Link>
-                          <Link to={`/profile/${p.id}`} className="font-semibold text-sm hover:underline truncate w-full" title={p.full_name || p.username || ''}>{p.full_name || p.username}</Link>
-                          <p className="text-xs text-muted-foreground">{getSubtext(p)}</p>
-                        </div>
-                        <Button variant="secondary" size="sm" className="w-full mt-2 whitespace-nowrap">
-                          Connect
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </CarouselItem>
-              ))}
+              {profiles.map(p => {
+                const status = getUserStatus(p.last_active_at);
+                return (
+                  <CarouselItem key={p.id} className="pl-2 basis-[55%] sm:basis-1/2">
+                    <div className="p-1 h-full">
+                      <Card className="text-center h-full flex flex-col hover:shadow-md transition-shadow">
+                        <CardContent className="p-4 flex flex-col items-center gap-2 flex-1 justify-between">
+                          <div className="flex flex-col items-center gap-2">
+                            <div className="relative">
+                              <Link to={`/profile/${p.id}`}>
+                                <Avatar className="h-16 w-16 border-2 border-primary/50">
+                                  <AvatarImage src={p.avatar_url ?? ""} alt={p.username ?? "avatar"} />
+                                  <AvatarFallback>{p.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                              </Link>
+                              {status !== 'offline' && (
+                                <span
+                                  className={`absolute bottom-1 right-1 block h-4 w-4 rounded-full ${
+                                    status === 'online' ? 'bg-green-500' : 'bg-amber-400'
+                                  } border-2 border-background`}
+                                  title={status === 'online' ? 'Online' : 'Recently Active'}
+                                />
+                              )}
+                            </div>
+                            <Link to={`/profile/${p.id}`} className="font-semibold text-sm hover:underline truncate w-full" title={p.full_name || p.username || ''}>{p.full_name || p.username}</Link>
+                            <p className="text-xs text-muted-foreground">{getSubtext(p)}</p>
+                          </div>
+                          <Button variant="secondary" size="sm" className="w-full mt-2 whitespace-nowrap">
+                            Connect
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CarouselItem>
+                );
+              })}
             </CarouselContent>
             <CarouselPrevious className="absolute -left-3 top-1/2 -translate-y-1/2 h-8 w-8" />
             <CarouselNext className="absolute -right-3 top-1/2 -translate-y-1/2 h-8 w-8" />
