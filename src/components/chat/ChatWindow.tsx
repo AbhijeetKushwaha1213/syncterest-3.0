@@ -12,7 +12,7 @@ import { z } from 'zod';
 import ChatHeader from './ChatHeader';
 import MessageList from './MessageList';
 import MessageForm, { messageFormSchema } from './MessageForm';
-import { useToast } from '../ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface ChatWindowProps {
   conversation: ConversationWithOtherParticipant | null;

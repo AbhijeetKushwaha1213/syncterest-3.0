@@ -1,8 +1,7 @@
-
 import { useAuth } from '@/hooks/useAuth';
 import { useLiveActivities } from '@/hooks/useLiveActivities';
 import { useLocation } from '@/hooks/useLocation';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { activityTypes } from '@/lib/activities';
 import { Button } from '@/components/ui/button';
 import { addHours } from 'date-fns';

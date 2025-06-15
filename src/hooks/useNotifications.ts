@@ -1,9 +1,10 @@
+
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead, Notification } from '@/api/notifications';
 import { useAuth } from './useAuth';
 import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { RealtimeChannel } from '@supabase/supabase-js';
 
 export const useNotifications = () => {
