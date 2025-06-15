@@ -1,4 +1,3 @@
-
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -98,7 +97,7 @@ export const ProfileHeader = ({ profile, isOwnProfile }: ProfileHeaderProps) => 
             <div className="flex gap-2">
               {isOwnProfile ? (
                 <Button asChild variant="outline">
-                  <Link to="/account">Edit Profile</Link>
+                  <Link to="/settings/account">Edit Profile</Link>
                 </Button>
               ) : (
                 <>
@@ -144,7 +143,7 @@ export const ProfileHeader = ({ profile, isOwnProfile }: ProfileHeaderProps) => 
         <div className="flex gap-2 mt-4 w-full">
           {isOwnProfile ? (
             <Button asChild variant="outline" className="flex-1">
-              <Link to="/account">Edit Profile</Link>
+              <Link to="/settings/account">Edit Profile</Link>
             </Button>
           ) : (
             <>

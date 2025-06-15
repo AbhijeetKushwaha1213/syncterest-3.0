@@ -16,7 +16,7 @@ const DesktopSidebar = () => {
     navigate("/");
   };
 
-  const profileLink = profile ? `/profile/${profile.id}` : "/account";
+  const profileLink = profile ? `/profile/${profile.id}` : "/settings/account";
 
   const navItems = [
     { href: "/home", icon: Home, label: "Home" },
@@ -52,10 +52,10 @@ const DesktopSidebar = () => {
       </nav>
       <div className="mt-auto space-y-2 border-t p-4">
         <Link
-          to="/account"
+          to="/settings"
           className={cn(
             "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-muted hover:text-primary",
-            location.pathname === "/account" && "bg-muted text-primary"
+            location.pathname.startsWith("/settings") && "bg-muted text-primary"
           )}
         >
           <Settings className="h-5 w-5" />
