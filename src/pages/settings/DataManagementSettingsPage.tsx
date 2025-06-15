@@ -17,13 +17,57 @@ const DataManagementSettingsPage = () => {
     if (!user) return;
     setIsExporting(true);
     try {
-      const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      if (profileError) throw profileError;
+      // Fetch all user-related data in parallel for efficiency
+      const [
+        profileRes,
+        postsRes,
+        storiesRes,
+        followersRes,
+        followingRes,
+        eventsRes,
+        groupMembershipsRes,
+      ] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', user.id).single(),
+        supabase.from('posts').select('*').eq('user_id', user.id),
+        supabase.from('stories').select('*').eq('user_id', user.id),
+        supabase.from('followers').select('following_id').eq('follower_id', user.id), // Users this user follows
+        supabase.from('followers').select('follower_id').eq('following_id', user.id), // Users that follow this user
+        supabase.from('events').select('*').eq('created_by', user.id),
+        supabase.from('group_members').select('group_id').eq('user_id', user.id),
+      ]);
 
-      // In a real app, you would fetch data from all relevant tables.
-      // This is a simplified example.
+      // Error handling for all promises
+      const errors = [profileRes.error, postsRes.error, storiesRes.error, followersRes.error, followingRes.error, eventsRes.error, groupMembershipsRes.error].filter(Boolean);
+      if (errors.length > 0) {
+        throw new Error(errors.map(e => e?.message).join(', '));
+      }
+
+      const { data: profile } = profileRes;
+      const { data: posts } = postsRes;
+      const { data: stories } = storiesRes;
+      const { data: followers } = followersRes;
+      const { data: following } = followingRes;
+      const { data: events } = eventsRes;
+      const { data: groupMemberships } = groupMembershipsRes;
+
+      // Fetch full group details based on memberships
+      const groupIds = groupMemberships?.map(gm => gm.group_id) || [];
+      let groups: any[] | null = [];
+      if (groupIds.length > 0) {
+        const { data: groupData, error: groupsError } = await supabase.from('groups').select('*').in('id', groupIds);
+        if (groupsError) throw groupsError;
+        groups = groupData;
+      }
+      
       const userData = {
         profile,
+        posts,
+        stories,
+        followers: followers?.map(f => f.following_id),
+        following: following?.map(f => f.follower_id),
+        events,
+        groups,
+        // Note: Exporting direct messages is complex and omitted for privacy and simplicity.
       };
 
       const blob = new Blob([JSON.stringify(userData, null, 2)], { type: 'application/json' });
@@ -44,7 +88,7 @@ const DataManagementSettingsPage = () => {
       console.error('Error exporting data:', error);
       toast({
         title: 'Error',
-        description: 'Failed to export your data. Please try again.',
+        description: `Failed to export your data. Please try again.`,
         variant: 'destructive',
       });
     } finally {
@@ -94,7 +138,7 @@ const DataManagementSettingsPage = () => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg">
           <div>
             <h3 className="font-semibold">Export Your Data</h3>
-            <p className="text-sm text-muted-foreground">Download a copy of all your data from the platform.</p>
+            <p className="text-sm text-muted-foreground">Download a comprehensive copy of all your data from the platform.</p>
           </div>
           <Button variant="outline" onClick={handleExportData} disabled={isExporting} className="mt-2 sm:mt-0 w-full sm:w-auto">
             {isExporting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Exporting...</> : 'Export Data'}
