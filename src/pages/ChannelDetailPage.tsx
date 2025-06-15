@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useChannelPresence } from '@/hooks/useChannelPresence';
@@ -21,10 +22,6 @@ const ChannelDetailPage = () => {
   const { profile } = useAuth();
   const { data: channel, isLoading, error } = useChannel(id);
   const { data: role } = useChannelRole(id);
-
-  const isAdmin = role === 'admin';
-  const onlineUsers = Object.values(presence).flat();
-  const memberCount = channel.channel_members?.[0]?.count ?? 0;
 
   if (isLoading) {
     return (
@@ -65,6 +62,10 @@ const ChannelDetailPage = () => {
         </div>
     );
   }
+
+  const isAdmin = role === 'admin';
+  const onlineUsers = Object.values(presence).flat();
+  const memberCount = channel.channel_members?.[0]?.count ?? 0;
 
   return (
     <div className="flex flex-col h-full bg-muted/20">
