@@ -19,7 +19,7 @@ export const fetchProfileData = async (profileId: string, currentUserId?: string
     const { data: block, error: blockError } = await supabase
       .from('blocked_users')
       .select('id')
-      .or(`(user_id.eq.${profileId},blocked_user_id.eq.${currentUserId}),(user_id.eq.${currentUserId},blocked_user_id.eq.${profileId})`)
+      .or(`and(user_id.eq.${profileId},blocked_user_id.eq.${currentUserId}),and(user_id.eq.${currentUserId},blocked_user_id.eq.${profileId})`)
       .maybeSingle();
 
     if (blockError) {
