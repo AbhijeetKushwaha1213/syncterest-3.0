@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
@@ -13,13 +12,13 @@ const typeIcons: Record<GlobalSearchResult['type'], React.ReactNode> = {
   live_activity: <Activity className="h-4 w-4 text-muted-foreground" />,
 };
 
-const SearchResultItem = ({ result, compatibilityScore, showCompatibility }: { result: GlobalSearchResult, compatibilityScore?: number | null, showCompatibility?: boolean }) => {
+const SearchResultItem = ({ result, compatibilityScore, showCompatibility, matchingTags }: { result: GlobalSearchResult, compatibilityScore?: number | null, showCompatibility?: boolean, matchingTags?: string[] }) => {
   const { title, description, image_url, type, url_path } = result;
 
   return (
     <Card className="hover:bg-muted/50 transition-colors">
-      <Link to={url_path} className="flex items-center gap-4 p-4">
-        <Avatar className="h-12 w-12">
+      <Link to={url_path} className="flex items-start gap-4 p-4">
+        <Avatar className="h-12 w-12 flex-shrink-0">
           <AvatarImage src={image_url ?? undefined} alt={title} />
           <AvatarFallback>{title.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
@@ -27,17 +26,28 @@ const SearchResultItem = ({ result, compatibilityScore, showCompatibility }: { r
           <div className="flex items-center gap-2">
             <p className="font-semibold truncate">{title}</p>
           </div>
-          <p className="text-sm text-muted-foreground truncate">{description || 'No description'}</p>
+          <p className="text-sm text-muted-foreground truncate mt-1">{description || 'No description'}</p>
+          {matchingTags && matchingTags.length > 0 && (
+            <div className="mt-2 flex flex-wrap items-center gap-1">
+              {matchingTags.map(tag => (
+                <Badge key={tag} variant="secondary" className="text-xs font-normal">
+                   {tag.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
-        {showCompatibility && typeof compatibilityScore === 'number' && (
-          <Badge variant="destructive" className="flex items-center gap-1 mr-2 flex-shrink-0">
-            <Heart className="h-3 w-3" />
-            {Math.round(compatibilityScore * 100)}%
-          </Badge>
-        )}
-        <div className="flex items-center gap-1 text-xs text-muted-foreground capitalize">
-            {typeIcons[type]}
-            {type.replace('_', ' ')}
+        <div className="flex flex-col items-end gap-2 ml-auto flex-shrink-0">
+            {showCompatibility && typeof compatibilityScore === 'number' && (
+              <Badge variant="destructive" className="flex items-center gap-1">
+                <Heart className="h-3 w-3" />
+                {Math.round(compatibilityScore * 100)}%
+              </Badge>
+            )}
+            <div className="flex items-center gap-1 text-xs text-muted-foreground capitalize mt-auto">
+                {typeIcons[type]}
+                {type.replace('_', ' ')}
+            </div>
         </div>
       </Link>
     </Card>

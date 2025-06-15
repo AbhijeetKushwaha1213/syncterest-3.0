@@ -1,15 +1,16 @@
-
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAdvancedSearch, ProfileWithCompatibility } from '@/hooks/useAdvancedSearch';
 import SearchResultItem from '@/components/search/SearchResultItem';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, LayoutGrid, List, Heart } from 'lucide-react';
+import { Search, LayoutGrid, List, Heart, Tag } from 'lucide-react';
 import SearchFilters, { SearchFiltersState } from '@/components/search/SearchFilters';
 import UserCard from '@/components/UserCard';
 import type { GlobalSearchResult } from '@/hooks/useSearch';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -23,6 +24,8 @@ const SearchPage = () => {
   });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
+  const { user } = useAuth();
+  const { data: currentUserProfile } = useProfile(user?.id);
   const { data: results, isLoading, error } = useAdvancedSearch(query, filters);
 
   const handleFiltersChange = (newFilters: Partial<SearchFiltersState>) => {
@@ -31,6 +34,14 @@ const SearchPage = () => {
 
   const handleViewChange = (value: 'grid' | 'list') => {
     if (value) setViewMode(value);
+  };
+  
+  const getMatchingPersonalityTags = (profileTags: string[] | null) => {
+    if (!profileTags || !currentUserProfile?.personality_tags) {
+      return [];
+    }
+    const currentUserTags = new Set(currentUserProfile.personality_tags);
+    return profileTags.filter(tag => currentUserTags.has(tag));
   };
 
   return (
@@ -104,21 +115,37 @@ const SearchPage = () => {
               {results && results.length > 0 && (
                 viewMode === 'grid' ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {results.map((profile: ProfileWithCompatibility) => (
-                      <div key={profile.id} className="relative">
-                        <UserCard profile={profile} />
-                        {filters.sortBy === 'compatible' && typeof profile.compatibility_score === 'number' && (
-                           <Badge variant="destructive" className="absolute top-2 right-2 flex items-center gap-1">
-                             <Heart className="h-3 w-3" />
-                             {Math.round(profile.compatibility_score * 100)}%
-                           </Badge>
-                        )}
-                      </div>
-                    ))}
+                    {results.map((profile: ProfileWithCompatibility) => {
+                      const matchingTags = getMatchingPersonalityTags(profile.personality_tags);
+                      return (
+                        <div key={profile.id} className="relative group">
+                          <UserCard profile={profile} />
+                          {filters.sortBy === 'compatible' && typeof profile.compatibility_score === 'number' && (
+                            <Badge variant="destructive" className="absolute top-2 right-2 flex items-center gap-1">
+                              <Heart className="h-3 w-3" />
+                              {Math.round(profile.compatibility_score * 100)}%
+                            </Badge>
+                          )}
+                          {matchingTags.length > 0 && (
+                            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                               <p className="text-xs font-semibold text-white mb-1">Matching Vibes:</p>
+                               <div className="flex flex-wrap gap-1">
+                                {matchingTags.map(tag => (
+                                  <Badge key={tag} variant="secondary" className="text-xs px-2 py-1 backdrop-blur-sm">
+                                    {tag.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {results.map((profile: ProfileWithCompatibility) => {
+                      const matchingTags = getMatchingPersonalityTags(profile.personality_tags);
                       const resultItem: GlobalSearchResult = {
                         id: profile.id,
                         type: 'profile',
@@ -128,7 +155,15 @@ const SearchPage = () => {
                         url_path: `/profile/${profile.id}`,
                         rank: 0,
                       };
-                      return <SearchResultItem key={resultItem.id} result={resultItem} compatibilityScore={profile.compatibility_score} showCompatibility={filters.sortBy === 'compatible'} />;
+                      return (
+                        <SearchResultItem 
+                          key={resultItem.id} 
+                          result={resultItem} 
+                          compatibilityScore={profile.compatibility_score} 
+                          showCompatibility={filters.sortBy === 'compatible'} 
+                          matchingTags={matchingTags}
+                        />
+                      );
                     })}
                   </div>
                 )
