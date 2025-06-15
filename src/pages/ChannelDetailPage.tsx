@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useChannelPresence } from '@/hooks/useChannelPresence';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,6 +15,16 @@ import { EditChannelDialog } from '@/components/channels/EditChannelDialog';
 import { Button } from '@/components/ui/button';
 import { Settings, Users, Video, ScreenShare } from 'lucide-react';
 import ChannelVoice from '@/components/channels/voice/ChannelVoice';
+import ChannelSidebar from '@/components/channels/ChannelSidebar';
+
+const PlaceholderView = ({ title }: { title: string }) => (
+  <div className="flex flex-col h-full bg-muted/20 p-6 items-center justify-center text-center">
+    <h2 className="text-2xl font-bold">{title}</h2>
+    <p className="text-muted-foreground mt-2">
+      This feature is coming soon!
+    </p>
+  </div>
+);
 
 const ChannelDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +32,13 @@ const ChannelDetailPage = () => {
   const { profile } = useAuth();
   const { data: channel, isLoading, error } = useChannel(id);
   const { data: role } = useChannelRole(id);
+  const [activeView, setActiveView] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (channel) {
+      setActiveView(channel.type === 'voice' ? 'voice' : 'chat');
+    }
+  }, [channel]);
 
   if (isLoading) {
     return (
@@ -38,7 +55,15 @@ const ChannelDetailPage = () => {
             </div>
           </div>
         </header>
-        <div className="grid md:grid-cols-[1fr_280px] flex-1 overflow-hidden">
+        <div className="grid md:grid-cols-[240px_1fr_280px] flex-1 overflow-hidden">
+          <div className="hidden md:flex flex-col border-r p-4 gap-4 bg-muted/30">
+            <Skeleton className="h-7 w-32 mb-2" />
+            <div className="space-y-3">
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+            </div>
+          </div>
           <div className="p-4"><Skeleton className="h-full w-full" /></div>
           <aside className="hidden md:flex flex-col border-l p-4 gap-4 bg-muted/30">
             <Skeleton className="h-7 w-32 mb-2" />
@@ -115,13 +140,14 @@ const ChannelDetailPage = () => {
             </div>
         </div>
       </header>
-      <div className="grid md:grid-cols-[1fr_280px] flex-1 overflow-hidden">
+      <div className="grid md:grid-cols-[240px_1fr_280px] flex-1 overflow-hidden">
+        {activeView && <ChannelSidebar channel={channel} activeView={activeView} setActiveView={setActiveView} />}
         <div className="flex flex-col overflow-hidden">
-          {channel.type === 'voice' ? (
-            <ChannelVoice channel={channel} />
-          ) : (
-            <ChannelChat channel={channel} />
-          )}
+          {activeView === 'announcements' && <PlaceholderView title="Announcements" />}
+          {activeView === 'chat' && <ChannelChat channel={channel} />}
+          {activeView === 'voice' && <ChannelVoice channel={channel} />}
+          {activeView === 'video' && <PlaceholderView title="Video Room" />}
+          {activeView === 'files' && <PlaceholderView title="Shared Files" />}
         </div>
         <aside className="hidden md:flex flex-col border-l p-4 gap-4 bg-muted/30">
           <h2 className="font-semibold text-lg">Online — {onlineUsers.length}</h2>
