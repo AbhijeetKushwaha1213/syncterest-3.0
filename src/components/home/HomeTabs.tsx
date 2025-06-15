@@ -57,7 +57,7 @@ const HomeTabs = ({ selectedInterest }: HomeTabsProps) => {
              tab.value === 'matches' ? <MatchesList /> : 
              <PlaceholderContent tab={tab.label} />
            }
-        </TapsContent>
+        </TabsContent>
       ))}
     </Tabs>
   );
