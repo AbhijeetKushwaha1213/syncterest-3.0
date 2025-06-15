@@ -1,4 +1,3 @@
-
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -52,7 +51,7 @@ const UserProfilePage = () => {
 
        <StoryHighlights profile={profile} />
        
-       <InterestsSection profile={profile} />
+       <InterestsSection profile={profile} isOwnProfile={isOwnProfile} />
        
        <ProfileTabs profile={profile} isOwnProfile={isOwnProfile} />
     </div>
