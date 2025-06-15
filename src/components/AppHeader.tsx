@@ -1,10 +1,11 @@
 
 import { Link } from "react-router-dom";
-import { Bell, Mic, Settings } from "lucide-react";
+import { Mic, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import GlobalSearch from "@/components/search/GlobalSearch";
+import NotificationsDropdown from "@/components/notifications/NotificationsDropdown";
 
 const AppHeader = () => {
   const { profile } = useAuth();
@@ -15,9 +16,7 @@ const AppHeader = () => {
         <GlobalSearch />
       </div>
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <Bell className="h-5 w-5" />
-        </Button>
+        <NotificationsDropdown />
         <Button variant="ghost" size="icon" className="rounded-full">
           <Mic className="h-5 w-5" />
         </Button>
