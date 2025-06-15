@@ -30,27 +30,33 @@ export const useNotifications = () => {
   useEffect(() => {
     if (!user?.id) return;
 
-    let channel = supabase.channel('public:notifications');
-    // To prevent subscription errors in React StrictMode,
-    // it's important to remove the channel before subscribing.
-    supabase.removeChannel(channel);
+    const channelName = 'public:notifications';
 
-    channel = supabase.channel('public:notifications')
-      .on<Notification>(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
-        (payload) => {
-          queryClientRef.current.invalidateQueries({ queryKey: ['notifications'] });
-          toastRef.current({
-            title: "New Notification",
-            description: "You have a new notification.",
-          });
-        }
-      )
-      .subscribe();
+    const setupChannel = async () => {
+        // To prevent issues in StrictMode, we remove any existing channel before creating a new one.
+        const existingChannel = supabase.channel(channelName);
+        await supabase.removeChannel(existingChannel);
+
+        const newChannel = supabase.channel(channelName)
+          .on<Notification>(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+            (payload) => {
+              queryClientRef.current.invalidateQueries({ queryKey: ['notifications'] });
+              toastRef.current({
+                title: "New Notification",
+                description: "You have a new notification.",
+              });
+            }
+          )
+          .subscribe();
+    }
+    
+    setupChannel();
 
     return () => {
-      supabase.removeChannel(channel);
+      // We get the channel by name to ensure we remove the correct instance.
+      supabase.removeChannel(supabase.channel(channelName));
     };
   }, [user?.id]);
 

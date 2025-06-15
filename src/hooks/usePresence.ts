@@ -11,25 +11,33 @@ export const usePresence = () => {
   useEffect(() => {
     if (!user?.id) return;
 
-    let channel = supabase.channel(CHANNEL_NAME);
-    supabase.removeChannel(channel);
-
-    channel = supabase.channel(CHANNEL_NAME, {
-      config: {
-        presence: {
-          key: user.id,
+    const channelName = CHANNEL_NAME;
+    
+    const setupChannel = async () => {
+      // To prevent issues in StrictMode, we remove any existing channel before creating a new one.
+      const existingChannel = supabase.channel(channelName);
+      await supabase.removeChannel(existingChannel);
+      
+      const newChannel = supabase.channel(channelName, {
+        config: {
+          presence: {
+            key: user.id,
+          },
         },
-      },
-    });
+      });
 
-    channel.subscribe(async (status) => {
-      if (status === 'SUBSCRIBED') {
-        await channel.track({ online_at: new Date().toISOString() });
-      }
-    });
+      newChannel.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await newChannel.track({ online_at: new Date().toISOString() });
+        }
+      });
+    };
+
+    setupChannel();
 
     return () => {
-      supabase.removeChannel(channel);
+      // We get the channel by name to ensure we remove the correct instance.
+      supabase.removeChannel(supabase.channel(channelName));
     };
   }, [user?.id]);
 };
