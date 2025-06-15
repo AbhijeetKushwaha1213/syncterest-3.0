@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -52,7 +51,5 @@ export const useChannelPresence = (channelId: string) => {
     };
   }, [user?.id, channelId, profile]);
 
-  const onlineUsers = Object.values(presenceState).flat();
-
-  return { onlineUsers };
+  return presenceState;
 };
