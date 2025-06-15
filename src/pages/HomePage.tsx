@@ -6,7 +6,6 @@ import { useAuth } from "@/hooks/useAuth";
 import WelcomeBanner from "@/components/home/WelcomeBanner";
 import InterestsFilter from "@/components/home/InterestsFilter";
 import HomeTabs from "@/components/home/HomeTabs";
-import TrendingPeople from "@/components/home/TrendingPeople";
 
 const HomePage = () => {
   const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
@@ -28,7 +27,6 @@ const HomePage = () => {
           onInterestClick={handleInterestClick} 
         />
         <HomeTabs selectedInterest={selectedInterest} />
-        <TrendingPeople />
       </div>
       
       <div className="space-y-6 hidden lg:block">
