@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -77,7 +78,7 @@ export const useLocation = () => {
             msg = "Your location could not be determined. Please ensure location services are enabled on your device and try again.";
             break;
           case err.TIMEOUT:
-            msg = "The request to get your location timed out. Please try again.";
+            msg = "The request to get your location timed out. This can happen with a poor signal. Please try again.";
             break;
         }
         setError(msg);
@@ -86,35 +87,16 @@ export const useLocation = () => {
         resolve(null);
       };
 
-      // First attempt: High accuracy
+      // Using lower accuracy for a potentially faster response. High accuracy can be slow, 
+      // especially indoors, and may not be necessary for this app's purpose.
+      // A single attempt avoids long wait times for the user.
       navigator.geolocation.getCurrentPosition(
         handleSuccess,
-        (highAccuracyErr) => {
-          console.warn("useLocation: High accuracy location failed, trying low accuracy.", highAccuracyErr);
-          
-          if (highAccuracyErr.code === highAccuracyErr.PERMISSION_DENIED) {
-              handleError(highAccuracyErr);
-              return;
-          }
-
-          // Second attempt: Low accuracy
-          navigator.geolocation.getCurrentPosition(
-            handleSuccess,
-            (lowAccuracyErr) => {
-              console.error("useLocation: Low accuracy location also failed.", lowAccuracyErr);
-              handleError(lowAccuracyErr);
-            },
-            {
-              enableHighAccuracy: false,
-              timeout: 20000,
-              maximumAge: 60000,
-            }
-          );
-        },
+        handleError,
         {
-          enableHighAccuracy: true,
-          timeout: 20000,
-          maximumAge: 0,
+          enableHighAccuracy: false,
+          timeout: 15000, // 15 seconds
+          maximumAge: 60000, // Use a cached position if it's less than a minute old
         }
       );
     });
