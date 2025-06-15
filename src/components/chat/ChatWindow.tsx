@@ -1,6 +1,7 @@
+
 import { ConversationWithOtherParticipant } from '@/api/chat';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getMessages, sendMessage, MessageWithSender, markMessagesAsRead } from '@/api/chat';
+import { getMessages, sendMessage, MessageWithSender, markMessagesAsRead, uploadAttachment } from '@/api/chat';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect, useRef } from 'react';
@@ -11,6 +12,7 @@ import { z } from 'zod';
 import ChatHeader from './ChatHeader';
 import MessageList from './MessageList';
 import MessageForm, { messageFormSchema } from './MessageForm';
+import { useToast } from '../ui/use-toast';
 
 interface ChatWindowProps {
   conversation: ConversationWithOtherParticipant | null;
@@ -20,7 +22,10 @@ interface ChatWindowProps {
 const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [messages, setMessages] = useState<MessageWithSender[]>([]);
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const presenceState = useChannelPresence('live-users');
 
@@ -120,16 +125,68 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
     mutationFn: sendMessage,
     onSuccess: () => {
       form.reset();
+      setAttachment(null);
     },
     onError: (error) => {
       console.error("Failed to send message", error);
-      // Here you could add a toast notification to inform the user
+      toast({
+        variant: "destructive",
+        title: "Failed to send message",
+        description: error.message,
+      });
     },
+    onSettled: () => {
+      setIsUploading(false);
+    }
   });
 
+  const handleFileSelect = (file: File) => {
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      toast({
+        variant: "destructive",
+        title: "File too large",
+        description: "Please select a file smaller than 5MB.",
+      });
+      return;
+    }
+    setAttachment(file);
+  };
+  
+  const uploadAndSendMessage = async (values: z.infer<typeof messageFormSchema>) => {
+    if (!conversation) return;
+
+    let attachmentPath: string | undefined;
+    let attachmentType: string | undefined;
+
+    if (attachment) {
+      setIsUploading(true);
+      try {
+        const path = await uploadAttachment(conversation.id, attachment);
+        attachmentPath = path;
+        attachmentType = attachment.type;
+      } catch (error) {
+        console.error("Failed to upload attachment", error);
+        toast({
+          variant: "destructive",
+          title: "Upload Failed",
+          description: "Could not upload your attachment. Please try again.",
+        });
+        setIsUploading(false);
+        return;
+      }
+    }
+    
+    sendMessageMutation.mutate({ 
+        conversationId: conversation.id, 
+        content: values.content, 
+        attachmentPath,
+        attachmentType
+    });
+  };
+
   const onSubmit = (values: z.infer<typeof messageFormSchema>) => {
-    if (!conversation || !values.content.trim()) return;
-    sendMessageMutation.mutate({ conversationId: conversation.id, content: values.content });
+    if ((!values.content.trim()) && !attachment) return;
+    uploadAndSendMessage(values);
   };
   
   if (!conversation) {
@@ -163,7 +220,10 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
       <MessageForm 
         form={form}
         onSubmit={onSubmit}
-        isSending={sendMessageMutation.isPending}
+        isSending={sendMessageMutation.isPending || isUploading}
+        attachment={attachment}
+        onFileSelect={handleFileSelect}
+        onRemoveAttachment={() => setAttachment(null)}
       />
     </div>
   );

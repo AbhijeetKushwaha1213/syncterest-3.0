@@ -5,9 +5,11 @@ import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Paperclip, Send } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
+import React from 'react';
+import AttachmentPreview from './AttachmentPreview';
 
 export const messageFormSchema = z.object({
-  content: z.string().min(1, "Message cannot be empty.").max(1000, "Message is too long."),
+  content: z.string().max(1000, "Message is too long."),
 });
 
 type MessageFormValues = z.infer<typeof messageFormSchema>;
@@ -16,14 +18,48 @@ interface MessageFormProps {
     form: UseFormReturn<MessageFormValues>;
     onSubmit: (values: MessageFormValues) => void;
     isSending: boolean;
+    attachment: File | null;
+    onFileSelect: (file: File) => void;
+    onRemoveAttachment: () => void;
 }
 
-const MessageForm = ({ form, onSubmit, isSending }: MessageFormProps) => {
+const MessageForm = ({ form, onSubmit, isSending, attachment, onFileSelect, onRemoveAttachment }: MessageFormProps) => {
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    const handlePaperclipClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            onFileSelect(file);
+        }
+        if(event.target) {
+            event.target.value = '';
+        }
+    };
+
+    const disableSend = isSending || (!form.getValues("content").trim() && !attachment);
+
     return (
         <footer className="p-3 border-t bg-background shrink-0">
+             {attachment && (
+                <div className="px-1 pb-3">
+                    <AttachmentPreview file={attachment} onRemove={onRemoveAttachment} />
+                </div>
+            )}
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-center gap-3">
-                    <Button type="button" variant="ghost" size="icon" disabled={isSending}><Paperclip className="h-5 w-5"/></Button>
+                    <Input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleFileChange}
+                        className="hidden"
+                    />
+                    <Button type="button" variant="ghost" size="icon" disabled={isSending} onClick={handlePaperclipClick}>
+                        <Paperclip className="h-5 w-5"/>
+                    </Button>
                     <FormField
                         control={form.control}
                         name="content"
@@ -35,7 +71,7 @@ const MessageForm = ({ form, onSubmit, isSending }: MessageFormProps) => {
                             </FormItem>
                         )}
                     />
-                    <Button type="submit" disabled={isSending}>
+                    <Button type="submit" disabled={disableSend}>
                         <Send className="h-5 w-5"/>
                     </Button>
                 </form>

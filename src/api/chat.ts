@@ -64,16 +64,42 @@ export const getMessages = async (conversationId: string): Promise<MessageWithSe
   return data as unknown as MessageWithSender[];
 };
 
-export const sendMessage = async ({ conversationId, content }: { conversationId: string; content: string }) => {
+export const uploadAttachment = async (conversationId: string, file: File): Promise<string> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
+    const filePath = `${conversationId}/${user.id}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+        .from('chat_attachments')
+        .upload(filePath, file);
+
+    if (uploadError) {
+        console.error('Error uploading attachment:', uploadError);
+        throw uploadError;
+    }
+    
+    return filePath;
+};
+
+export const sendMessage = async ({ conversationId, content, attachmentPath, attachmentType }: { conversationId: string; content?: string; attachmentPath?: string; attachmentType?: string; }) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+
+    if (!content?.trim() && !attachmentPath) {
+        throw new Error("Message must have content or an attachment.");
+    }
 
     const { data, error } = await supabase
         .from('messages')
         .insert({
             conversation_id: conversationId,
             sender_id: user.id,
-            content: content.trim(),
+            content: content?.trim() || null,
+            attachment_url: attachmentPath,
+            attachment_type: attachmentType,
         })
         .select()
         .single();
