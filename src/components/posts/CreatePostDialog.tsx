@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
 import { PlusCircle } from "lucide-react";
+import { TablesInsert } from "@/integrations/supabase/types";
 
 const postSchema = z.object({
   image_url: z.string().url({ message: "Please enter a valid image URL." }),
@@ -29,7 +30,7 @@ const postSchema = z.object({
 
 type PostFormValues = z.infer<typeof postSchema>;
 
-const createPost = async (post: PostFormValues & { user_id: string }) => {
+const createPost = async (post: TablesInsert<'posts'>) => {
   const { data, error } = await supabase.from("posts").insert(post).select();
   if (error) throw error;
   return data;

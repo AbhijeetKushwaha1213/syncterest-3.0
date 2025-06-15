@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
 import { PlusCircle } from "lucide-react";
+import { TablesInsert } from "@/integrations/supabase/types";
 
 const reelSchema = z.object({
   video_url: z.string().url({ message: "Please enter a valid video URL." }),
@@ -29,7 +30,7 @@ const reelSchema = z.object({
 
 type ReelFormValues = z.infer<typeof reelSchema>;
 
-const createReel = async (reel: ReelFormValues & { user_id: string }) => {
+const createReel = async (reel: TablesInsert<'reels'>) => {
   const { data, error } = await supabase.from("reels").insert(reel).select();
   if (error) throw error;
   return data;
