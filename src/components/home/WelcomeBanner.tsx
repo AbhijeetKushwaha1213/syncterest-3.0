@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Database } from "@/integrations/supabase/types";
+import { useLocation } from "@/hooks/useLocation";
+import { Button } from "@/components/ui/button";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -11,6 +13,19 @@ interface WelcomeBannerProps {
 }
 
 const WelcomeBanner = ({ currentUserProfile }: WelcomeBannerProps) => {
+  const { hasLocation, getLocation, loading } = useLocation();
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) {
+      return "Good morning";
+    }
+    if (hour < 18) {
+      return "Good afternoon";
+    }
+    return "Good evening";
+  };
+
   return (
     <Card className="relative overflow-hidden border-none text-primary-foreground bg-cover bg-center group">
       <div 
@@ -27,8 +42,23 @@ const WelcomeBanner = ({ currentUserProfile }: WelcomeBannerProps) => {
             </Avatar>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold drop-shadow-md">Welcome back, {currentUserProfile.full_name || currentUserProfile.username}!</h1>
-            <p className="opacity-80 mt-1 drop-shadow">Ready to meet, create, and connect?</p>
+            <h1 className="text-2xl font-bold drop-shadow-md">{getGreeting()}, {currentUserProfile.full_name || currentUserProfile.username}!</h1>
+            <p className="opacity-80 mt-1 drop-shadow">
+              {hasLocation
+                ? "Ready to meet, create, and connect?"
+                : "Enable location to see who's around you."}
+            </p>
+            {!hasLocation && (
+              <Button 
+                onClick={getLocation} 
+                disabled={loading} 
+                size="sm" 
+                variant="outline"
+                className="mt-2 border-white/50 bg-transparent hover:bg-white/10"
+              >
+                {loading ? 'Getting location...' : 'Enable Location'}
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>
