@@ -26,6 +26,32 @@ const PlaceholderView = ({ title }: { title: string }) => (
   </div>
 );
 
+const placeholderViews: Record<string, string> = {
+    announcements: "Announcements",
+    video: "Video Room",
+    files: "Shared Files",
+    // Music
+    karaoke: "Karaoke Booth",
+    tuner: "Instrument Tuner",
+    'sheet-music': "Sheet Music Viewer",
+    'live-jam': "Live Jam",
+    // Reading
+    library: "Library",
+    bookmarks: "Bookmarks",
+    notes: "Notes",
+    'discussion-circles': "Discussion Circles",
+    // Gaming
+    'game-links': "Game Links",
+    'streaming-rooms': "Streaming Rooms",
+    'match-lobby': "Match Lobby",
+    'server-tools': "Server Tools",
+    // Tech
+    'live-code-editor': "Live Code Editor",
+    'code-review-room': "Code Review Room",
+    'github-integration': "GitHub Integration",
+    'project-pitches': "Project Pitches"
+};
+
 const ChannelDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const presence = useChannelPresence(id!);
@@ -143,11 +169,9 @@ const ChannelDetailPage = () => {
       <div className="grid md:grid-cols-[240px_1fr_280px] flex-1 overflow-hidden">
         {activeView && <ChannelSidebar channel={channel} activeView={activeView} setActiveView={setActiveView} />}
         <div className="flex flex-col overflow-hidden">
-          {activeView === 'announcements' && <PlaceholderView title="Announcements" />}
           {activeView === 'chat' && <ChannelChat channel={channel} />}
           {activeView === 'voice' && <ChannelVoice channel={channel} />}
-          {activeView === 'video' && <PlaceholderView title="Video Room" />}
-          {activeView === 'files' && <PlaceholderView title="Shared Files" />}
+          {activeView && placeholderViews[activeView] && <PlaceholderView title={placeholderViews[activeView]} />}
         </div>
         <aside className="hidden md:flex flex-col border-l p-4 gap-4 bg-muted/30">
           <h2 className="font-semibold text-lg">Online — {onlineUsers.length}</h2>
