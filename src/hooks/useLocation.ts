@@ -3,12 +3,14 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const useLocation = () => {
   const { user, profile } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const updateProfileLocation = async (latitude: number, longitude: number) => {
     if (!user) return;
@@ -26,8 +28,8 @@ export const useLocation = () => {
           title: "Location updated!",
           description: "You can now see people near you."
       });
-      // A page reload might be needed for all components to get the new profile info,
-      // but for now, we will rely on react-query to refetch data.
+      // Invalidate the profile query to refetch data across the app.
+      queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
       
     } catch (e: any) {
       setError(e.message);
@@ -118,4 +120,3 @@ export const useLocation = () => {
 
   return { error, loading, getLocation, hasLocation, profileLocation: { latitude: profile?.latitude, longitude: profile?.longitude } };
 };
-
