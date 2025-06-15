@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -28,7 +29,6 @@ import BlockedUsersSettingsPage from "./pages/settings/BlockedUsersSettingsPage"
 import DataManagementSettingsPage from "./pages/settings/DataManagementSettingsPage";
 import HelpSettingsPage from "./pages/settings/HelpSettingsPage";
 import LinkedAccountsSettingsPage from "./pages/settings/LinkedAccountsSettingsPage";
-import SubscriptionPage from "./pages/settings/SubscriptionPage";
 
 const queryClient = new QueryClient();
 
@@ -60,7 +60,6 @@ const App = () => (
                 <Route path="appearance" element={<AppearanceSettingsPage />} />
                 <Route path="language" element={<LanguageSettingsPage />} />
                 <Route path="linked-accounts" element={<LinkedAccountsSettingsPage />} />
-                <Route path="subscription" element={<SubscriptionPage />} />
                 <Route path="data-management" element={<DataManagementSettingsPage />} />
                 <Route path="blocked-users" element={<BlockedUsersSettingsPage />} />
                 <Route path="help" element={<HelpSettingsPage />} />
