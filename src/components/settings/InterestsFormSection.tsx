@@ -10,9 +10,10 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { interestsWithSubcategories } from "@/data/interestsWithSubcategories";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface InterestsFormSectionProps {
-  control: Control<any>; // Using 'any' to avoid type complexities and potential circular dependencies.
+  control: Control<any>;
 }
 
 export const InterestsFormSection = ({ control }: InterestsFormSectionProps) => {
@@ -28,49 +29,33 @@ export const InterestsFormSection = ({ control }: InterestsFormSectionProps) => 
               Select your interests and specify details to connect with like-minded people.
             </FormDescription>
           </div>
-          <div className="space-y-4">
-            {interestsWithSubcategories.map((interest) => {
-              const isSelected = field.value?.some(
-                (v: string) => v.startsWith(interest.label + ":")
-              );
-
-              return (
-                <div key={interest.id} className="space-y-2 rounded-md border p-4">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id={interest.id}
-                      checked={!!isSelected}
-                      onCheckedChange={(checked) => {
-                        if (!checked) {
-                          const currentValues = field.value || [];
-                          field.onChange(
-                            currentValues.filter(
-                              (value: string) => !value.startsWith(interest.label + ":")
-                            )
-                          );
-                        }
-                      }}
-                    />
-                    <label
-                      htmlFor={interest.id}
-                      className="font-medium text-sm leading-none"
-                    >
-                      {interest.label}
-                    </label>
-                  </div>
-                  {isSelected && (
-                    <div className="pl-7 pt-2">
-                      {interest.subcategories.type === 'multiselect' && (
-                        <div className="space-y-2">
-                          <FormLabel className="text-sm font-normal">{interest.subcategories.label}</FormLabel>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
-                            {interest.subcategories.options?.map((option) => {
-                              const value = `${interest.label}: ${option}`;
+          <Tabs defaultValue={interestsWithSubcategories[0].id} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7">
+              {interestsWithSubcategories.map((interest) => (
+                <TabsTrigger key={interest.id} value={interest.id} className="text-xs sm:text-sm">
+                  <interest.icon className="mr-2 h-4 w-4 shrink-0" />
+                  {interest.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {interestsWithSubcategories.map((interest) => (
+              <TabsContent key={interest.id} value={interest.id}>
+                <div className="space-y-4 rounded-md border p-4">
+                  {interest.subgroups.map((subgroup, index) => (
+                    <div key={index}>
+                      <FormLabel>{subgroup.label}</FormLabel>
+                      {subgroup.description && <FormDescription>{subgroup.description}</FormDescription>}
+                      <div className="pt-2">
+                        {subgroup.type === 'multiselect' && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                            {subgroup.options?.map(option => {
+                              const value = `${interest.label}:${subgroup.label}:${option}`;
                               const isChecked = field.value?.includes(value);
+
                               return (
                                 <div key={option} className="flex items-center space-x-2">
                                   <Checkbox
-                                    id={`${interest.id}-${option}`}
+                                    id={`${interest.id}-${subgroup.label}-${option}`}
                                     checked={!!isChecked}
                                     onCheckedChange={(checked) => {
                                       const currentValues = field.value || [];
@@ -82,7 +67,7 @@ export const InterestsFormSection = ({ control }: InterestsFormSectionProps) => 
                                     }}
                                   />
                                   <label
-                                    htmlFor={`${interest.id}-${option}`}
+                                    htmlFor={`${interest.id}-${subgroup.label}-${option}`}
                                     className="text-sm font-normal"
                                   >
                                     {option}
@@ -91,41 +76,42 @@ export const InterestsFormSection = ({ control }: InterestsFormSectionProps) => 
                               );
                             })}
                           </div>
-                        </div>
-                      )}
-                      {interest.subcategories.type === 'text' && (
-                         <div>
-                           <FormLabel className="text-sm font-normal">{interest.subcategories.label}</FormLabel>
-                           <Textarea
-                             placeholder={interest.subcategories.placeholder}
-                             value={
-                               field.value?.find((v: string) => v.startsWith(interest.label + ":"))?.split(": ")[1] || ""
-                             }
-                             onChange={(e) => {
-                               const text = e.target.value;
-                               const currentValues = field.value || [];
-                               const otherValues = currentValues.filter(
-                                 (value: string) => !value.startsWith(interest.label + ":")
-                               );
-                               if (text.trim()) {
-                                 field.onChange([
-                                   ...otherValues,
-                                   `${interest.label}: ${text.trim()}`,
-                                 ]);
-                               } else {
-                                 field.onChange(otherValues);
-                               }
-                             }}
-                             className="mt-2"
-                           />
-                         </div>
-                      )}
+                        )}
+                        {subgroup.type === 'text' && (
+                          <Textarea
+                            placeholder={subgroup.placeholder}
+                            value={
+                              field.value
+                                ?.find((v: string) => v.startsWith(`${interest.label}:${subgroup.label}:`))
+                                ?.split(':')
+                                .slice(2)
+                                .join(':') || ""
+                            }
+                            onChange={(e) => {
+                              const text = e.target.value;
+                              const currentValues = field.value || [];
+                              const otherValues = currentValues.filter(
+                                (value: string) => !value.startsWith(`${interest.label}:${subgroup.label}:`)
+                              );
+                              if (text.trim()) {
+                                field.onChange([
+                                  ...otherValues,
+                                  `${interest.label}:${subgroup.label}:${text.trim()}`,
+                                ]);
+                              } else {
+                                field.onChange(otherValues);
+                              }
+                            }}
+                            className="mt-2"
+                          />
+                        )}
+                      </div>
                     </div>
-                  )}
+                  ))}
                 </div>
-              );
-            })}
-          </div>
+              </TabsContent>
+            ))}
+          </Tabs>
           <FormMessage />
         </FormItem>
       )}
