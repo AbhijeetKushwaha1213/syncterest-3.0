@@ -1,17 +1,121 @@
-
 import { ConversationWithOtherParticipant } from '@/api/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, Paperclip, Phone, Send, Video } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getMessages, sendMessage, MessageWithSender } from '@/api/chat';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect, useRef } from 'react';
+import MessageBubble from './MessageBubble';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ChatWindowProps {
   conversation: ConversationWithOtherParticipant | null;
   onBack: () => void;
 }
 
+const messageFormSchema = z.object({
+  content: z.string().min(1, "Message cannot be empty.").max(1000, "Message is too long."),
+});
+
 const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [messages, setMessages] = useState<MessageWithSender[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const form = useForm<z.infer<typeof messageFormSchema>>({
+    resolver: zodResolver(messageFormSchema),
+    defaultValues: { content: "" },
+  });
+
+  const { data: initialMessages, isLoading: isLoadingMessages } = useQuery({
+    queryKey: ['messages', conversation?.id],
+    queryFn: () => getMessages(conversation!.id),
+    enabled: !!conversation,
+  });
+
+  useEffect(() => {
+    if (initialMessages) {
+      setMessages(initialMessages);
+    }
+  }, [initialMessages]);
+
+  useEffect(() => {
+    if (!conversation) return;
+
+    const channel = supabase
+      .channel(`chat:${conversation.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${conversation.id}`,
+        },
+        async (payload) => {
+          const { data: newMessage, error } = await supabase
+            .from('messages')
+            .select('*, sender:profiles (id, username, avatar_url)')
+            .eq('id', payload.new.id)
+            .single();
+          
+          if (error) {
+            console.error("Error fetching new message:", error);
+            return;
+          }
+
+          if (newMessage) {
+            setMessages(currentMessages => {
+              if (currentMessages.some(m => m.id === newMessage.id)) {
+                return currentMessages;
+              }
+              return [...currentMessages, newMessage as MessageWithSender];
+            });
+            queryClient.invalidateQueries({ queryKey: ['conversations', user?.id] });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [conversation, queryClient, user?.id]);
+  
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView();
+  };
+
+  useEffect(() => {
+    // A short delay to allow images in bubbles to load
+    setTimeout(scrollToBottom, 100);
+  }, [messages]);
+
+  const sendMessageMutation = useMutation({
+    mutationFn: sendMessage,
+    onSuccess: () => {
+      form.reset();
+    },
+    onError: (error) => {
+      console.error("Failed to send message", error);
+      // Here you could add a toast notification to inform the user
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof messageFormSchema>) => {
+    if (!conversation || !values.content.trim()) return;
+    sendMessageMutation.mutate({ conversationId: conversation.id, content: values.content });
+  };
+  
   if (!conversation) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center bg-muted/20">
@@ -27,7 +131,7 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
 
   return (
     <div className="flex flex-col h-full bg-background w-full">
-      <header className="flex items-center justify-between gap-4 p-3 border-b">
+      <header className="flex items-center justify-between gap-4 p-3 border-b shrink-0">
         <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" className="md:hidden" onClick={onBack}>
               <ArrowLeft className="h-5 w-5"/>
@@ -44,17 +148,46 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
         </div>
       </header>
       <main className="flex-1 p-4 overflow-y-auto bg-muted/20">
-        {/* Messages will go here */}
-        <div className="text-center text-muted-foreground">
-          Messages will appear here soon.
-        </div>
+        {isLoadingMessages ? (
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-3/4" />
+            <Skeleton className="h-16 w-1/2 ml-auto" />
+            <Skeleton className="h-8 w-2/3" />
+            <Skeleton className="h-12 w-3/4" />
+          </div>
+        ) : messages.length > 0 ? (
+          <div className="space-y-4">
+            {messages.map((message) => (
+              <MessageBubble key={message.id} message={message} />
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-full text-center text-muted-foreground">
+            <p>No messages yet. Say hello!</p>
+          </div>
+        )}
       </main>
-      <footer className="p-3 border-t bg-background">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon"><Paperclip className="h-5 w-5"/></Button>
-          <Input placeholder="Type a message..." className="flex-1" />
-          <Button><Send className="h-5 w-5"/></Button>
-        </div>
+      <footer className="p-3 border-t bg-background shrink-0">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-center gap-3">
+            <Button type="button" variant="ghost" size="icon" disabled={sendMessageMutation.isPending}><Paperclip className="h-5 w-5"/></Button>
+            <FormField
+              control={form.control}
+              name="content"
+              render={({ field }) => (
+                <FormItem className="flex-1">
+                  <FormControl>
+                    <Input placeholder="Type a message..." {...field} autoComplete="off" disabled={sendMessageMutation.isPending} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <Button type="submit" disabled={sendMessageMutation.isPending}>
+              <Send className="h-5 w-5"/>
+            </Button>
+          </form>
+        </Form>
       </footer>
     </div>
   );

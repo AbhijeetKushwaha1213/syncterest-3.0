@@ -1,7 +1,7 @@
-
 import { ConversationWithOtherParticipant } from '@/api/chat';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
 
 interface ConversationListItemProps {
   conversation: ConversationWithOtherParticipant;
@@ -11,6 +11,7 @@ interface ConversationListItemProps {
 
 const ConversationListItem = ({ conversation, isSelected, onClick }: ConversationListItemProps) => {
   const otherParticipant = conversation.other_participant;
+  const lastMessage = conversation.messages?.[0];
 
   if (!otherParticipant) {
     return null; 
@@ -32,10 +33,14 @@ const ConversationListItem = ({ conversation, isSelected, onClick }: Conversatio
       </Avatar>
       <div className="flex-1 overflow-hidden">
         <p className="font-semibold truncate">{otherParticipant.username}</p>
-        <p className="text-sm text-muted-foreground truncate">Start a conversation!</p>
+        <p className="text-sm text-muted-foreground truncate">
+          {lastMessage?.content ? lastMessage.content : "Start a conversation!"}
+        </p>
       </div>
-      <div className="text-xs text-muted-foreground">
-        {new Date(conversation.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+      <div className="text-xs text-muted-foreground self-start mt-1">
+        {lastMessage?.created_at
+          ? formatDistanceToNow(new Date(lastMessage.created_at), { addSuffix: true })
+          : formatDistanceToNow(new Date(conversation.updated_at), { addSuffix: true })}
       </div>
     </div>
   );
