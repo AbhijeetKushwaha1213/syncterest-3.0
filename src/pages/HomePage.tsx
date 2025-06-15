@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,6 +31,7 @@ import NearbyTab from "@/components/nearby/NearbyTab";
 import LiveUsersTab from "@/components/live/LiveUsersTab";
 import { useAuth } from "@/hooks/useAuth";
 import UserCard from "@/components/UserCard";
+import FeedList from "@/components/feed/FeedList";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -66,25 +66,6 @@ const PlaceholderContent = ({ tab }: { tab: string }) => (
 const HomePage = () => {
   const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
   const { profile: currentUserProfile } = useAuth();
-
-  const { data: profiles, isLoading: isLoadingProfiles } = useQuery<Profile[]>({
-    queryKey: ['profiles', selectedInterest],
-    queryFn: async () => {
-      let query = supabase.from('profiles').select('*').not('username', 'is', null);
-
-      if (selectedInterest) {
-        query = query.contains('interests', [selectedInterest]);
-      }
-      
-      if (currentUserProfile) {
-        query = query.not('id', 'eq', currentUserProfile.id);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data || [];
-    },
-  });
 
   const handleInterestClick = (interest: string) => {
     setSelectedInterest(prev => prev === interest ? null : interest);
@@ -160,29 +141,7 @@ const HomePage = () => {
             </div>
           </div>
           <TabsContent value="people" className="mt-4">
-            {isLoadingProfiles && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-4 md:px-0">
-                {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-auto aspect-[3/4] w-full" />)}
-              </div>
-            )}
-            {!isLoadingProfiles && profiles && profiles.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-4 md:px-0">
-                {profiles.filter(p => p.id !== currentUserProfile?.id).map(profile => (
-                  <UserCard key={profile.id} profile={profile} />
-                ))}
-              </div>
-            )}
-            {!isLoadingProfiles && (!profiles || profiles.filter(p => p.id !== currentUserProfile?.id).length === 0) && (
-              <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-lg mt-4 text-center p-4">
-                <Users className="h-16 w-16 text-muted-foreground/50 mb-4" />
-                <h3 className="text-xl font-semibold">No one here... yet!</h3>
-                <p className="text-muted-foreground mt-2 max-w-sm">
-                  {selectedInterest
-                    ? `No profiles found for the "${selectedInterest}" interest. Try broadening your search!`
-                    : "Try selecting an interest to discover people, or explore what's happening nearby."}
-                </p>
-              </div>
-            )}
+            <FeedList selectedInterest={selectedInterest} />
           </TabsContent>
           <TabsContent value="nearby" className="mt-4 px-4 md:px-0">
             <NearbyTab />
