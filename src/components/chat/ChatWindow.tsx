@@ -1,55 +1,22 @@
+
 import { ConversationWithOtherParticipant } from '@/api/chat';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
-import { ArrowLeft, Paperclip, Phone, Send, Video } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMessages, sendMessage, MessageWithSender } from '@/api/chat';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect, useRef } from 'react';
-import MessageBubble from './MessageBubble';
-import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useChannelPresence } from '@/hooks/useChannelPresence';
-import { formatDistanceToNowStrict } from 'date-fns';
+import { z } from 'zod';
+import ChatHeader from './ChatHeader';
+import MessageList from './MessageList';
+import MessageForm, { messageFormSchema } from './MessageForm';
 
 interface ChatWindowProps {
   conversation: ConversationWithOtherParticipant | null;
   onBack: () => void;
 }
-
-const messageFormSchema = z.object({
-  content: z.string().min(1, "Message cannot be empty.").max(1000, "Message is too long."),
-});
-
-const UserStatus = ({ participant, isOnline }: { participant: ConversationWithOtherParticipant['other_participant'], isOnline: boolean }) => {
-  if (isOnline) {
-    return (
-      <div className="flex items-center gap-1.5">
-        <span className="relative flex h-2.5 w-2.5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
-        </span>
-        <span className="text-sm text-muted-foreground">Online</span>
-      </div>
-    );
-  }
-
-  if (participant.last_active_at) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        Active {formatDistanceToNowStrict(new Date(participant.last_active_at), { addSuffix: true })}
-      </p>
-    );
-  }
-
-  return <p className="text-sm text-muted-foreground">Offline</p>;
-};
 
 const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
   const { user } = useAuth();
@@ -159,67 +126,23 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
 
   return (
     <div className="flex flex-col h-full bg-background w-full">
-      <header className="flex items-center justify-between gap-4 p-3 border-b shrink-0">
-        <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={onBack}>
-              <ArrowLeft className="h-5 w-5"/>
-            </Button>
-            <Avatar>
-                <AvatarImage src={otherParticipant.avatar_url ?? ''} />
-                <AvatarFallback>{otherParticipant.username?.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <p className="font-semibold">{otherParticipant.username}</p>
-              <UserStatus participant={otherParticipant} isOnline={isOnline} />
-            </div>
-        </div>
-        <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon"><Video className="h-5 w-5"/></Button>
-            <Button variant="ghost" size="icon"><Phone className="h-5 w-5"/></Button>
-        </div>
-      </header>
+      <ChatHeader
+        otherParticipant={otherParticipant}
+        isOnline={isOnline}
+        onBack={onBack}
+      />
       <main className="flex-1 p-4 overflow-y-auto bg-muted/20">
-        {isLoadingMessages ? (
-          <div className="space-y-4">
-            <Skeleton className="h-12 w-3/4" />
-            <Skeleton className="h-16 w-1/2 ml-auto" />
-            <Skeleton className="h-8 w-2/3" />
-            <Skeleton className="h-12 w-3/4" />
-          </div>
-        ) : messages.length > 0 ? (
-          <div className="space-y-4">
-            {messages.map((message) => (
-              <MessageBubble key={message.id} message={message} />
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-        ) : (
-          <div className="flex items-center justify-center h-full text-center text-muted-foreground">
-            <p>No messages yet. Say hello!</p>
-          </div>
-        )}
+        <MessageList 
+          isLoading={isLoadingMessages} 
+          messages={messages}
+          messagesEndRef={messagesEndRef}
+        />
       </main>
-      <footer className="p-3 border-t bg-background shrink-0">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-center gap-3">
-            <Button type="button" variant="ghost" size="icon" disabled={sendMessageMutation.isPending}><Paperclip className="h-5 w-5"/></Button>
-            <FormField
-              control={form.control}
-              name="content"
-              render={({ field }) => (
-                <FormItem className="flex-1">
-                  <FormControl>
-                    <Input placeholder="Type a message..." {...field} autoComplete="off" disabled={sendMessageMutation.isPending} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <Button type="submit" disabled={sendMessageMutation.isPending}>
-              <Send className="h-5 w-5"/>
-            </Button>
-          </form>
-        </Form>
-      </footer>
+      <MessageForm 
+        form={form}
+        onSubmit={onSubmit}
+        isSending={sendMessageMutation.isPending}
+      />
     </div>
   );
 };
