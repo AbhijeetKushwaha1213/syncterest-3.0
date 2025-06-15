@@ -6,7 +6,7 @@ interface InterestsSectionProps {
 }
 
 export const InterestsSection = ({ profile }: InterestsSectionProps) => (
-  <div>
+  <div className="my-8">
     <h3 className="font-semibold text-lg text-center mb-4 uppercase text-muted-foreground tracking-wider">Interests</h3>
     <div className="flex flex-wrap gap-3 justify-center">
       {profile.interests?.length > 0 ? profile.interests.map((interest) => (
