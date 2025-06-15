@@ -1,12 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { RealtimeChannel, RealtimePresenceState } from '@supabase/supabase-js';
+import { RealtimePresenceState } from '@supabase/supabase-js';
 
 export const useChannelPresence = (channelId: string) => {
   const { user, profile } = useAuth();
   const [presenceState, setPresenceState] = useState<RealtimePresenceState>({});
-  const channelRef = useRef<RealtimeChannel | null>(null);
 
   useEffect(() => {
     if (!user || !channelId || !profile) {
@@ -15,9 +15,6 @@ export const useChannelPresence = (channelId: string) => {
 
     const channelName = `channel-presence-${channelId}`;
     
-    // To prevent issues in StrictMode, we remove any existing channel before creating a new one.
-    supabase.removeChannel(supabase.channel(channelName));
-
     const channel = supabase.channel(channelName, {
         config: {
             presence: {
@@ -25,7 +22,6 @@ export const useChannelPresence = (channelId: string) => {
             },
         },
     });
-    channelRef.current = channel;
 
     channel.on('presence', { event: 'sync' }, () => {
         const newState = channel.presenceState();
@@ -44,10 +40,7 @@ export const useChannelPresence = (channelId: string) => {
     });
 
     return () => {
-        if(channelRef.current) {
-            supabase.removeChannel(channelRef.current);
-            channelRef.current = null;
-        }
+        supabase.removeChannel(channel);
     };
   }, [user?.id, channelId, profile]);
 

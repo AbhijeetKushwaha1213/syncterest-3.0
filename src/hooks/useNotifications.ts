@@ -1,4 +1,3 @@
-
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead, Notification } from '@/api/notifications';
 import { useAuth } from './useAuth';
@@ -32,31 +31,22 @@ export const useNotifications = () => {
 
     const channelName = 'public:notifications';
 
-    const setupChannel = async () => {
-        // To prevent issues in StrictMode, we remove any existing channel before creating a new one.
-        const existingChannel = supabase.channel(channelName);
-        await supabase.removeChannel(existingChannel);
-
-        const newChannel = supabase.channel(channelName)
-          .on<Notification>(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
-            (payload) => {
-              queryClientRef.current.invalidateQueries({ queryKey: ['notifications'] });
-              toastRef.current({
-                title: "New Notification",
-                description: "You have a new notification.",
-              });
-            }
-          )
-          .subscribe();
-    }
-    
-    setupChannel();
+    const channel = supabase.channel(channelName)
+      .on<Notification>(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          queryClientRef.current.invalidateQueries({ queryKey: ['notifications'] });
+          toastRef.current({
+            title: "New Notification",
+            description: "You have a new notification.",
+          });
+        }
+      )
+      .subscribe();
 
     return () => {
-      // We get the channel by name to ensure we remove the correct instance.
-      supabase.removeChannel(supabase.channel(channelName));
+      supabase.removeChannel(channel);
     };
   }, [user?.id]);
 
