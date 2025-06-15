@@ -1,3 +1,4 @@
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 
@@ -20,6 +21,7 @@ const userRelatedTables = [
   { table: 'followers', column: 'following_id' },
   { table: 'blocked_users', column: 'user_id' },
   { table: 'blocked_users', column: 'blocked_user_id' },
+  { table: 'subscribers', column: 'user_id' },
 ];
 
 Deno.serve(async (req) => {
@@ -77,3 +79,4 @@ Deno.serve(async (req) => {
     });
   }
 });
+
