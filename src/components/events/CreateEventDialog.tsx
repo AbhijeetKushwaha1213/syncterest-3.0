@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -39,13 +38,23 @@ const eventFormSchema = z.object({
   description: z.string().optional(),
   event_time: z.date({ required_error: "Event date is required." }),
   location: z.string().optional(),
-  image_url: z.string().url("Please enter a valid URL.").optional().or(z.literal('')),
+  image_file: z.instanceof(File).optional(),
 });
 
 type EventFormValues = z.infer<typeof eventFormSchema>;
 
+type NewEventPayload = {
+    title: string;
+    description?: string;
+    location?: string;
+    event_time: string;
+    created_by: string;
+    image_url: string | null;
+};
+
 const CreateEventDialog = () => {
   const [open, setOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -55,21 +64,13 @@ const CreateEventDialog = () => {
       title: "",
       description: "",
       location: "",
-      image_url: "",
+      image_file: undefined,
     },
   });
 
   const createEventMutation = useMutation({
-    mutationFn: async (newEvent: Omit<EventFormValues, 'event_time'> & { event_time: string; created_by: string }) => {
-      const payload = {
-        title: newEvent.title,
-        description: newEvent.description,
-        location: newEvent.location,
-        event_time: newEvent.event_time,
-        created_by: newEvent.created_by,
-        image_url: newEvent.image_url || null,
-      };
-      const { data, error } = await supabase.from("events").insert(payload).select().single();
+    mutationFn: async (newEvent: NewEventPayload) => {
+      const { data, error } = await supabase.from("events").insert(newEvent).select().single();
       if (error) throw error;
       return data;
     },
@@ -88,15 +89,52 @@ const CreateEventDialog = () => {
     },
   });
 
-  const onSubmit = (values: EventFormValues) => {
+  const onSubmit = async (values: EventFormValues) => {
     if (!user) {
       toast({ title: "You must be logged in to create an event.", variant: "destructive" });
       return;
     }
+
+    let imageUrl: string | null = null;
+    if (values.image_file) {
+      setIsUploading(true);
+      const file = values.image_file;
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+
+      try {
+        const { error: uploadError } = await supabase.storage
+          .from('event-images')
+          .upload(filePath, file);
+
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('event-images')
+          .getPublicUrl(filePath);
+
+        imageUrl = urlData.publicUrl;
+      } catch (error: any) {
+        toast({
+          title: "Error uploading image",
+          description: error.message,
+          variant: "destructive",
+        });
+        setIsUploading(false);
+        return;
+      }
+      setIsUploading(false);
+    }
+    
     createEventMutation.mutate({
-      ...values,
+      title: values.title,
+      description: values.description,
+      location: values.location,
       event_time: values.event_time.toISOString(),
       created_by: user.id,
+      image_url: imageUrl,
     });
   };
 
@@ -197,20 +235,24 @@ const CreateEventDialog = () => {
             />
             <FormField
               control={form.control}
-              name="image_url"
+              name="image_file"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Image URL</FormLabel>
+                  <FormLabel>Event Image</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com/image.png" {...field} />
+                    <Input
+                      type="file"
+                      accept="image/png, image/jpeg, image/gif"
+                      onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : undefined)}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <DialogFooter>
-              <Button type="submit" disabled={createEventMutation.isPending}>
-                {createEventMutation.isPending ? "Creating..." : "Create Event"}
+              <Button type="submit" disabled={createEventMutation.isPending || isUploading}>
+                {isUploading ? 'Uploading...' : createEventMutation.isPending ? "Creating..." : "Create Event"}
               </Button>
             </DialogFooter>
           </form>
