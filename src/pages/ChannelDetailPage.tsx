@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import { channelsData } from '@/data/channels';
 import { useChannelPresence } from '@/hooks/useChannelPresence';

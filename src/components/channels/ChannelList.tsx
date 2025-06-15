@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { channelsData } from '@/data/channels';
 import { cn } from '@/lib/utils';
