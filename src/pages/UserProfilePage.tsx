@@ -1,8 +1,7 @@
-
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { fetchProfileData, ProfileWithDetails } from "@/api/profiles";
 import { UserProfileSkeleton } from "@/features/profile/components/UserProfileSkeleton";
@@ -10,7 +9,6 @@ import { ProfileHeader } from "@/features/profile/components/ProfileHeader";
 import { StoryHighlights } from "@/features/profile/components/StoryHighlights";
 import { ProfileTabs } from "@/features/profile/components/ProfileTabs";
 import { InterestsSection } from "@/features/profile/components/InterestsSection";
-import { EditProfileDialog } from "@/features/profile/components/EditProfileDialog";
 
 const UserProfilePage = () => {
   const { id } = useParams<{ id: string }>();
@@ -49,14 +47,6 @@ const UserProfilePage = () => {
             <Button asChild variant="ghost" className="-ml-4">
                 <Link to="/home"><ArrowLeft className="mr-2 h-4 w-4" />Back</Link>
             </Button>
-            {isOwnProfile && (
-                <EditProfileDialog profile={profile}>
-                    <Button variant="outline">
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Edit Profile Details
-                    </Button>
-                </EditProfileDialog>
-            )}
        </div>
        
        <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} />
