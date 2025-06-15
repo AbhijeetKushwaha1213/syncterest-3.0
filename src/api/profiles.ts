@@ -5,6 +5,7 @@ export type ProfileWithDetails = Tables<'profiles'> & {
   posts: Tables<'posts'>[];
   stories: Tables<'stories'>[];
   events: Tables<'events'>[];
+  reels: Tables<'reels'>[];
   posts_count: number;
   followers_count: number;
   following_count: number;
@@ -77,6 +78,17 @@ export const fetchProfileData = async (profileId: string, currentUserId?: string
     throw eventsError;
   }
 
+  const { data: reels, error: reelsError } = await supabase
+    .from('reels')
+    .select('*')
+    .eq('user_id', profileId)
+    .order('created_at', { ascending: false });
+  
+  if (reelsError) {
+    console.error("Error fetching reels:", reelsError);
+    throw reelsError;
+  }
+
   const { count: followersCount, error: followersError } = await supabase
     .from('followers')
     .select('*', { count: 'exact', head: true })
@@ -108,6 +120,7 @@ export const fetchProfileData = async (profileId: string, currentUserId?: string
     posts: posts ?? [],
     stories: stories ?? [],
     events: events ?? [],
+    reels: reels ?? [],
     posts_count: postsCount ?? 0,
     followers_count: followersCount ?? 0,
     following_count: followingCount ?? 0,

@@ -469,6 +469,38 @@ export type Database = {
           },
         ]
       }
+      reels: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          user_id: string
+          video_url: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          user_id: string
+          video_url: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          user_id?: string
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reels_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stories: {
         Row: {
           created_at: string
