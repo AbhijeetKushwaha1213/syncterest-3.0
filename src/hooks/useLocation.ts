@@ -75,7 +75,7 @@ export const useLocation = () => {
             msg = "Location access was denied. Please enable it in your browser settings.";
             break;
           case err.POSITION_UNAVAILABLE:
-            msg = "Your location could not be determined. Please ensure location services are enabled on your device and try again.";
+            msg = "Your location could not be determined. This can be due to a poor signal. Please ensure location services are enabled on your device and try again.";
             break;
           case err.TIMEOUT:
             msg = "The request to get your location timed out. This can happen with a poor signal. Please try again.";
@@ -87,16 +87,15 @@ export const useLocation = () => {
         resolve(null);
       };
 
-      // Using lower accuracy for a potentially faster response. High accuracy can be slow, 
-      // especially indoors, and may not be necessary for this app's purpose.
-      // A single attempt avoids long wait times for the user.
+      // Forcing a fresh, low-accuracy position. This might be more reliable if
+      // the device is having trouble getting a fix or if there's a bad cached position.
       navigator.geolocation.getCurrentPosition(
         handleSuccess,
         handleError,
         {
           enableHighAccuracy: false,
-          timeout: 15000, // 15 seconds
-          maximumAge: 60000, // Use a cached position if it's less than a minute old
+          timeout: 20000, // 20 seconds
+          maximumAge: 0, // Don't use a cached position, get a fresh one.
         }
       );
     });
@@ -106,3 +105,4 @@ export const useLocation = () => {
 
   return { error, loading, getLocation, hasLocation, profileLocation: { latitude: profile?.latitude, longitude: profile?.longitude } };
 };
+
