@@ -5,7 +5,7 @@ import { Circle, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/use-toast";
 
 const statuses = [
   { label: "Looking to chat", color: "text-green-500" },
@@ -17,6 +17,7 @@ const statuses = [
 const UserStatusCard = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: profile, isLoading: isProfileLoading } = useQuery({
     queryKey: ['profile', user?.id],
@@ -46,10 +47,17 @@ const UserStatusCard = () => {
     onSuccess: (newStatus) => {
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['profiles_nearby_list'] });
-      toast.success(`Your status is now "${newStatus}"`);
+      toast({
+        title: "Status updated",
+        description: `Your status is now "${newStatus}".`,
+      });
     },
     onError: (error) => {
-      toast.error("Failed to update status: " + error.message);
+      toast({
+        variant: "destructive",
+        title: "Update failed",
+        description: "Failed to update status: " + error.message,
+      });
     },
   });
 
