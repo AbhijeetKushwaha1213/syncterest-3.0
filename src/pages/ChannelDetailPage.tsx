@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useChannelPresence } from '@/hooks/useChannelPresence';
@@ -13,7 +12,7 @@ import ChannelChat from '@/components/channels/chat/ChannelChat';
 import { useChannelRole } from '@/hooks/useChannelRole';
 import { EditChannelDialog } from '@/components/channels/EditChannelDialog';
 import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
+import { Settings, Users, Video, ScreenShare } from 'lucide-react';
 import ChannelVoice from '@/components/channels/voice/ChannelVoice';
 
 const ChannelDetailPage = () => {
@@ -25,6 +24,7 @@ const ChannelDetailPage = () => {
 
   const isAdmin = role === 'admin';
   const onlineUsers = Object.values(presence).flat();
+  const memberCount = channel.channel_members?.[0]?.count ?? 0;
 
   if (isLoading) {
     return (
@@ -75,27 +75,43 @@ const ChannelDetailPage = () => {
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/20" />
         </div>
-        <div className="absolute bottom-0 left-0 p-4 w-full flex justify-between items-end">
-            <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16 border-4 border-background bg-muted">
+        <div className="absolute bottom-0 left-0 p-4 w-full flex justify-between items-end gap-2">
+            <div className="flex items-center gap-4 overflow-hidden">
+                <Avatar className="h-16 w-16 border-4 border-background bg-muted shrink-0">
                     <AvatarImage src={channel.image_url || undefined} alt={channel.name} />
                     <AvatarFallback className="text-2xl font-bold" style={{ backgroundColor: channel.color || undefined }}>
                         {channel.logo_letter || channel.name.charAt(0)}
                     </AvatarFallback>
                 </Avatar>
-                <div>
-                    <h1 className="text-2xl font-bold text-white shadow-md">{channel.name}</h1>
-                    <p className="text-sm text-gray-300 shadow-sm">{channel.description}</p>
+                <div className="overflow-hidden">
+                    <h1 className="text-2xl font-bold text-white shadow-md truncate">{channel.name}</h1>
+                    <div className="flex items-center gap-x-3 gap-y-1 text-sm text-gray-300 shadow-sm flex-wrap">
+                      {channel.description && <p className="truncate max-w-[200px] md:max-w-xs" title={channel.description}>{channel.description}</p>}
+                      <div className="flex items-center gap-1.5">
+                          <Users className="h-4 w-4" />
+                          <span>{memberCount} {memberCount === 1 ? 'member' : 'members'}</span>
+                      </div>
+                    </div>
                 </div>
             </div>
-            {isAdmin && (
-              <EditChannelDialog channel={channel}>
-                <Button variant="secondary" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30 border">
-                  <Settings className="h-4 w-4 mr-2" />
-                  <span>Settings</span>
-                </Button>
-              </EditChannelDialog>
-            )}
+            <div className="flex items-center gap-2 shrink-0">
+              <Button variant="secondary" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30 border md:w-auto w-9 p-0 md:px-3">
+                <Video className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Join Call</span>
+              </Button>
+              <Button variant="secondary" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30 border md:w-auto w-9 p-0 md:px-3">
+                <ScreenShare className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Share Screen</span>
+              </Button>
+              {isAdmin && (
+                <EditChannelDialog channel={channel}>
+                  <Button variant="secondary" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30 border md:w-auto w-9 p-0 md:px-3">
+                    <Settings className="h-4 w-4 md:mr-2" />
+                    <span className="hidden md:inline">Settings</span>
+                  </Button>
+                </EditChannelDialog>
+              )}
+            </div>
         </div>
       </header>
       <div className="grid md:grid-cols-[1fr_280px] flex-1 overflow-hidden">
