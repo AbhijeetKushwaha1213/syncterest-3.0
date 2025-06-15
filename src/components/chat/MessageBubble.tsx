@@ -1,13 +1,18 @@
 
-import { MessageWithSender } from '@/api/chat';
+import { MessageWithSender, addReaction, removeReaction } from '@/api/chat';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from 'date-fns';
-import { Check, CheckCheck, Download, FileText } from 'lucide-react';
+import { Check, CheckCheck, Download, FileText, SmilePlus } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '../ui/skeleton';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Button } from '../ui/button';
+import EmojiPicker from './EmojiPicker';
+import ReactionsDisplay from './ReactionsDisplay';
+import { useMutation } from '@tanstack/react-query';
 
 interface MessageBubbleProps {
   message: MessageWithSender;
@@ -57,36 +62,86 @@ const MessageBubble = ({ message }: MessageBubbleProps) => {
     const isSender = message.sender_id === user?.id;
     const senderProfile = message.sender as any;
     const isImageAttachment = message.attachment_type?.startsWith('image/');
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+    const addReactionMutation = useMutation({
+        mutationFn: ({ messageId, emoji }: { messageId: string, emoji: string }) => addReaction(messageId, emoji),
+    });
+
+    const removeReactionMutation = useMutation({
+        mutationFn: (reactionId: string) => removeReaction(reactionId),
+    });
+    
+    const handleEmojiSelect = (emoji: string) => {
+        if (!user) return;
+
+        const existingReaction = message.reactions?.find(
+            (r) => r.user_id === user.id && r.emoji === emoji
+        );
+
+        if (existingReaction) {
+            removeReactionMutation.mutate(existingReaction.id);
+        } else {
+            addReactionMutation.mutate({ messageId: message.id, emoji });
+        }
+        setShowEmojiPicker(false);
+    };
 
     return (
         <div className={cn("flex items-end gap-2", { "justify-end": isSender })}>
             {!isSender && (
-                <Avatar className="h-8 w-8">
+                <Avatar className="h-8 w-8 shrink-0">
                     <AvatarImage src={senderProfile?.avatar_url ?? ''} alt={senderProfile?.username ?? ''} />
                     <AvatarFallback>{senderProfile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
             )}
-            <div className="flex flex-col max-w-xs md:max-w-md lg:max-w-lg">
-                <div 
-                    className={cn(
-                        "rounded-2xl break-words shadow-sm",
-                        isSender 
-                            ? "bg-primary text-primary-foreground rounded-br-none self-end" 
-                            : "bg-muted rounded-bl-none self-start",
-                        { 'p-1': isImageAttachment && !message.content }, // Less padding for image-only messages
-                        { 'px-4 py-2': !isImageAttachment || message.content }
-                    )}
-                >
-                    {message.attachment_url && (
-                        <div className={cn({ "pb-2": message.content })}>
-                            <AttachmentDisplay message={message} />
-                        </div>
-                    )}
-                    {message.content && <p>{message.content}</p>}
+            <div className="flex flex-col gap-1" style={{ alignItems: isSender ? 'flex-end' : 'flex-start' }}>
+                <div className="group relative max-w-xs md:max-w-md lg:max-w-lg">
+                    <div 
+                        className={cn(
+                            "rounded-2xl break-words shadow-sm",
+                            isSender 
+                                ? "bg-primary text-primary-foreground rounded-br-none" 
+                                : "bg-muted rounded-bl-none",
+                            { 'p-1': isImageAttachment && !message.content },
+                            { 'px-4 py-2': !isImageAttachment || message.content }
+                        )}
+                    >
+                        {message.attachment_url && (
+                            <div className={cn({ "pb-2": message.content })}>
+                                <AttachmentDisplay message={message} />
+                            </div>
+                        )}
+                        {message.content && <p className="whitespace-pre-wrap">{message.content}</p>}
+                    </div>
+                    <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className={cn(
+                                    "absolute h-8 w-8 rounded-full bg-background transition-opacity opacity-0 group-hover:opacity-100",
+                                    isSender ? "-left-10 top-1/2 -translate-y-1/2" : "-right-10 top-1/2 -translate-y-1/2"
+                                )}
+                            >
+                                <SmilePlus className="h-5 w-5" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-1" side="top" align={isSender ? 'end' : 'start'}>
+                            <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+                        </PopoverContent>
+                    </Popover>
                 </div>
+                
+                {message.reactions && message.reactions.length > 0 && (
+                     <ReactionsDisplay 
+                        reactions={message.reactions}
+                        onEmojiSelect={handleEmojiSelect}
+                    />
+                )}
+
                 <div className={cn(
-                    "flex items-center gap-1.5 text-xs text-muted-foreground mt-1 px-1",
-                    isSender ? "self-end" : "self-start"
+                    "flex items-center gap-1.5 text-xs text-muted-foreground px-1",
                 )}>
                     <span>{format(new Date(message.created_at), 'p')}</span>
                     {isSender && (

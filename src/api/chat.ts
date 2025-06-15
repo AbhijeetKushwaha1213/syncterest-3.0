@@ -4,9 +4,11 @@ import { Database } from "@/integrations/supabase/types";
 type Profile = Database['public']['Tables']['profiles']['Row'];
 export type Conversation = Database['public']['Tables']['conversations']['Row'];
 export type Message = Database['public']['Tables']['messages']['Row'];
+export type Reaction = Database['public']['Tables']['reactions']['Row'];
 
 export type MessageWithSender = Message & {
   sender: Pick<Profile, 'id' | 'username' | 'avatar_url'> | null;
+  reactions: Reaction[];
 };
 
 // This type is based on the get_conversations_for_user RPC function's return type.
@@ -51,7 +53,8 @@ export const getMessages = async (conversationId: string): Promise<MessageWithSe
     .from('messages')
     .select(`
       *,
-      sender:profiles (id, username, avatar_url)
+      sender:profiles (id, username, avatar_url),
+      reactions (id, emoji, user_id, created_at)
     `)
     .eq('conversation_id', conversationId)
     .order('created_at', { ascending: true });
@@ -118,5 +121,46 @@ export const markMessagesAsRead = async (conversationId: string) => {
     if (error) {
         console.error('Error marking messages as read:', error);
         throw error;
+    }
+};
+
+export const addReaction = async (messageId: string, emoji: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const { data, error } = await supabase
+        .from('reactions')
+        .insert({
+            message_id: messageId,
+            user_id: user.id,
+            emoji: emoji,
+        })
+        .select()
+        .single();
+    
+    if (error) {
+        console.error("Error adding reaction:", error);
+        if (error.code === '23505') { // unique_violation
+            // User likely already reacted with this emoji. Client side should prevent this, but as a fallback.
+            return null;
+        }
+        throw new Error(error.message);
+    }
+    return data;
+};
+
+export const removeReaction = async (reactionId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const { error } = await supabase
+        .from('reactions')
+        .delete()
+        .eq('id', reactionId)
+        .eq('user_id', user.id); // Ensure user can only delete their own reaction
+
+    if (error) {
+        console.error("Error removing reaction:", error);
+        throw new Error(error.message);
     }
 };

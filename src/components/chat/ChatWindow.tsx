@@ -1,4 +1,5 @@
-import { ConversationWithOtherParticipant } from '@/api/chat';
+
+import { ConversationWithOtherParticipant, Reaction } from '@/api/chat';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMessages, sendMessage, MessageWithSender, markMessagesAsRead, uploadAttachment } from '@/api/chat';
 import { useAuth } from '@/hooks/useAuth';
@@ -108,8 +109,42 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
       )
       .subscribe();
 
+    const reactionChannel = supabase.channel('public:reactions')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reactions' },
+        (payload) => {
+          setMessages(currentMessages => {
+            const messageInState = currentMessages.some(m => m.conversation_id === conversation.id);
+            if (!messageInState) return currentMessages;
+
+            if (payload.eventType === 'INSERT') {
+              const newReaction = payload.new as Reaction;
+              return currentMessages.map(m => {
+                if (m.id === newReaction.message_id) {
+                  // Avoid duplicates
+                  if (m.reactions.some(r => r.id === newReaction.id)) return m;
+                  return { ...m, reactions: [...m.reactions, newReaction] };
+                }
+                return m;
+              });
+            }
+
+            if (payload.eventType === 'DELETE') {
+              const oldReaction = payload.old as Partial<Reaction>;
+              return currentMessages.map(m => {
+                if (m.id === oldReaction.message_id) {
+                  return { ...m, reactions: m.reactions.filter(r => r.id !== oldReaction.id) };
+                }
+                return m;
+              });
+            }
+            return currentMessages;
+          });
+        }
+      ).subscribe();
+
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(reactionChannel);
     };
   }, [conversation, queryClient, user?.id, markAsReadMutation]);
   
