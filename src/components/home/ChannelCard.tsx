@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -74,14 +73,25 @@ const ChannelCard = ({ channel }: ChannelCardProps) => {
         </Link>
       </CardContent>
       <CardFooter className="pt-4 border-t">
-        <Button 
-            className="w-full" 
-            variant={isMember ? "secondary" : "outline"}
+        {isMember ? (
+          <Button className="w-full" variant="secondary" disabled>
+            Joined
+          </Button>
+        ) : channel.visibility === 'public' ? (
+          <Button
+            className="w-full"
+            variant="outline"
             onClick={handleJoin}
-            disabled={joinChannelMutation.isPending || isMember}
-        >
-          {isMember ? 'Joined' : (joinChannelMutation.isPending ? 'Joining...' : 'Join Channel')}
-        </Button>
+            disabled={joinChannelMutation.isPending}
+          >
+            {joinChannelMutation.isPending ? 'Joining...' : 'Join Channel'}
+          </Button>
+        ) : (
+          <Button className="w-full" variant="outline" disabled>
+            <Lock className="h-4 w-4 mr-2" />
+            Private
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
