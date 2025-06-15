@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,8 +22,18 @@ import { useToast } from "@/components/ui/use-toast";
 import { PlusCircle } from "lucide-react";
 import { TablesInsert } from "@/integrations/supabase/types";
 
+const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
+const SUPPORTED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
+
 const reelSchema = z.object({
-  video_url: z.string().url({ message: "Please enter a valid video URL." }),
+  video: z
+    .instanceof(File, { message: "A video is required." })
+    .refine((file) => file.size > 0, "A video is required.")
+    .refine((file) => file.size <= MAX_VIDEO_SIZE, `Max video size is 50MB.`)
+    .refine(
+      (file) => SUPPORTED_VIDEO_TYPES.includes(file.type),
+      "Only .mp4, .webm, and .mov formats are supported."
+    ),
   caption: z.string().max(2200).optional(),
 });
 
@@ -38,6 +47,7 @@ const createReel = async (reel: TablesInsert<'reels'>) => {
 
 const CreateReelDialog = () => {
   const [open, setOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -45,7 +55,7 @@ const CreateReelDialog = () => {
   const form = useForm<ReelFormValues>({
     resolver: zodResolver(reelSchema),
     defaultValues: {
-      video_url: "",
+      video: undefined,
       caption: "",
     },
   });
@@ -70,16 +80,46 @@ const CreateReelDialog = () => {
     },
   });
 
-  const onSubmit = (values: ReelFormValues) => {
+  const onSubmit = async (values: ReelFormValues) => {
     if (!user) {
       toast({ title: "Authentication error", description: "You must be logged in to create a reel.", variant: "destructive" });
       return;
     }
-    mutation.mutate({
-      user_id: user.id,
-      video_url: values.video_url,
-      caption: values.caption,
-    });
+    
+    setIsUploading(true);
+    
+    try {
+      const file = values.video;
+      const fileExt = file.name.split(".").pop();
+      const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("reels")
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("reels")
+        .getPublicUrl(filePath);
+
+      mutation.mutate({
+        user_id: user.id,
+        video_url: publicUrl,
+        caption: values.caption,
+      });
+
+    } catch (error: any) {
+      toast({
+        title: "Upload failed",
+        description: error.message || "Could not upload the video. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -101,12 +141,21 @@ const CreateReelDialog = () => {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="video_url"
-              render={({ field }) => (
+              name="video"
+              render={({ field: { onChange, value, ...rest } }) => (
                 <FormItem>
-                  <FormLabel>Video URL</FormLabel>
+                  <FormLabel>Video</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com/video.mp4" {...field} />
+                    <Input
+                      type="file"
+                      accept={SUPPORTED_VIDEO_TYPES.join(",")}
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          onChange(e.target.files[0]);
+                        }
+                      }}
+                      {...rest}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -126,8 +175,8 @@ const CreateReelDialog = () => {
               )}
             />
             <DialogFooter>
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Creating..." : "Create Reel"}
+              <Button type="submit" disabled={isUploading || mutation.isPending}>
+                {isUploading ? "Uploading..." : mutation.isPending ? "Creating..." : "Create Reel"}
               </Button>
             </DialogFooter>
           </form>

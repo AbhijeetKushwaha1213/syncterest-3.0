@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,8 +22,18 @@ import { useToast } from "@/components/ui/use-toast";
 import { PlusCircle } from "lucide-react";
 import { TablesInsert } from "@/integrations/supabase/types";
 
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+const SUPPORTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+
 const postSchema = z.object({
-  image_url: z.string().url({ message: "Please enter a valid image URL." }),
+  image: z
+    .instanceof(File, { message: "An image is required." })
+    .refine((file) => file.size > 0, "An image is required.")
+    .refine((file) => file.size <= MAX_IMAGE_SIZE, `Max image size is 5MB.`)
+    .refine(
+      (file) => SUPPORTED_IMAGE_TYPES.includes(file.type),
+      "Only .jpg, .jpeg, .png, .gif and .webp formats are supported."
+    ),
   caption: z.string().max(2200).optional(),
 });
 
@@ -38,6 +47,7 @@ const createPost = async (post: TablesInsert<'posts'>) => {
 
 const CreatePostDialog = () => {
   const [open, setOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -45,7 +55,7 @@ const CreatePostDialog = () => {
   const form = useForm<PostFormValues>({
     resolver: zodResolver(postSchema),
     defaultValues: {
-      image_url: "",
+      image: undefined,
       caption: "",
     },
   });
@@ -70,16 +80,45 @@ const CreatePostDialog = () => {
     },
   });
 
-  const onSubmit = (values: PostFormValues) => {
+  const onSubmit = async (values: PostFormValues) => {
     if (!user) {
       toast({ title: "Authentication error", description: "You must be logged in to create a post.", variant: "destructive" });
       return;
     }
-    mutation.mutate({
-      user_id: user.id,
-      image_url: values.image_url,
-      caption: values.caption,
-    });
+
+    setIsUploading(true);
+
+    try {
+      const file = values.image;
+      const fileExt = file.name.split(".").pop();
+      const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("posts")
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("posts")
+        .getPublicUrl(filePath);
+
+      mutation.mutate({
+        user_id: user.id,
+        image_url: publicUrl,
+        caption: values.caption,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Upload failed",
+        description: error.message || "Could not upload the image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -101,12 +140,21 @@ const CreatePostDialog = () => {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="image_url"
-              render={({ field }) => (
+              name="image"
+              render={({ field: { onChange, value, ...rest } }) => (
                 <FormItem>
-                  <FormLabel>Image URL</FormLabel>
+                  <FormLabel>Image</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com/image.png" {...field} />
+                    <Input
+                      type="file"
+                      accept={SUPPORTED_IMAGE_TYPES.join(",")}
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          onChange(e.target.files[0]);
+                        }
+                      }}
+                      {...rest}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -126,8 +174,8 @@ const CreatePostDialog = () => {
               )}
             />
             <DialogFooter>
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Creating..." : "Create Post"}
+              <Button type="submit" disabled={isUploading || mutation.isPending}>
+                {isUploading ? "Uploading..." : mutation.isPending ? "Creating..." : "Create Post"}
               </Button>
             </DialogFooter>
           </form>
