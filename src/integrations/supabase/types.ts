@@ -193,6 +193,47 @@ export type Database = {
         }
         Relationships: []
       }
+      live_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          custom_message: string | null
+          expires_at: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          custom_message?: string | null
+          expires_at: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          custom_message?: string | null
+          expires_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_activities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
