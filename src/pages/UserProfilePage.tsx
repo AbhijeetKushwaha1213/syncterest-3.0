@@ -51,7 +51,7 @@ const UserProfilePage = () => {
 
        <StoryHighlights profile={profile} />
        
-       <ProfileTabs profile={profile} />
+       <ProfileTabs profile={profile} isOwnProfile={isOwnProfile} />
 
        <hr className="my-12" />
        

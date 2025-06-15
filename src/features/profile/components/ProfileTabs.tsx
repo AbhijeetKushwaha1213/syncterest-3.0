@@ -1,13 +1,15 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Grid3x3, Clapperboard, Tag } from "lucide-react";
+import { Grid3x3, Clapperboard, Calendar } from "lucide-react";
 import { ProfileWithDetails } from "@/api/profiles";
+import { ProfileEventsTab } from "./ProfileEventsTab";
 
 interface ProfileTabsProps {
   profile: ProfileWithDetails;
+  isOwnProfile: boolean;
 }
 
-export const ProfileTabs = ({ profile }: ProfileTabsProps) => (
+export const ProfileTabs = ({ profile, isOwnProfile }: ProfileTabsProps) => (
   <Tabs defaultValue="posts" className="w-full">
     <TabsList className="grid w-full grid-cols-3 bg-transparent p-0 border-b rounded-none">
       <TabsTrigger value="posts" className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none pb-2 border-b-2 border-transparent text-muted-foreground gap-2">
@@ -16,8 +18,8 @@ export const ProfileTabs = ({ profile }: ProfileTabsProps) => (
       <TabsTrigger value="reels" className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none pb-2 border-b-2 border-transparent text-muted-foreground gap-2">
         <Clapperboard className="h-5 w-5"/> Reels
       </TabsTrigger>
-      <TabsTrigger value="tagged" className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none pb-2 border-b-2 border-transparent text-muted-foreground gap-2">
-        <Tag className="h-5 w-5"/> Tagged
+      <TabsTrigger value="events" className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none pb-2 border-b-2 border-transparent text-muted-foreground gap-2">
+        <Calendar className="h-5 w-5"/> Events
       </TabsTrigger>
     </TabsList>
     <TabsContent value="posts" className="mt-4">
@@ -40,11 +42,9 @@ export const ProfileTabs = ({ profile }: ProfileTabsProps) => (
         <h3 className="text-lg font-semibold">No Reels Yet</h3>
       </div>
     </TabsContent>
-    <TabsContent value="tagged">
-      <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
-        <Tag className="w-12 h-12 mb-4"/>
-        <h3 className="text-lg font-semibold">No Tagged Photos Yet</h3>
-      </div>
+    <TabsContent value="events" className="mt-4">
+      <ProfileEventsTab events={profile.events} isOwnProfile={isOwnProfile} />
     </TabsContent>
   </Tabs>
 );
+

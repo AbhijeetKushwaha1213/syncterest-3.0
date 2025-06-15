@@ -1,10 +1,10 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 
 export type ProfileWithDetails = Tables<'profiles'> & {
   posts: Tables<'posts'>[];
   stories: Tables<'stories'>[];
+  events: Tables<'events'>[];
   posts_count: number;
   followers_count: number;
   following_count: number;
@@ -66,6 +66,17 @@ export const fetchProfileData = async (profileId: string, currentUserId?: string
     throw storiesError;
   }
 
+  const { data: events, error: eventsError } = await supabase
+    .from('events')
+    .select('*')
+    .eq('created_by', profileId)
+    .order('event_time', { ascending: false });
+  
+  if (eventsError) {
+    console.error("Error fetching events:", eventsError);
+    throw eventsError;
+  }
+
   const { count: followersCount, error: followersError } = await supabase
     .from('followers')
     .select('*', { count: 'exact', head: true })
@@ -96,6 +107,7 @@ export const fetchProfileData = async (profileId: string, currentUserId?: string
     ...profile,
     posts: posts ?? [],
     stories: stories ?? [],
+    events: events ?? [],
     posts_count: postsCount ?? 0,
     followers_count: followersCount ?? 0,
     following_count: followingCount ?? 0,
