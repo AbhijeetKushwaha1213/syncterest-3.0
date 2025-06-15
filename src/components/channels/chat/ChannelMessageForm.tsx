@@ -2,13 +2,14 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
-import { Paperclip, Send, Smile } from 'lucide-react';
+import { Paperclip, Send, Smile, Mic, Camera } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 import React from 'react';
 import AttachmentPreview from '@/components/chat/AttachmentPreview';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const channelMessageFormSchema = z.object({
   content: z.string().max(1000, "Message is too long."),
@@ -57,50 +58,76 @@ const ChannelMessageForm = ({ form, onSubmit, isSending, attachment, onFileSelec
                 </div>
             )}
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-center gap-3">
-                    <Input 
-                        type="file" 
-                        ref={fileInputRef} 
-                        onChange={handleFileChange}
-                        className="hidden"
-                    />
-                    <Button type="button" variant="ghost" size="icon" disabled={isSending} onClick={handlePaperclipClick}>
-                        <Paperclip className="h-5 w-5"/>
-                    </Button>
-                    <FormField
-                        control={form.control}
-                        name="content"
-                        render={({ field }) => (
-                            <FormItem className="flex-1">
-                                <FormControl>
-                                    <Input 
-                                        placeholder="Message in channel..." 
-                                        {...field} 
-                                        autoComplete="off" 
-                                        disabled={isSending} 
-                                        onChange={(e) => {
-                                            field.onChange(e);
-                                            onTyping();
-                                        }}
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button type="button" variant="ghost" size="icon" disabled={isSending}>
-                                <Smile className="h-5 w-5" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 mb-2 border-none" side="top" align="end">
-                            <EmojiPicker onEmojiClick={handleEmojiClick} />
-                        </PopoverContent>
-                    </Popover>
-                    <Button type="submit" disabled={disableSend}>
-                        <Send className="h-5 w-5"/>
-                    </Button>
-                </form>
+                <TooltipProvider>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-center gap-1">
+                        <Input 
+                            type="file" 
+                            ref={fileInputRef} 
+                            onChange={handleFileChange}
+                            className="hidden"
+                        />
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button type="button" variant="ghost" size="icon" disabled={isSending} onClick={handlePaperclipClick}>
+                                    <Paperclip className="h-5 w-5"/>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Attach file</p></TooltipContent>
+                        </Tooltip>
+                        
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button type="button" variant="ghost" size="icon" disabled>
+                                    <Mic className="h-5 w-5"/>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Record audio (coming soon)</p></TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button type="button" variant="ghost" size="icon" disabled>
+                                    <Camera className="h-5 w-5"/>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Capture image (coming soon)</p></TooltipContent>
+                        </Tooltip>
+
+                        <FormField
+                            control={form.control}
+                            name="content"
+                            render={({ field }) => (
+                                <FormItem className="flex-1">
+                                    <FormControl>
+                                        <Input 
+                                            placeholder="Message in channel..." 
+                                            {...field} 
+                                            autoComplete="off" 
+                                            disabled={isSending} 
+                                            onChange={(e) => {
+                                                field.onChange(e);
+                                                onTyping();
+                                            }}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button type="button" variant="ghost" size="icon" disabled={isSending}>
+                                    <Smile className="h-5 w-5" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0 mb-2 border-none" side="top" align="end">
+                                <EmojiPicker onEmojiClick={handleEmojiClick} />
+                            </PopoverContent>
+                        </Popover>
+                        <Button type="submit" disabled={disableSend}>
+                            <Send className="h-5 w-5"/>
+                        </Button>
+                    </form>
+                </TooltipProvider>
             </Form>
         </footer>
     );
