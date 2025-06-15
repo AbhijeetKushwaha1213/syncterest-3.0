@@ -72,6 +72,7 @@ export type Database = {
           id: string
           image_url: string | null
           location: string | null
+          search_vector: unknown | null
           title: string
         }
         Insert: {
@@ -82,6 +83,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           location?: string | null
+          search_vector?: unknown | null
           title: string
         }
         Update: {
@@ -92,6 +94,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           location?: string | null
+          search_vector?: unknown | null
           title?: string
         }
         Relationships: [
@@ -174,6 +177,7 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
+          search_vector: unknown | null
         }
         Insert: {
           created_at?: string
@@ -182,6 +186,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name: string
+          search_vector?: unknown | null
         }
         Update: {
           created_at?: string
@@ -190,6 +195,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name?: string
+          search_vector?: unknown | null
         }
         Relationships: []
       }
@@ -202,6 +208,7 @@ export type Database = {
           id: string
           latitude: number | null
           longitude: number | null
+          search_vector: unknown | null
           user_id: string
         }
         Insert: {
@@ -212,6 +219,7 @@ export type Database = {
           id?: string
           latitude?: number | null
           longitude?: number | null
+          search_vector?: unknown | null
           user_id: string
         }
         Update: {
@@ -222,6 +230,7 @@ export type Database = {
           id?: string
           latitude?: number | null
           longitude?: number | null
+          search_vector?: unknown | null
           user_id?: string
         }
         Relationships: [
@@ -315,6 +324,7 @@ export type Database = {
           last_active_at: string | null
           latitude: number | null
           longitude: number | null
+          search_vector: unknown | null
           status: string | null
           updated_at: string | null
           username: string | null
@@ -328,6 +338,7 @@ export type Database = {
           last_active_at?: string | null
           latitude?: number | null
           longitude?: number | null
+          search_vector?: unknown | null
           status?: string | null
           updated_at?: string | null
           username?: string | null
@@ -341,6 +352,7 @@ export type Database = {
           last_active_at?: string | null
           latitude?: number | null
           longitude?: number | null
+          search_vector?: unknown | null
           status?: string | null
           updated_at?: string | null
           username?: string | null
@@ -407,17 +419,30 @@ export type Database = {
           last_active_at: string | null
           latitude: number | null
           longitude: number | null
+          search_vector: unknown | null
           status: string | null
           updated_at: string | null
           username: string | null
         }[]
+      }
+      global_search: {
+        Args: { search_term: string }
+        Returns: Database["public"]["CompositeTypes"]["global_search_result"][]
       }
     }
     Enums: {
       [_ in never]: never
     }
     CompositeTypes: {
-      [_ in never]: never
+      global_search_result: {
+        id: string | null
+        type: string | null
+        title: string | null
+        description: string | null
+        image_url: string | null
+        url_path: string | null
+        rank: number | null
+      }
     }
   }
 }

@@ -14,6 +14,7 @@ import ChatPage from "./pages/ChatPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import LoggedInLayout from "./components/LoggedInLayout";
 import ChannelsPage from "./pages/ChannelsPage";
+import SearchPage from "./pages/SearchPage";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/channels" element={<ChannelsPage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/profile/:id" element={<UserProfilePage />} />
+            <Route path="/search" element={<SearchPage />} />
           </Route>
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
