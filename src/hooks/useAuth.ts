@@ -12,18 +12,18 @@ export const useAuth = () => {
   const { data: profile, isLoading: profileLoading } = useProfile(user?.id);
 
   useEffect(() => {
-    const initializeSession = async () => {
-      const { data: { session: initialSession } } = await supabase.auth.getSession();
-      setSession(initialSession);
-      setUser(initialSession?.user ?? null);
+    setAuthLoading(true);
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
       setAuthLoading(false);
-    };
-
-    initializeSession();
+    });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      setAuthLoading(false);
     });
 
     return () => {
