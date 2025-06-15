@@ -19,9 +19,10 @@ type MessageFormValues = z.infer<typeof messageSchema>;
 interface ChannelMessageFormProps {
   channelId: string;
   channelName: string;
+  onTyping: () => void;
 }
 
-const ChannelMessageForm = ({ channelId, channelName }: ChannelMessageFormProps) => {
+const ChannelMessageForm = ({ channelId, channelName, onTyping }: ChannelMessageFormProps) => {
   const { toast } = useToast();
   const form = useForm<MessageFormValues>({
     resolver: zodResolver(messageSchema),
@@ -59,6 +60,10 @@ const ChannelMessageForm = ({ channelId, channelName }: ChannelMessageFormProps)
                   <Input
                     placeholder={`Message #${channelName}`}
                     {...field}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      onTyping();
+                    }}
                     autoComplete="off"
                     disabled={sendMessageMutation.isPending}
                   />
