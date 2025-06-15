@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -22,6 +23,8 @@ import { toast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import AvatarUploader from "@/components/settings/AvatarUploader";
+import { interestsWithSubcategories } from "@/data/interestsWithSubcategories";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const accountFormSchema = z.object({
   username: z
@@ -38,16 +41,6 @@ const accountFormSchema = z.object({
 });
 
 type AccountFormValues = z.infer<typeof accountFormSchema>;
-
-const interestsList = [
-  { id: "sports", label: "Sports" },
-  { id: "music", label: "Music" },
-  { id: "coding", label: "Coding" },
-  { id: "discussions", label: "Discussions" },
-  { id: "art", label: "Art" },
-  { id: "reading", label: "Reading" },
-  { id: "collaboration", label: "Collaborative Work" },
-];
 
 const AccountSettingsPage = () => {
   const { user, profile, loading } = useAuth();
@@ -211,48 +204,82 @@ const AccountSettingsPage = () => {
               <FormField
                 control={form.control}
                 name="interests"
-                render={() => (
+                render={({ field }) => (
                   <FormItem>
                     <div className="mb-4">
                       <FormLabel className="text-base">Interests</FormLabel>
                       <FormDescription>
-                        Select the interests that you'd like to share.
+                        Select your interests and specify details to connect with like-minded people.
                       </FormDescription>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {interestsList.map((interest) => (
-                        <FormField
-                          key={interest.id}
-                          control={form.control}
-                          name="interests"
-                          render={({ field }) => {
-                            return (
-                              <FormItem
-                                key={interest.id}
-                                className="flex flex-row items-start space-x-3 space-y-0"
+                    <div className="space-y-4">
+                      {interestsWithSubcategories.map((interest) => {
+                        const selectedInterestWithValue = field.value?.find(
+                          (v) => v.startsWith(interest.label + ":")
+                        );
+                        const isSelected = !!selectedInterestWithValue;
+                        const selectedSubCategory = isSelected ? selectedInterestWithValue.split(": ")[1] : null;
+
+                        return (
+                          <div key={interest.id} className="flex flex-col space-y-2">
+                            <div className="flex items-center space-x-3">
+                              <Checkbox
+                                id={interest.id}
+                                checked={isSelected}
+                                onCheckedChange={(checked) => {
+                                  const currentValues = field.value || [];
+                                  if (checked) {
+                                    field.onChange([
+                                      ...currentValues,
+                                      `${interest.label}: ${interest.subcategories[0]}`,
+                                    ]);
+                                  } else {
+                                    field.onChange(
+                                      currentValues.filter(
+                                        (value) => !value.startsWith(interest.label + ":")
+                                      )
+                                    );
+                                  }
+                                }}
+                              />
+                              <label
+                                htmlFor={interest.id}
+                                className="font-normal text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                               >
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value?.includes(interest.label)}
-                                    onCheckedChange={(checked) => {
-                                      return checked
-                                        ? field.onChange([...(field.value || []), interest.label])
-                                        : field.onChange(
-                                            (field.value || []).filter(
-                                              (value) => value !== interest.label
-                                            )
-                                          );
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                  {interest.label}
-                                </FormLabel>
-                              </FormItem>
-                            );
-                          }}
-                        />
-                      ))}
+                                {interest.label}
+                              </label>
+                            </div>
+                            {isSelected && (
+                              <div className="pl-6">
+                                <Select
+                                  value={selectedSubCategory || ""}
+                                  onValueChange={(subCategory) => {
+                                    const currentValues = field.value || [];
+                                    const otherValues = currentValues.filter(
+                                      (value) => !value.startsWith(interest.label + ":")
+                                    );
+                                    field.onChange([
+                                      ...otherValues,
+                                      `${interest.label}: ${subCategory}`,
+                                    ]);
+                                  }}
+                                >
+                                  <SelectTrigger className="w-full md:w-[280px]">
+                                    <SelectValue placeholder={`Select a ${interest.label.toLowerCase()} sub-category...`} />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {interest.subcategories.map((sub) => (
+                                      <SelectItem key={sub} value={sub}>
+                                        {sub}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                     <FormMessage />
                   </FormItem>
