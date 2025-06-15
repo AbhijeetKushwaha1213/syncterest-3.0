@@ -2,8 +2,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuth } from './useAuth';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 export type LiveActivityWithProfile = Database['public']['Tables']['live_activities']['Row'] & {
   profiles: Pick<Database['public']['Tables']['profiles']['Row'], 'id' | 'username' | 'full_name' | 'avatar_url'> | null
@@ -14,6 +15,7 @@ const liveActivitiesQueryKey = ['live-activities'];
 export const useLiveActivities = () => {
     const queryClient = useQueryClient();
     const { user } = useAuth();
+    const channelRef = useRef<RealtimeChannel>();
 
     const { data: activities, isLoading } = useQuery<LiveActivityWithProfile[]>({
         queryKey: liveActivitiesQueryKey,
@@ -52,8 +54,16 @@ export const useLiveActivities = () => {
     });
     
     useEffect(() => {
+        const channelName = 'live-activities-db-changes';
+
+        // Ensure we don't have a lingering channel with the same topic.
+        const existingChannel = supabase.getChannels().find(c => c.topic === `realtime:${channelName}`);
+        if (existingChannel) {
+          supabase.removeChannel(existingChannel);
+        }
+
         const channel = supabase
-            .channel('live-activities-db-changes')
+            .channel(channelName)
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'live_activities' },
@@ -63,8 +73,13 @@ export const useLiveActivities = () => {
             )
             .subscribe();
 
+        channelRef.current = channel;
+
         return () => {
-            supabase.removeChannel(channel);
+            if (channelRef.current) {
+                supabase.removeChannel(channelRef.current);
+                channelRef.current = undefined;
+            }
         };
     }, [queryClient]);
     
@@ -72,3 +87,4 @@ export const useLiveActivities = () => {
 
     return { activities, isLoading, userActivity, upsertActivity, isUpserting, deleteActivity, isDeleting };
 }
+
