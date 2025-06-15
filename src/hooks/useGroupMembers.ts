@@ -12,7 +12,7 @@ export const useGroupMembers = (groupId: string | undefined) => {
       if (!groupId) return [];
       const { data, error } = await supabase
         .from('group_members')
-        .select('user_id')
+        .select('*')
         .eq('group_id', groupId);
 
       if (error) {
