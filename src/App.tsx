@@ -8,7 +8,6 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/Login";
 import SignUpPage from "./pages/SignUp";
-import AccountPage from "./pages/Account";
 import HomePage from "./pages/HomePage";
 import ChatPage from "./pages/ChatPage";
 import UserProfilePage from "./pages/UserProfilePage";
@@ -19,6 +18,11 @@ import EventDetailPage from "./pages/EventDetailPage";
 import ChannelDetailPage from "./pages/ChannelDetailPage";
 import ChannelsLayout from "./pages/ChannelsLayout";
 import ChannelPlaceholder from "./pages/ChannelPlaceholder";
+import SettingsLayout from "./components/settings/SettingsLayout";
+import AccountSettingsPage from "./pages/settings/AccountSettingsPage";
+import PrivacySettingsPage from "./pages/settings/PrivacySettingsPage";
+import NotificationsSettingsPage from "./pages/settings/NotificationsSettingsPage";
+import AppearanceSettingsPage from "./pages/settings/AppearanceSettingsPage";
 
 const queryClient = new QueryClient();
 
@@ -41,7 +45,14 @@ const App = () => (
               <Route path=":id" element={<ChannelDetailPage />} />
             </Route>
             
-            <Route path="/account" element={<AccountPage />} />
+            <Route path="/settings" element={<SettingsLayout />}>
+              <Route index element={<Navigate to="/settings/account" replace />} />
+              <Route path="account" element={<AccountSettingsPage />} />
+              <Route path="privacy" element={<PrivacySettingsPage />} />
+              <Route path="notifications" element={<NotificationsSettingsPage />} />
+              <Route path="appearance" element={<AppearanceSettingsPage />} />
+            </Route>
+            
             <Route path="/profile/:id" element={<UserProfilePage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/groups/:id" element={<GroupDetailPage />} />

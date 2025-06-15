@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -21,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const accountFormSchema = z.object({
   username: z
@@ -32,6 +34,7 @@ const accountFormSchema = z.object({
     .max(50, { message: "Full name must not be longer than 50 characters." })
     .optional()
     .or(z.literal('')),
+  avatar_url: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
   bio: z.string().max(160, { message: "Bio must not be longer than 160 characters." }).optional().or(z.literal('')),
   interests: z.array(z.string()).optional(),
 });
@@ -48,7 +51,7 @@ const interestsList = [
   { id: "collaboration", label: "Collaborative Work" },
 ];
 
-const AccountPage = () => {
+const AccountSettingsPage = () => {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const [formLoading, setFormLoading] = useState(false);
@@ -58,6 +61,7 @@ const AccountPage = () => {
     defaultValues: {
       username: "",
       full_name: "",
+      avatar_url: "",
       bio: "",
       interests: [],
     },
@@ -68,6 +72,7 @@ const AccountPage = () => {
       form.reset({
         username: profile.username || "",
         full_name: profile.full_name || "",
+        avatar_url: profile.avatar_url || "",
         bio: profile.bio || "",
         interests: profile.interests || [],
       });
@@ -80,10 +85,9 @@ const AccountPage = () => {
     }
   }, [user, loading, navigate]);
 
-  if (loading) {
+  if (loading && !profile) {
     return (
-      <div className="p-4 md:p-6">
-        <Card className="w-full max-w-2xl mx-auto">
+        <Card>
           <CardHeader>
             <Skeleton className="h-8 w-1/4" />
             <Skeleton className="h-4 w-1/2" />
@@ -104,7 +108,6 @@ const AccountPage = () => {
             <Skeleton className="h-10 w-32" />
           </CardContent>
         </Card>
-      </div>
     );
   }
 
@@ -114,6 +117,7 @@ const AccountPage = () => {
     const { error } = await supabase.from("profiles").update({
       username: data.username,
       full_name: data.full_name,
+      avatar_url: data.avatar_url,
       bio: data.bio,
       interests: data.interests,
       updated_at: new Date().toISOString(),
@@ -137,13 +141,12 @@ const AccountPage = () => {
       });
       // This will trigger a re-fetch in useAuth and show the updated profile
       // Forcing a reload to ensure profile updates are reflected everywhere.
-      window.location.href = "/";
+      window.location.reload();
     }
   }
 
   return (
-    <div className="p-4 md:p-6">
-      <Card className="w-full max-w-2xl mx-auto">
+      <Card>
         <CardHeader>
           <CardTitle>Account</CardTitle>
           <CardDescription>
@@ -153,6 +156,28 @@ const AccountPage = () => {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+               <FormField
+                control={form.control}
+                name="avatar_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Profile Picture</FormLabel>
+                     <div className="flex items-center gap-4">
+                        <Avatar className="h-20 w-20">
+                            <AvatarImage src={field.value ?? ""} alt="Avatar" />
+                            <AvatarFallback>{profile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <FormControl>
+                          <Input placeholder="https://example.com/avatar.png" {...field} value={field.value ?? ""} />
+                        </FormControl>
+                    </div>
+                    <FormDescription>
+                      Enter the URL of your profile picture.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="username"
@@ -263,8 +288,7 @@ const AccountPage = () => {
           </Form>
         </CardContent>
       </Card>
-    </div>
   );
 };
 
-export default AccountPage;
+export default AccountSettingsPage;
