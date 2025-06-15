@@ -60,6 +60,7 @@ export default function LiveStatusComposer({ open, onOpenChange, userActivity }:
         latitude: lat || null,
         longitude: lon || null,
         expires_at,
+        search_vector: null,
     }, {
         onSuccess: () => {
             toast({ title: "You're live!", description: "Your status has been updated." });
