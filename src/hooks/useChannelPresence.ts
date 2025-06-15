@@ -26,22 +26,30 @@ export const useChannelPresence = (channelId: string) => {
       return;
     }
 
-    channel.on('presence', { event: 'sync' }, () => {
+    const handleSync = () => {
         const newState = channel.presenceState();
         setPresenceState(newState);
-    });
+    };
 
-    channel.subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await channel.track({ 
-            online_at: new Date().toISOString(),
-            user_id: user.id,
-            username: profile.username || 'anonymous',
-            avatar_url: profile.avatar_url,
-          });
-        }
-    });
+    channel.on('presence', { event: 'sync' }, handleSync);
 
+    // Only subscribe if not already connected to avoid errors.
+    if (channel.state !== 'joined') {
+        channel.subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+              await channel.track({ 
+                online_at: new Date().toISOString(),
+                user_id: user.id,
+                username: profile.username || 'anonymous',
+                avatar_url: profile.avatar_url,
+              });
+            }
+        });
+    }
+
+    return () => {
+        channel.off('presence', { event: 'sync' }, handleSync);
+    }
   }, [channel, user, profile]);
 
   return presenceState;
