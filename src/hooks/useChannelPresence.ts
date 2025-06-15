@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { RealtimePresenceState } from '@supabase/supabase-js';
@@ -8,6 +8,13 @@ import { useSupabaseChannel } from './useSupabaseChannel';
 export const useChannelPresence = (channelId: string) => {
   const { user, profile } = useAuth();
   const [presenceState, setPresenceState] = useState<RealtimePresenceState>({});
+
+  // Use refs to get the latest user/profile inside useEffect without adding them as dependencies.
+  // This prevents re-running the effect on every user/profile change, which would attach multiple listeners.
+  const userRef = useRef(user);
+  userRef.current = user;
+  const profileRef = useRef(profile);
+  profileRef.current = profile;
 
   const channelName = user && channelId && profile ? `channel-presence-${channelId}` : '';
   const channelOptions = useMemo(() => (user?.id ? {
@@ -21,7 +28,10 @@ export const useChannelPresence = (channelId: string) => {
   const channel = useSupabaseChannel(channelName, channelOptions);
 
   useEffect(() => {
-    if (!channel || !user || !profile) {
+    const currentUser = userRef.current;
+    const currentProfile = profileRef.current;
+
+    if (!channel || !currentUser || !currentProfile) {
       setPresenceState({});
       return;
     }
@@ -39,18 +49,17 @@ export const useChannelPresence = (channelId: string) => {
             if (status === 'SUBSCRIBED') {
               await channel.track({ 
                 online_at: new Date().toISOString(),
-                user_id: user.id,
-                username: profile.username || 'anonymous',
-                avatar_url: profile.avatar_url,
+                user_id: currentUser.id,
+                username: currentProfile.username || 'anonymous',
+                avatar_url: currentProfile.avatar_url,
               });
             }
         });
     }
 
-    return () => {
-        channel.off('presence', { event: 'sync' }, handleSync);
-    }
-  }, [channel, user, profile]);
+    // The useSupabaseChannel hook handles channel cleanup. By only depending on `channel`,
+    // this effect runs only when the channel instance changes, preventing duplicate listeners.
+  }, [channel]);
 
   return presenceState;
 };
