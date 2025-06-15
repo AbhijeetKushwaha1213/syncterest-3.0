@@ -58,28 +58,30 @@ const SearchPage = () => {
             <p className="text-destructive">Error: {error.message}</p>
           )}
 
-          {!isLoading && !error && results && results.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-lg mt-4 text-center p-4">
-              <Search className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold">No results found</h3>
-              <p className="text-muted-foreground mt-2">Try adjusting your search or filters.</p>
-            </div>
-          )}
-
-          {!isLoading && !error && results && results.length > 0 && (
-            <div className="space-y-4">
-              {results.map((result) => (
-                <SearchResultItem key={`${result.type}-${result.id}`} result={result} />
-              ))}
-            </div>
-          )}
-          
-          {!isLoading && !error && (!results || results.length === 0) && (
-             <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-lg mt-4 text-center p-4">
-              <Search className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold">Discover your people</h3>
-              <p className="text-muted-foreground mt-2">Use the search bar and filters to find exactly who you're looking for.</p>
-            </div>
+          {!isLoading && !error && (
+            <>
+              {results === undefined && (
+                <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-lg mt-4 text-center p-4">
+                  <Search className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-xl font-semibold">Discover your people</h3>
+                  <p className="text-muted-foreground mt-2">Use the search bar and filters to find exactly who you're looking for.</p>
+                </div>
+              )}
+              {results && results.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-lg mt-4 text-center p-4">
+                  <Search className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-xl font-semibold">No results found</h3>
+                  <p className="text-muted-foreground mt-2">Try adjusting your search or filters.</p>
+                </div>
+              )}
+              {results && results.length > 0 && (
+                <div className="space-y-4">
+                  {results.map((result) => (
+                    <SearchResultItem key={`${result.type}-${result.id}`} result={result} />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </main>
       </div>

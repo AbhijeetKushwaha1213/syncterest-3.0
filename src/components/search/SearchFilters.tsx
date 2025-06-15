@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -41,9 +40,7 @@ const sortOptions = [
     { value: 'compatible', label: 'Most Compatible' },
     { value: 'distance', label: 'Closest Distance' },
     { value: 'recent', label: 'Recently Active' },
-    { value: 'live', label: 'Looking for Conversation Now' },
     { value: 'new', label: 'New Users' },
-    { value: 'trending', label: 'Trending Now' },
 ];
 
 const SearchFilters = ({ filters, onFiltersChange }: SearchFiltersProps) => {
