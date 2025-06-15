@@ -1,4 +1,3 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -214,26 +213,19 @@ const AccountSettingsPage = () => {
                     </div>
                     <div className="space-y-4">
                       {interestsWithSubcategories.map((interest) => {
-                        const selectedInterestWithValue = field.value?.find(
+                        const isSelected = field.value?.some(
                           (v) => v.startsWith(interest.label + ":")
                         );
-                        const isSelected = !!selectedInterestWithValue;
-                        const selectedSubCategory = isSelected ? selectedInterestWithValue.split(": ")[1] : null;
 
                         return (
-                          <div key={interest.id} className="flex flex-col space-y-2">
+                          <div key={interest.id} className="space-y-2 rounded-md border p-4">
                             <div className="flex items-center space-x-3">
                               <Checkbox
                                 id={interest.id}
                                 checked={isSelected}
                                 onCheckedChange={(checked) => {
-                                  const currentValues = field.value || [];
-                                  if (checked) {
-                                    field.onChange([
-                                      ...currentValues,
-                                      `${interest.label}: ${interest.subcategories[0]}`,
-                                    ]);
-                                  } else {
+                                  if (!checked) {
+                                    const currentValues = field.value || [];
                                     field.onChange(
                                       currentValues.filter(
                                         (value) => !value.startsWith(interest.label + ":")
@@ -244,37 +236,73 @@ const AccountSettingsPage = () => {
                               />
                               <label
                                 htmlFor={interest.id}
-                                className="font-normal text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                className="font-medium text-sm leading-none"
                               >
                                 {interest.label}
                               </label>
                             </div>
                             {isSelected && (
-                              <div className="pl-6">
-                                <Select
-                                  value={selectedSubCategory || ""}
-                                  onValueChange={(subCategory) => {
-                                    const currentValues = field.value || [];
-                                    const otherValues = currentValues.filter(
-                                      (value) => !value.startsWith(interest.label + ":")
-                                    );
-                                    field.onChange([
-                                      ...otherValues,
-                                      `${interest.label}: ${subCategory}`,
-                                    ]);
-                                  }}
-                                >
-                                  <SelectTrigger className="w-full md:w-[280px]">
-                                    <SelectValue placeholder={`Select a ${interest.label.toLowerCase()} sub-category...`} />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {interest.subcategories.map((sub) => (
-                                      <SelectItem key={sub} value={sub}>
-                                        {sub}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                              <div className="pl-7 pt-2">
+                                {interest.subcategories.type === 'multiselect' && (
+                                  <div className="space-y-2">
+                                    <FormLabel className="text-sm font-normal">{interest.subcategories.label}</FormLabel>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+                                      {interest.subcategories.options?.map((option) => {
+                                        const value = `${interest.label}: ${option}`;
+                                        const isChecked = field.value?.includes(value);
+                                        return (
+                                          <div key={option} className="flex items-center space-x-2">
+                                            <Checkbox
+                                              id={`${interest.id}-${option}`}
+                                              checked={isChecked}
+                                              onCheckedChange={(checked) => {
+                                                const currentValues = field.value || [];
+                                                if (checked) {
+                                                  field.onChange([...currentValues, value]);
+                                                } else {
+                                                  field.onChange(currentValues.filter((v) => v !== value));
+                                                }
+                                              }}
+                                            />
+                                            <label
+                                              htmlFor={`${interest.id}-${option}`}
+                                              className="text-sm font-normal"
+                                            >
+                                              {option}
+                                            </label>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                )}
+                                {interest.subcategories.type === 'text' && (
+                                   <div>
+                                     <FormLabel className="text-sm font-normal">{interest.subcategories.label}</FormLabel>
+                                     <Textarea
+                                       placeholder={interest.subcategories.placeholder}
+                                       value={
+                                         field.value?.find(v => v.startsWith(interest.label + ":"))?.split(": ")[1] || ""
+                                       }
+                                       onChange={(e) => {
+                                         const text = e.target.value;
+                                         const currentValues = field.value || [];
+                                         const otherValues = currentValues.filter(
+                                           (value) => !value.startsWith(interest.label + ":")
+                                         );
+                                         if (text.trim()) {
+                                           field.onChange([
+                                             ...otherValues,
+                                             `${interest.label}: ${text.trim()}`,
+                                           ]);
+                                         } else {
+                                           field.onChange(otherValues);
+                                         }
+                                       }}
+                                       className="mt-2"
+                                     />
+                                   </div>
+                                )}
                               </div>
                             )}
                           </div>
