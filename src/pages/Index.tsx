@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -27,9 +28,8 @@ const Index = () => {
         navigate('/home');
       } else {
         // This can happen briefly while profile is loading, or if profile is incomplete.
-        // useAuth hook will eventually provide the profile. If it's incomplete,
-        // the user is stuck on /account until it's fixed.
-        navigate('/account');
+        // The user needs to complete their profile on the account settings page.
+        navigate('/settings/account');
       }
     }
   }, [loading, session, profile, navigate]);
