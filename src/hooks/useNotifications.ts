@@ -4,6 +4,7 @@ import { useAuth } from './useAuth';
 import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/components/ui/use-toast";
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 export const useNotifications = () => {
   const { user } = useAuth();
@@ -26,10 +27,18 @@ export const useNotifications = () => {
     queryClientRef.current = queryClient;
   });
 
+  const channelRef = useRef<RealtimeChannel>();
+
   useEffect(() => {
     if (!user?.id) return;
 
     const channelName = 'public:notifications';
+
+    // Ensure we don't have a lingering channel with the same topic.
+    const existingChannel = supabase.getChannels().find(c => c.topic === `realtime:${channelName}`);
+    if (existingChannel) {
+      supabase.removeChannel(existingChannel);
+    }
 
     const channel = supabase.channel(channelName)
       .on<Notification>(
@@ -44,9 +53,14 @@ export const useNotifications = () => {
         }
       )
       .subscribe();
+    
+    channelRef.current = channel;
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = undefined;
+      }
     };
   }, [user?.id]);
 
