@@ -1,8 +1,9 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { Channel } from '@/types';
 
-const fetchChannel = async (channelId: string) => {
+const fetchChannel = async (channelId: string): Promise<Channel | null> => {
   const { data, error } = await supabase
     .from('channels')
     .select('*, channel_members(count)')
@@ -14,7 +15,7 @@ const fetchChannel = async (channelId: string) => {
     if(error.code === 'PGRST116') return null; // Not found
     throw error;
   }
-  return data;
+  return data as unknown as Channel | null;
 };
 
 export const useChannel = (channelId: string | undefined) => {

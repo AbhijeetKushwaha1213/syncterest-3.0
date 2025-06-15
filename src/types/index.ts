@@ -1,7 +1,7 @@
 
 import { Database } from "@/integrations/supabase/types";
 
-export type Channel = Database['public']['Tables']['channels']['Row'];
+export type Channel = Database['public']['Tables']['channels']['Row'] & { type: 'text' | 'voice' };
 export type Profile = Database['public']['Tables']['profiles']['Row'];
 export type ChannelMember = Database['public']['Tables']['channel_members']['Row'];
 export type ChannelMessage = Database['public']['Tables']['channel_messages']['Row'];
@@ -19,4 +19,5 @@ export type ChannelWithUnread = {
     color: string | null;
     logo_letter: string | null;
     unread_count: number;
+    type: 'text' | 'voice';
 };

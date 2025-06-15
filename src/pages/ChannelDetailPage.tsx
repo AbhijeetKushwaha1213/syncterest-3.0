@@ -14,15 +14,17 @@ import { useChannelRole } from '@/hooks/useChannelRole';
 import { EditChannelDialog } from '@/components/channels/EditChannelDialog';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
+import ChannelVoice from '@/components/channels/voice/ChannelVoice';
 
 const ChannelDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  const { onlineUsers } = useChannelPresence(id!);
+  const presence = useChannelPresence(id!);
   const { profile } = useAuth();
   const { data: channel, isLoading, error } = useChannel(id);
   const { data: role } = useChannelRole(id);
 
   const isAdmin = role === 'admin';
+  const onlineUsers = Object.values(presence).flat();
 
   if (isLoading) {
     return (
@@ -71,7 +73,11 @@ const ChannelDetailPage = () => {
       </header>
       <div className="grid md:grid-cols-3 flex-1">
         <div className="md:col-span-2 border-r flex flex-col">
-          <ChannelChat channel={channel} />
+          {channel.type === 'voice' ? (
+            <ChannelVoice channel={channel} />
+          ) : (
+            <ChannelChat channel={channel} />
+          )}
         </div>
         <div>
           <Card className="rounded-none border-0 shadow-none h-full">

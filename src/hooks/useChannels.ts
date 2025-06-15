@@ -1,8 +1,9 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { Channel } from '@/types';
 
-const fetchChannels = async () => {
+const fetchChannels = async (): Promise<Channel[]> => {
   const { data, error } = await supabase
     .from('channels')
     .select('*, channel_members(count)')
@@ -14,7 +15,7 @@ const fetchChannels = async () => {
     throw error;
   }
   
-  return data;
+  return data as unknown as Channel[];
 };
 
 export const useChannels = () => {
