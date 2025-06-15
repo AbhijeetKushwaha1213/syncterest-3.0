@@ -27,8 +27,8 @@ import { Plus } from 'lucide-react';
 const channelSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters long."),
   description: z.string().optional(),
-  genre: z.custom<Enums<'channel_genre'>>(),
-  visibility: z.custom<Enums<'channel_visibility'>>(),
+  genre: z.enum(Constants.public.Enums.channel_genre),
+  visibility: z.enum(Constants.public.Enums.channel_visibility),
 });
 
 type ChannelFormValues = z.infer<typeof channelSchema>;
