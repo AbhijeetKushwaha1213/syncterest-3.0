@@ -39,7 +39,7 @@ export const useJoinedChannels = () => {
     queryFn: async (): Promise<ChannelWithUnread[]> => {
       if (!user?.id) return [];
       
-      const { data, error } = await supabase.rpc('get_joined_channels_with_unread', {
+      const { data, error } = await supabase.rpc('get_joined_channels_with_unread' as any, {
         p_user_id: user.id
       });
 
@@ -47,7 +47,7 @@ export const useJoinedChannels = () => {
         console.error('Error fetching joined channels:', error);
         throw error;
       }
-      return data;
+      return data as ChannelWithUnread[];
     },
     enabled: !!user?.id,
   });

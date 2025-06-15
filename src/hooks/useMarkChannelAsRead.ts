@@ -5,7 +5,7 @@ import { useAuth } from './useAuth';
 import { ChannelWithUnread } from '@/types';
 
 const markChannelAsRead = async (channelId: string) => {
-  const { error } = await supabase.rpc('mark_channel_as_read', {
+  const { error } = await supabase.rpc('mark_channel_as_read' as any, {
     p_channel_id: channelId,
   });
 
