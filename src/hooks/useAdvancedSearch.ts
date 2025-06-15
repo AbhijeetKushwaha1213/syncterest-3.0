@@ -7,6 +7,8 @@ import { Database } from '@/integrations/supabase/types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
+export type ProfileWithCompatibility = Profile & { compatibility_score: number | null };
+
 export const useAdvancedSearch = (searchTerm: string, filters: SearchFiltersState) => {
   const { profileLocation } = useLocation();
 
@@ -16,7 +18,7 @@ export const useAdvancedSearch = (searchTerm: string, filters: SearchFiltersStat
   
   const shouldPerformSearch = isSearchTermPresent || arePersonalityTagsPresent || isIntentPresent;
 
-  return useQuery<Profile[]>({
+  return useQuery<ProfileWithCompatibility[]>({
     queryKey: ['advanced_search', searchTerm, filters, profileLocation],
     queryFn: async () => {
       // The RPC function expects personality_tags to be null if empty, not an empty array.
@@ -37,7 +39,7 @@ export const useAdvancedSearch = (searchTerm: string, filters: SearchFiltersStat
         throw new Error(error.message);
       }
 
-      return (data as Profile[]) || [];
+      return (data as ProfileWithCompatibility[]) || [];
     },
     enabled: shouldPerformSearch,
   });

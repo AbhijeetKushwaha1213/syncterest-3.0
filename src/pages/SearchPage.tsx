@@ -1,15 +1,15 @@
 
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
+import { useAdvancedSearch, ProfileWithCompatibility } from '@/hooks/useAdvancedSearch';
 import SearchResultItem from '@/components/search/SearchResultItem';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, LayoutGrid, List } from 'lucide-react';
+import { Search, LayoutGrid, List, Heart } from 'lucide-react';
 import SearchFilters, { SearchFiltersState } from '@/components/search/SearchFilters';
 import UserCard from '@/components/UserCard';
 import type { GlobalSearchResult } from '@/hooks/useSearch';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -104,13 +104,21 @@ const SearchPage = () => {
               {results && results.length > 0 && (
                 viewMode === 'grid' ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {results.map((profile) => (
-                      <UserCard key={profile.id} profile={profile} />
+                    {results.map((profile: ProfileWithCompatibility) => (
+                      <div key={profile.id} className="relative">
+                        <UserCard profile={profile} />
+                        {filters.sortBy === 'compatible' && typeof profile.compatibility_score === 'number' && (
+                           <Badge variant="destructive" className="absolute top-2 right-2 flex items-center gap-1">
+                             <Heart className="h-3 w-3" />
+                             {Math.round(profile.compatibility_score * 100)}%
+                           </Badge>
+                        )}
+                      </div>
                     ))}
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {results.map((profile) => {
+                    {results.map((profile: ProfileWithCompatibility) => {
                       const resultItem: GlobalSearchResult = {
                         id: profile.id,
                         type: 'profile',
@@ -120,7 +128,7 @@ const SearchPage = () => {
                         url_path: `/profile/${profile.id}`,
                         rank: 0,
                       };
-                      return <SearchResultItem key={resultItem.id} result={resultItem} />;
+                      return <SearchResultItem key={resultItem.id} result={resultItem} compatibilityScore={profile.compatibility_score} showCompatibility={filters.sortBy === 'compatible'} />;
                     })}
                   </div>
                 )
