@@ -66,6 +66,38 @@ export type Database = {
           },
         ]
       }
+      channel_message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          message_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id?: string
+          message_id: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          message_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "channel_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       channel_messages: {
         Row: {
           channel_id: string

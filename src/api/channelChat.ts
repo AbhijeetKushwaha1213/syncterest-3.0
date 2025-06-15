@@ -1,9 +1,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { ChannelMessage, Profile } from "@/types";
+import { ChannelMessage, Profile, ChannelMessageReaction } from "@/types";
 
 export type ChannelMessageWithSender = ChannelMessage & {
   sender: Pick<Profile, 'id' | 'username' | 'avatar_url'> | null;
+  channel_message_reactions: ChannelMessageReaction[];
 };
 
 export const getChannelMessages = async (channelId: string): Promise<ChannelMessageWithSender[]> => {
@@ -13,7 +14,8 @@ export const getChannelMessages = async (channelId: string): Promise<ChannelMess
     .from('channel_messages')
     .select(`
       *,
-      sender:profiles (id, username, avatar_url)
+      sender:profiles (id, username, avatar_url),
+      channel_message_reactions(*)
     `)
     .eq('channel_id', channelId)
     .order('created_at', { ascending: true });
@@ -50,4 +52,33 @@ export const sendChannelMessage = async ({ channelId, content }: { channelId: st
     }
 
     return data;
+};
+
+export const addChannelReaction = async ({ messageId, emoji }: { messageId: number; emoji: string }) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("User not authenticated");
+
+  const { data, error } = await supabase
+    .from('channel_message_reactions')
+    .insert({ message_id: messageId, emoji, user_id: user.id })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error adding reaction', error);
+    throw new Error(error.message);
+  }
+  return data;
+};
+
+export const removeChannelReaction = async (reactionId: string) => {
+  const { error } = await supabase
+    .from('channel_message_reactions')
+    .delete()
+    .eq('id', reactionId);
+
+  if (error) {
+    console.error('Error removing reaction', error);
+    throw new Error(error.message);
+  }
 };
