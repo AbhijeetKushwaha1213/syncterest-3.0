@@ -1,4 +1,3 @@
-
 import {
   Gamepad,
   Volleyball,
@@ -9,7 +8,7 @@ import {
   Camera,
   Earth,
   Brain,
-  yoga as Yoga,
+  Leaf,
   Laptop,
   FlaskConical,
   Microscope,
@@ -194,7 +193,7 @@ export const interestsWithSubcategories: {
     {
         id: 'lifestyle_wellness',
         label: 'Lifestyle/Wellness',
-        icon: Yoga,
+        icon: Leaf,
         subgroups: [
           {
             type: 'multiselect',
