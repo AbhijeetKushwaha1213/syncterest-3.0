@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -74,6 +75,10 @@ const HomePage = () => {
       if (selectedInterest) {
         query = query.contains('interests', [selectedInterest]);
       }
+      
+      if (currentUserProfile) {
+        query = query.not('id', 'eq', currentUserProfile.id);
+      }
 
       const { data, error } = await query;
       if (error) throw error;
@@ -86,14 +91,29 @@ const HomePage = () => {
   };
 
   return (
-    <div className="grid lg:grid-cols-[1fr_350px] gap-6 md:gap-8">
+    <div className="p-4 sm:p-6 grid lg:grid-cols-[1fr_350px] gap-6 md:gap-8">
       <div className="flex flex-col gap-6">
         {currentUserProfile && (
-            <Card className="bg-gradient-to-r from-primary to-purple-600 border-none text-primary-foreground">
-              <CardContent className="p-6">
-                <h1 className="text-2xl font-bold">Welcome back, {currentUserProfile.full_name || currentUserProfile.username}!</h1>
-                <p className="opacity-80 mt-1">Ready to meet, create, and connect? Explore people and events happening around you.</p>
-              </CardContent>
+            <Card className="relative overflow-hidden border-none text-primary-foreground bg-cover bg-center group">
+                <div 
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+                    style={{ backgroundImage: `url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=2000&auto=format&fit=crop')` }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/10" />
+                <CardContent className="relative z-10 p-6">
+                    <div className="flex items-center gap-4">
+                        <Link to={`/profile/${currentUserProfile.id}`}>
+                            <Avatar className="h-16 w-16 border-4 border-white/50 hover:border-white/80 transition-colors">
+                                <AvatarImage src={currentUserProfile.avatar_url ?? ""} />
+                                <AvatarFallback className="bg-primary/50 text-2xl">{currentUserProfile.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                        </Link>
+                        <div>
+                            <h1 className="text-2xl font-bold drop-shadow-md">Welcome back, {currentUserProfile.full_name || currentUserProfile.username}!</h1>
+                            <p className="opacity-80 mt-1 drop-shadow">Ready to meet, create, and connect?</p>
+                        </div>
+                    </div>
+                </CardContent>
             </Card>
         )}
         <StoriesList />
@@ -107,7 +127,7 @@ const HomePage = () => {
                         pressed={selectedInterest === interest.name}
                         onPressedChange={() => handleInterestClick(interest.name)}
                         variant="outline"
-                        className="gap-2 rounded-full data-[state=on]:bg-primary data-[state=on]:text-primary-foreground hover:bg-muted/80"
+                        className="gap-2 rounded-full data-[state=on]:bg-primary data-[state=on]:text-primary-foreground hover:bg-muted/80 data-[state=on]:border-primary"
                     >
                         <interest.icon className="h-4 w-4" />
                         {interest.name}
@@ -147,14 +167,20 @@ const HomePage = () => {
             )}
             {!isLoadingProfiles && profiles && profiles.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-4 md:px-0">
-                {profiles.map(profile => (
+                {profiles.filter(p => p.id !== currentUserProfile?.id).map(profile => (
                   <UserCard key={profile.id} profile={profile} />
                 ))}
               </div>
             )}
-            {!isLoadingProfiles && (!profiles || profiles.length === 0) && (
-              <div className="flex items-center justify-center h-64 border-2 border-dashed rounded-lg mt-4">
-                <p className="text-muted-foreground">No profiles found for this interest.</p>
+            {!isLoadingProfiles && (!profiles || profiles.filter(p => p.id !== currentUserProfile?.id).length === 0) && (
+              <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-lg mt-4 text-center p-4">
+                <Users className="h-16 w-16 text-muted-foreground/50 mb-4" />
+                <h3 className="text-xl font-semibold">No one here... yet!</h3>
+                <p className="text-muted-foreground mt-2 max-w-sm">
+                  {selectedInterest
+                    ? `No profiles found for the "${selectedInterest}" interest. Try broadening your search!`
+                    : "Try selecting an interest to discover people, or explore what's happening nearby."}
+                </p>
               </div>
             )}
           </TabsContent>

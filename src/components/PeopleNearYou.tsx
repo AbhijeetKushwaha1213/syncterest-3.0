@@ -4,12 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
-import { UserPlus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import type { Database } from "@/integrations/supabase/types";
 import { Link } from "react-router-dom";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -19,32 +24,39 @@ const PeopleNearYou = () => {
   const { data: profiles, isLoading } = useQuery<Profile[]>({
     queryKey: ["profiles_nearby_sidebar", profile?.id, profile?.latitude, profile?.longitude],
     queryFn: async () => {
+      let queryProfiles: Profile[] = [];
       if (profile && profile.latitude && profile.longitude) {
         const { data, error } = await supabase.rpc('get_nearby_users', {
           p_latitude: profile.latitude,
           p_longitude: profile.longitude,
-          p_radius_km: 20 // A smaller radius for the sidebar
+          p_radius_km: 20
         });
 
         if (error) {
           console.error("Error fetching nearby users:", error);
-        } else if (data && data.length > 0) {
-          return data;
+        } else if (data) {
+          queryProfiles = data.filter(p => p.id !== profile.id);
         }
       }
 
-      // Fallback to fetching random profiles
-      const { data, error } = await supabase
-        .from("profiles")
-        .select(`*`)
-        .not("username", "is", null)
-        .not('id', 'eq', profile?.id || '')
-        .limit(5);
+      // If not enough nearby users, fetch random ones to fill up to 5
+      if (queryProfiles.length < 5) {
+        const limit = 5 - queryProfiles.length;
+        const existingIds = queryProfiles.map(p => p.id);
+        if(profile) existingIds.push(profile.id);
 
-      if (error) {
-        throw new Error(error.message);
+        const { data: randomData, error: randomError } = await supabase
+          .from("profiles")
+          .select(`*`)
+          .not("username", "is", null)
+          .not('id', 'in', `(${existingIds.join(',')})`)
+          .limit(limit);
+
+        if (randomError) throw new Error(randomError.message);
+        if(randomData) queryProfiles.push(...randomData);
       }
-      return data || [];
+      
+      return queryProfiles;
     },
     enabled: !!profile,
   });
@@ -57,38 +69,58 @@ const PeopleNearYou = () => {
   }
 
   return (
-    <Card className="hidden lg:block">
+    <Card>
       <CardHeader>
         <CardTitle>People You May Like</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {isLoading && [...Array(5)].map((_, i) => (
-          <div key={i} className="flex items-center gap-4">
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <div className="flex-1 space-y-1">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-3 w-16" />
-            </div>
-            <Skeleton className="h-8 w-24" />
+      <CardContent className="px-4">
+        {isLoading && (
+          <div className="flex space-x-2 -ml-1">
+            {[...Array(2)].map((_, i) => (
+                <div key={i} className="basis-1/2 p-1">
+                    <Card className="text-center">
+                        <CardContent className="p-4 flex flex-col items-center gap-2">
+                            <Skeleton className="h-16 w-16 rounded-full" />
+                            <Skeleton className="h-4 w-20 mt-2" />
+                            <Skeleton className="h-3 w-16" />
+                            <Skeleton className="h-9 w-full mt-2" />
+                        </CardContent>
+                    </Card>
+                </div>
+            ))}
           </div>
-        ))}
-        {profiles?.map(p => (
-          <div key={p.id} className="flex items-center gap-4">
-             <Link to={`/profile/${p.id}`}>
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={p.avatar_url ?? ""} alt={p.username ?? "avatar"} />
-                <AvatarFallback>{p.username?.charAt(0).toUpperCase()}</AvatarFallback>
-              </Avatar>
-            </Link>
-            <div className="flex-1">
-              <Link to={`/profile/${p.id}`} className="font-semibold text-sm hover:underline">{p.full_name || p.username}</Link>
-              <p className="text-xs text-muted-foreground">{getSubtext(p)}</p>
-            </div>
-            <Button variant="secondary" size="sm" className="whitespace-nowrap">
-              Connect
-            </Button>
-          </div>
-        ))}
+        )}
+        {!isLoading && profiles && profiles.length > 0 && (
+          <Carousel opts={{ align: "start", loop: profiles.length > 2 }} className="w-full">
+            <CarouselContent className="-ml-2">
+              {profiles.map(p => (
+                <CarouselItem key={p.id} className="pl-2 basis-[55%] sm:basis-1/2">
+                  <div className="p-1 h-full">
+                    <Card className="text-center h-full flex flex-col hover:shadow-md transition-shadow">
+                      <CardContent className="p-4 flex flex-col items-center gap-2 flex-1 justify-between">
+                        <div className="flex flex-col items-center gap-2">
+                          <Link to={`/profile/${p.id}`}>
+                            <Avatar className="h-16 w-16 border-2 border-primary/50">
+                              <AvatarImage src={p.avatar_url ?? ""} alt={p.username ?? "avatar"} />
+                              <AvatarFallback>{p.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                          </Link>
+                          <Link to={`/profile/${p.id}`} className="font-semibold text-sm hover:underline truncate w-full" title={p.full_name || p.username || ''}>{p.full_name || p.username}</Link>
+                          <p className="text-xs text-muted-foreground">{getSubtext(p)}</p>
+                        </div>
+                        <Button variant="secondary" size="sm" className="w-full mt-2 whitespace-nowrap">
+                          Connect
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="absolute -left-3 top-1/2 -translate-y-1/2 h-8 w-8" />
+            <CarouselNext className="absolute -right-3 top-1/2 -translate-y-1/2 h-8 w-8" />
+          </Carousel>
+        )}
         {!isLoading && (!profiles || profiles.length === 0) && (
              <p className="text-sm text-muted-foreground text-center py-4">Can't find anyone right now.</p>
          )}
