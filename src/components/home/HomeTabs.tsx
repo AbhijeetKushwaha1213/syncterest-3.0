@@ -1,12 +1,16 @@
 
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import EventsList from "@/components/events/EventsList";
 import GroupsPage from "@/components/groups/GroupsPage";
 import MatchesList from "@/components/matches/MatchesList";
@@ -14,7 +18,7 @@ import NearbyTab from "@/components/nearby/NearbyTab";
 import LiveUsersTab from "@/components/live/LiveUsersTab";
 import FeedList from "@/components/feed/FeedList";
 import {
-  Users, MapPin, Wifi, CalendarDays, Star, UserCog,
+  Users, MapPin, Wifi, CalendarDays, Star, UserCog, ArrowUpAZ,
 } from "lucide-react";
 
 const tabs = [
@@ -36,7 +40,15 @@ interface HomeTabsProps {
   selectedInterest: string | null;
 }
 
+const sortOptions = {
+  recommended: "Recommended",
+  recent: "Most Recent",
+  nearby: "Nearby"
+};
+
 const HomeTabs = ({ selectedInterest }: HomeTabsProps) => {
+  const [sortBy, setSortBy] = useState<keyof typeof sortOptions>("recommended");
+
   return (
     <Tabs defaultValue="people" className="w-full">
       <div className="flex items-center justify-between flex-wrap gap-2 px-4 md:px-0">
@@ -48,17 +60,24 @@ const HomeTabs = ({ selectedInterest }: HomeTabsProps) => {
              </TabsTrigger>
           ))}
         </TabsList>
-        <div className="w-full sm:w-[180px]">
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="recommended">Recommended</SelectItem>
-              <SelectItem value="recent">Most Recent</SelectItem>
-              <SelectItem value="nearby">Nearby</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="w-full sm:w-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-full sm:w-[180px] justify-start">
+                <ArrowUpAZ className="mr-2 h-4 w-4 shrink-0" />
+                <span className="truncate">{sortOptions[sortBy]}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuRadioGroup value={sortBy} onValueChange={(value) => setSortBy(value as keyof typeof sortOptions)}>
+                <DropdownMenuRadioItem value="recommended">Recommended</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="recent">Most Recent</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="nearby">Nearby</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       <TabsContent value="people" className="mt-4">
