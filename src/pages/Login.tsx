@@ -25,23 +25,36 @@ const LoginPage = () => {
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    setLoading(false);
-    if (error) {
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error("Login error:", error);
+        toast({
+          title: "Error logging in",
+          description: error.message || "An error occurred during login",
+          variant: "destructive",
+        });
+      } else if (data.user) {
+        toast({
+          title: "Logged in successfully!",
+          description: "Welcome back.",
+        });
+        navigate("/");
+      }
+    } catch (err) {
+      console.error("Unexpected login error:", err);
       toast({
         title: "Error logging in",
-        description: error.message,
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Logged in successfully!",
-        description: "Welcome back.",
-      });
-      navigate("/");
+    } finally {
+      setLoading(false);
     }
   };
 
