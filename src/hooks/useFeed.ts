@@ -18,16 +18,17 @@ export const useFeed = (selectedInterest: string | null) => {
     }
     const friendIds = (friendIdsData?.map(match => match.profile_id)) || [];
 
-    // 2. Build privacy filter
+    // 2. Build privacy filter with fallback for missing columns
     // The feed should contain content from:
     // - The current user (their own posts/events)
-    // - Profiles with 'public' visibility
+    // - Profiles with 'public' visibility (or null/missing column treated as public)
     // - Profiles with 'friends_only' visibility, if they are a friend (match)
     const friendIdsString = friendIds.length > 0 ? friendIds.join(',') : '';
     
     const orFilterParts = [
       `id.eq.${user.id}`, // Their own profile's content
-      'profile_visibility.eq.public' // Public profiles' content
+      'profile_visibility.eq.public', // Public profiles' content
+      'profile_visibility.is.null' // Fallback: treat null as public
     ];
     if (friendIdsString) {
       orFilterParts.push(`and(profile_visibility.eq.friends_only,id.in.(${friendIdsString}))`);

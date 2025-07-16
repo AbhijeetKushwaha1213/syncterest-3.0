@@ -22,13 +22,40 @@ const LoginPage = () => {
     }
   }, [session, navigate]);
 
+  const getErrorMessage = (error: any) => {
+    if (!error?.message) return "An unexpected error occurred";
+    
+    const message = error.message.toLowerCase();
+    
+    if (message.includes("email not confirmed")) {
+      return "Please check your email and click the confirmation link before logging in.";
+    }
+    if (message.includes("invalid login credentials") || message.includes("invalid credentials")) {
+      return "Invalid email or password. Please check your credentials and try again.";
+    }
+    if (message.includes("too many requests")) {
+      return "Too many login attempts. Please wait a moment before trying again.";
+    }
+    if (message.includes("user not found")) {
+      return "No account found with this email address. Please sign up first.";
+    }
+    if (message.includes("weak password")) {
+      return "Password is too weak. Please choose a stronger password.";
+    }
+    if (message.includes("email address invalid")) {
+      return "Please enter a valid email address.";
+    }
+    
+    return error.message;
+  };
+
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
       });
       
@@ -36,10 +63,11 @@ const LoginPage = () => {
         console.error("Login error:", error);
         toast({
           title: "Error logging in",
-          description: error.message || "An error occurred during login",
+          description: getErrorMessage(error),
           variant: "destructive",
         });
       } else if (data.user) {
+        console.log("Login successful:", data.user.email);
         toast({
           title: "Logged in successfully!",
           description: "Welcome back.",
@@ -50,7 +78,7 @@ const LoginPage = () => {
       console.error("Unexpected login error:", err);
       toast({
         title: "Error logging in",
-        description: "An unexpected error occurred",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -71,11 +99,26 @@ const LoginPage = () => {
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="name@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input 
+                id="email" 
+                type="email" 
+                placeholder="name@example.com" 
+                required 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+              <Input 
+                id="password" 
+                type="password" 
+                required 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+              />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Logging in..." : "Login"}

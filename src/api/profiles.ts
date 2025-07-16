@@ -72,11 +72,13 @@ export const fetchProfileData = async (profileId: string, currentUserId?: string
       if(isFollowedByError) throw isFollowedByError;
       const isFriend = isFollowing && !!followedByShip;
 
-      // Apply privacy rules
-      if (profile.profile_visibility === 'private') {
+      // Apply privacy rules with fallbacks for missing columns
+      const profileVisibility = profile.profile_visibility || 'public'; // Default to public if null
+      
+      if (profileVisibility === 'private') {
           return null; // Don't show private profiles to others
       }
-      if (profile.profile_visibility === 'friends_only' && !isFriend) {
+      if (profileVisibility === 'friends_only' && !isFriend) {
           return null; // Don't show friends_only profiles to non-friends
       }
   }

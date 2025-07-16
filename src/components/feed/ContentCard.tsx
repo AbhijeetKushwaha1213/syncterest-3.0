@@ -17,12 +17,16 @@ export const ContentCard = ({ item, currentUserProfile }: ContentCardProps) => {
   const creator = item.profiles;
   if (!creator) return null;
 
-  const distance = getDistance(
+  // Fallback handling for privacy settings
+  const shouldShowLocation = creator.show_location_on_profile ?? true; // Default to true if null
+  const locationSharingEnabled = creator.location_sharing_enabled ?? true; // Default to true if null
+
+  const distance = shouldShowLocation && locationSharingEnabled ? getDistance(
     currentUserProfile?.latitude,
     currentUserProfile?.longitude,
     creator.latitude,
     creator.longitude
-  );
+  ) : null;
 
   const isEvent = item.item_type === 'event';
   const isReel = item.item_type === 'reel';
@@ -77,7 +81,7 @@ export const ContentCard = ({ item, currentUserProfile }: ContentCardProps) => {
             <Link to={`/profile/${creator.id}`} className="font-semibold hover:underline">{creator.username}</Link>
             <div className="text-xs text-muted-foreground flex items-center gap-2">
               <span>{formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}</span>
-              {distance !== null && creator.show_location_on_profile && <span>· {distance.toFixed(1)} km away</span>}
+              {distance !== null && <span>· {distance.toFixed(1)} km away</span>}
             </div>
           </div>
         </div>

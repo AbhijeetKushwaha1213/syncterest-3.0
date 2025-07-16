@@ -31,8 +31,24 @@ const NearbyTab = () => {
         if (rpcError) throw rpcError;
         return data || [];
     },
-    enabled: hasLocation,
+    enabled: hasLocation && (profile?.location_sharing_enabled ?? true), // Default to true if null
   });
+
+  // Check if current user has location sharing enabled (with fallback)
+  const userLocationSharingEnabled = profile?.location_sharing_enabled ?? true;
+
+  if (!userLocationSharingEnabled) {
+    return (
+        <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-lg mt-4 text-center p-4">
+            <Compass className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold">Location sharing disabled</h3>
+            <p className="text-muted-foreground mb-4">Enable location sharing in your privacy settings to find people nearby.</p>
+            <Button asChild>
+                <Link to="/settings/privacy">Privacy Settings</Link>
+            </Button>
+        </div>
+    );
+  }
 
   if (!hasLocation) {
     return (
