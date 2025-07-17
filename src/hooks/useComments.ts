@@ -47,12 +47,23 @@ export const useComments = (contentId: string, contentType: 'post' | 'event' | '
           .eq('id', item.user_id)
           .single();
 
-        const profile = profileResponse.data || {
-          id: '',
-          username: null,
-          full_name: null,
-          avatar_url: null
-        };
+        // Handle profile response properly
+        let profile: CommentProfile;
+        if (profileResponse.error || !profileResponse.data) {
+          profile = {
+            id: item.user_id,
+            username: null,
+            full_name: null,
+            avatar_url: null
+          };
+        } else {
+          profile = {
+            id: profileResponse.data.id || item.user_id,
+            username: profileResponse.data.username || null,
+            full_name: profileResponse.data.full_name || null,
+            avatar_url: profileResponse.data.avatar_url || null
+          };
+        }
 
         comments.push({
           id: item.id,
@@ -110,6 +121,11 @@ export const useCreateComment = () => {
 
       if (response.error) throw response.error;
       
+      // Handle response data properly
+      if (!response.data) {
+        throw new Error('Failed to create comment');
+      }
+
       // Create comment object with profile data from user
       const comment: Comment = {
         id: response.data.id,
