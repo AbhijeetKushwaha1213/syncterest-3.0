@@ -4,23 +4,25 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Phone, Video } from 'lucide-react';
 import UserStatus from './UserStatus';
-import { useToast } from '@/hooks/use-toast';
+import { useWebRTCCall } from '@/hooks/useWebRTCCall';
 
 interface ChatHeaderProps {
   otherParticipant: ConversationWithOtherParticipant['other_participant'];
   isOnline: boolean;
   onBack: () => void;
   isTyping: boolean;
+  conversationId: string;
 }
 
-const ChatHeader = ({ otherParticipant, isOnline, onBack, isTyping }: ChatHeaderProps) => {
-  const { toast } = useToast();
+const ChatHeader = ({ otherParticipant, isOnline, onBack, isTyping, conversationId }: ChatHeaderProps) => {
+  const { startCall } = useWebRTCCall(conversationId, otherParticipant.id);
 
-  const handleFeatureNotAvailable = () => {
-    toast({
-      title: "Feature coming soon",
-      description: "This feature is currently under development.",
-    });
+  const handleVideoCall = () => {
+    startCall(false); // Video call
+  };
+
+  const handleAudioCall = () => {
+    startCall(true); // Audio only call
   };
 
   return (
@@ -43,8 +45,8 @@ const ChatHeader = ({ otherParticipant, isOnline, onBack, isTyping }: ChatHeader
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={handleFeatureNotAvailable}><Video className="h-5 w-5"/></Button>
-        <Button variant="ghost" size="icon" onClick={handleFeatureNotAvailable}><Phone className="h-5 w-5"/></Button>
+        <Button variant="ghost" size="icon" onClick={handleVideoCall}><Video className="h-5 w-5"/></Button>
+        <Button variant="ghost" size="icon" onClick={handleAudioCall}><Phone className="h-5 w-5"/></Button>
       </div>
     </header>
   );

@@ -348,7 +348,9 @@ export type Database = {
           event_time: string
           id: string
           image_url: string | null
+          latitude: number | null
           location: string | null
+          longitude: number | null
           search_vector: unknown | null
           title: string
         }
@@ -359,7 +361,9 @@ export type Database = {
           event_time: string
           id?: string
           image_url?: string | null
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           search_vector?: unknown | null
           title: string
         }
@@ -370,7 +374,9 @@ export type Database = {
           event_time?: string
           id?: string
           image_url?: string | null
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           search_vector?: unknown | null
           title?: string
         }

@@ -3,10 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 
-type Event = Database['public']['Tables']['events']['Row'] & {
-  latitude?: number | null;
-  longitude?: number | null;
-};
+type Event = Database['public']['Tables']['events']['Row'];
 
 export const useEvent = (eventId: string | undefined) => {
   return useQuery<Event | null>({
@@ -15,7 +12,7 @@ export const useEvent = (eventId: string | undefined) => {
       if (!eventId) return null;
       const { data, error } = await supabase
         .from('events')
-        .select('*, latitude, longitude')
+        .select('*')
         .eq('id', eventId)
         .single();
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found

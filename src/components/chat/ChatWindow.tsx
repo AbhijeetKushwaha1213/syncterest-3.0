@@ -12,7 +12,10 @@ import { z } from 'zod';
 import ChatHeader from './ChatHeader';
 import MessageList from './MessageList';
 import MessageForm, { messageFormSchema } from './MessageForm';
+import CallView from './CallView';
+import IncomingCall from './IncomingCall';
 import { useToast } from '@/hooks/use-toast';
+import { useWebRTCCall } from '@/hooks/useWebRTCCall';
 
 interface ChatWindowProps {
   conversation: ConversationWithOtherParticipant | null;
@@ -30,6 +33,23 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
   const presenceState = useChannelPresence('live-users');
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // WebRTC calling functionality
+  const {
+    callState,
+    localStream,
+    remoteStream,
+    isAudioMuted,
+    isVideoMuted,
+    toggleAudio,
+    toggleVideo,
+    endCall,
+    answerCall,
+    incomingCall
+  } = useWebRTCCall(
+    conversation?.id || '',
+    conversation?.other_participant?.id || ''
+  );
 
   const form = useForm<z.infer<typeof messageFormSchema>>({
     resolver: zodResolver(messageFormSchema),
@@ -288,31 +308,61 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
   const otherParticipant = conversation.other_participant;
   const isOnline = !!(otherParticipant?.id && presenceState && presenceState[otherParticipant.id]);
 
+  // Show call view if in a call
+  if (callState === 'connected' || callState === 'dialing') {
+    return (
+      <CallView
+        localStream={localStream}
+        remoteStream={remoteStream}
+        isAudioMuted={isAudioMuted}
+        isVideoMuted={isVideoMuted}
+        onToggleAudio={toggleAudio}
+        onToggleVideo={toggleVideo}
+        onEndCall={endCall}
+        isAudioOnly={!localStream?.getVideoTracks().length}
+      />
+    );
+  }
+
   return (
-    <div className="flex flex-col h-full bg-background w-full">
-      <ChatHeader
-        otherParticipant={otherParticipant}
-        isOnline={isOnline}
-        onBack={onBack}
-        isTyping={isOtherUserTyping}
-      />
-      <main className="flex-1 p-4 overflow-y-auto bg-muted/20">
-        <MessageList 
-          isLoading={isLoadingMessages} 
-          messages={messages}
-          messagesEndRef={messagesEndRef}
+    <>
+      <div className="flex flex-col h-full bg-background w-full">
+        <ChatHeader
+          otherParticipant={otherParticipant}
+          isOnline={isOnline}
+          onBack={onBack}
+          isTyping={isOtherUserTyping}
+          conversationId={conversation.id}
         />
-      </main>
-      <MessageForm 
-        form={form}
-        onSubmit={onSubmit}
-        isSending={sendMessageMutation.isPending || isUploading}
-        attachment={attachment}
-        onFileSelect={handleFileSelect}
-        onRemoveAttachment={() => setAttachment(null)}
-        onTyping={handleTyping}
-      />
-    </div>
+        <main className="flex-1 p-4 overflow-y-auto bg-muted/20">
+          <MessageList 
+            isLoading={isLoadingMessages} 
+            messages={messages}
+            messagesEndRef={messagesEndRef}
+          />
+        </main>
+        <MessageForm 
+          form={form}
+          onSubmit={onSubmit}
+          isSending={sendMessageMutation.isPending || isUploading}
+          attachment={attachment}
+          onFileSelect={handleFileSelect}
+          onRemoveAttachment={() => setAttachment(null)}
+          onTyping={handleTyping}
+        />
+      </div>
+
+      {/* Incoming call overlay */}
+      {incomingCall && (
+        <IncomingCall
+          callerName={otherParticipant.username || 'Unknown'}
+          callerAvatar={otherParticipant.avatar_url || undefined}
+          isAudioOnly={incomingCall.isAudioOnly}
+          onAccept={answerCall}
+          onDecline={endCall}
+        />
+      )}
+    </>
   );
 };
 

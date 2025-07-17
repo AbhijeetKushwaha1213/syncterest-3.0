@@ -5,14 +5,17 @@ import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useSidebar } from "@/contexts/SidebarContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-const DesktopSidebar = () => {
+interface DesktopSidebarProps {
+  isCollapsed: boolean;
+  onToggle: () => void;
+}
+
+const DesktopSidebar = ({ isCollapsed, onToggle }: DesktopSidebarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const { leftSidebarCollapsed, toggleLeftSidebar } = useSidebar();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -38,16 +41,16 @@ const DesktopSidebar = () => {
         to={item.href}
         className={cn(
           "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-muted hover:text-primary",
-          isActive && "bg-muted text-primary",
-          leftSidebarCollapsed && "justify-center"
+        isActive && "bg-muted text-primary",
+        isCollapsed && "justify-center"
         )}
       >
         <item.icon className="h-5 w-5" />
-        {!leftSidebarCollapsed && <span>{item.label}</span>}
+        {!isCollapsed && <span>{item.label}</span>}
       </Link>
     );
 
-    if (leftSidebarCollapsed) {
+    if (isCollapsed) {
       return (
         <TooltipProvider>
           <Tooltip>
@@ -68,10 +71,10 @@ const DesktopSidebar = () => {
   return (
     <aside className={cn(
       "fixed left-0 top-0 z-50 hidden h-screen flex-col border-r bg-background md:flex transition-all duration-300",
-      leftSidebarCollapsed ? "w-16" : "w-64"
+      isCollapsed ? "w-16" : "w-64"
     )}>
       <div className="flex h-16 items-center border-b px-6">
-        {!leftSidebarCollapsed && (
+        {!isCollapsed && (
           <Link to="/home" className="text-2xl font-bold">
             syncterest
           </Link>
@@ -83,7 +86,7 @@ const DesktopSidebar = () => {
         ))}
       </nav>
       <div className="mt-auto space-y-2 border-t p-4">
-        {!leftSidebarCollapsed ? (
+        {!isCollapsed ? (
           <>
             <Link
               to="/settings"
@@ -119,12 +122,12 @@ const DesktopSidebar = () => {
           </TooltipProvider>
         )}
         <Button 
-          onClick={toggleLeftSidebar} 
+          onClick={onToggle} 
           variant="ghost" 
           size="sm"
-          className={cn("w-full", leftSidebarCollapsed ? "px-0" : "justify-start gap-3 px-3")}
+          className={cn("w-full", isCollapsed ? "px-0" : "justify-start gap-3 px-3")}
         >
-          {leftSidebarCollapsed ? (
+          {isCollapsed ? (
             <ChevronsRight className="h-5 w-5" />
           ) : (
             <>

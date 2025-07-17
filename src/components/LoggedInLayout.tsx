@@ -1,5 +1,6 @@
 
 import { Outlet } from "react-router-dom";
+import { useState } from "react";
 import AppHeader from "./AppHeader";
 import DesktopSidebar from "./DesktopSidebar";
 import MobileBottomNav from "./MobileBottomNav";
@@ -9,14 +10,21 @@ import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
 const LoggedInLayoutContent = () => {
   usePresence();
   const { leftSidebarCollapsed } = useSidebar();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
     <div className="flex min-h-screen w-full bg-background">
-      <DesktopSidebar />
+      <DesktopSidebar 
+        isCollapsed={isSidebarCollapsed}
+        onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+      />
       <div className={`flex flex-col flex-1 min-w-0 transition-all duration-300 ${
-        leftSidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
+        isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64'
       }`}>
-        <AppHeader />
+        <AppHeader 
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        />
         <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
           <Outlet />
         </main>

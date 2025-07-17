@@ -13,10 +13,7 @@ export type ChannelMessage = Database['public']['Tables']['channel_messages']['R
 };
 export type ChannelMessageReaction = Database['public']['Tables']['channel_message_reactions']['Row'];
 
-export type Event = Database['public']['Tables']['events']['Row'] & {
-    latitude?: number | null;
-    longitude?: number | null;
-};
+export type Event = Database['public']['Tables']['events']['Row'];
 
 export type ChannelWithUnread = {
     id: string;
