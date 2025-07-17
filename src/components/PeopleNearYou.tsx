@@ -16,6 +16,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { differenceInMinutes } from "date-fns";
+import { useState } from "react";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type UserStatus = 'online' | 'recent' | 'offline';
@@ -33,6 +34,7 @@ const getUserStatus = (lastActiveAt: string | null): UserStatus => {
 
 const PeopleNearYou = () => {
   const { profile } = useAuth();
+  const [hoveredProfile, setHoveredProfile] = useState<string | null>(null);
 
   const { data: profiles, isLoading } = useQuery<Profile[]>({
     queryKey: ["profiles_nearby_sidebar", profile?.id, profile?.latitude, profile?.longitude],
@@ -52,7 +54,6 @@ const PeopleNearYou = () => {
         }
       }
 
-      // If not enough nearby users, fetch random ones to fill up to 5
       if (queryProfiles.length < 5) {
         const limit = 5 - queryProfiles.length;
         const existingIds = queryProfiles.map(p => p.id);
@@ -105,18 +106,36 @@ const PeopleNearYou = () => {
         )}
         {!isLoading && profiles && profiles.length > 0 && (
           <Carousel opts={{ align: "start", loop: profiles.length > 2 }} className="w-full">
-            <CarouselContent className="-ml-2">
-              {profiles.map(p => {
+            <CarouselContent className="-ml-2" style={{ overflow: 'visible' }}>
+              {profiles.map((p, index) => {
                 const status = getUserStatus(p.last_active_at);
+                const isHovered = hoveredProfile === p.id;
+                const isAdjacent = hoveredProfile && Math.abs(profiles.findIndex(prof => prof.id === hoveredProfile) - index) === 1;
+                
                 return (
-                  <CarouselItem key={p.id} className="pl-2 basis-[55%] sm:basis-1/2">
+                  <CarouselItem 
+                    key={p.id} 
+                    className="pl-2 basis-[55%] sm:basis-1/2 transition-all duration-300"
+                    style={{
+                      transform: isAdjacent ? 'scale(0.95)' : 'scale(1)',
+                      filter: isAdjacent ? 'blur(1px)' : 'none',
+                      opacity: isAdjacent ? 0.7 : 1
+                    }}
+                  >
                     <div className="p-1 h-full">
-                      <Card className="text-center h-full flex flex-col hover:shadow-md transition-shadow">
+                      <Card 
+                        className="text-center h-full flex flex-col transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
+                        onMouseEnter={() => setHoveredProfile(p.id)}
+                        onMouseLeave={() => setHoveredProfile(null)}
+                        style={{
+                          transform: isHovered ? 'translateY(-4px) scale(1.02)' : 'translateY(0) scale(1)',
+                        }}
+                      >
                         <CardContent className="p-4 flex flex-col items-center gap-2 flex-1 justify-between">
                           <div className="flex flex-col items-center gap-2">
                             <div className="relative">
                               <Link to={`/profile/${p.id}`}>
-                                <Avatar className="h-16 w-16 border-2 border-primary/50">
+                                <Avatar className="h-16 w-16 border-2 border-primary/50 transition-all duration-300 hover:border-primary hover:scale-110">
                                   <AvatarImage src={p.avatar_url ?? ""} alt={p.username ?? "avatar"} />
                                   <AvatarFallback>{p.username?.charAt(0).toUpperCase()}</AvatarFallback>
                                 </Avatar>
@@ -125,22 +144,35 @@ const PeopleNearYou = () => {
                                 <span
                                   className={`absolute bottom-1 right-1 block h-4 w-4 rounded-full ${
                                     status === 'online' ? 'bg-green-500' : 'bg-amber-400'
-                                  } border-2 border-background`}
+                                  } border-2 border-background transition-all duration-300 ${isHovered ? 'scale-110' : ''}`}
                                   title={status === 'online' ? 'Online' : 'Recently Active'}
                                 />
                               )}
                             </div>
-                            <Link to={`/profile/${p.id}`} className="font-semibold text-sm hover:underline truncate w-full" title={p.full_name || p.username || ''}>{p.full_name || p.username}</Link>
+                            <Link 
+                              to={`/profile/${p.id}`} 
+                              className="font-semibold text-sm hover:underline truncate w-full transition-colors duration-200 hover:text-primary" 
+                              title={p.full_name || p.username || ''}
+                            >
+                              {p.full_name || p.username}
+                            </Link>
                             <p className="text-xs text-muted-foreground">{getSubtext(p)}</p>
                             <div className="flex flex-wrap gap-1 justify-center w-full min-h-[22px] items-center">
                               {p.interests?.slice(0, 2).map((interest) => (
-                                <span key={interest} className="text-[10px] bg-primary/10 text-primary font-medium px-1.5 py-0.5 rounded-full truncate">
+                                <span 
+                                  key={interest} 
+                                  className="text-[10px] bg-primary/10 text-primary font-medium px-1.5 py-0.5 rounded-full truncate transition-all duration-200 hover:bg-primary/20"
+                                >
                                   {interest}
                                 </span>
                               ))}
                             </div>
                           </div>
-                          <Button variant="secondary" size="sm" className="w-full mt-2 whitespace-nowrap">
+                          <Button 
+                            variant="secondary" 
+                            size="sm" 
+                            className="w-full mt-2 whitespace-nowrap transition-all duration-300 hover:scale-105 hover:shadow-md"
+                          >
                             Connect
                           </Button>
                         </CardContent>
@@ -150,8 +182,8 @@ const PeopleNearYou = () => {
                 );
               })}
             </CarouselContent>
-            <CarouselPrevious className="absolute -left-3 top-1/2 -translate-y-1/2 h-8 w-8" />
-            <CarouselNext className="absolute -right-3 top-1/2 -translate-y-1/2 h-8 w-8" />
+            <CarouselPrevious className="absolute -left-3 top-1/2 -translate-y-1/2 h-8 w-8 transition-all duration-200 hover:scale-110" />
+            <CarouselNext className="absolute -right-3 top-1/2 -translate-y-1/2 h-8 w-8 transition-all duration-200 hover:scale-110" />
           </Carousel>
         )}
         {!isLoading && (!profiles || profiles.length === 0) && (

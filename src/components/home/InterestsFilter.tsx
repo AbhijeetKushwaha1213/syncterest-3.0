@@ -31,7 +31,15 @@ const InterestsFilter = ({ selectedInterest, onInterestClick }: InterestsFilterP
             pressed={selectedInterest === interest.name}
             onPressedChange={() => onInterestClick(interest.name)}
             variant="outline"
-            className="gap-2 rounded-full data-[state=on]:bg-primary data-[state=on]:text-primary-foreground hover:bg-muted/80 data-[state=on]:border-primary"
+            className={`
+              gap-2 rounded-full transition-all duration-300 hover:scale-105
+              data-[state=on]:bg-primary data-[state=on]:text-primary-foreground 
+              hover:bg-muted/80 data-[state=on]:border-primary
+              ${selectedInterest === interest.name 
+                ? 'shadow-lg shadow-primary/25 ring-2 ring-primary/20' 
+                : 'hover:shadow-md'
+              }
+            `}
           >
             <interest.icon className="h-4 w-4" />
             {interest.name}

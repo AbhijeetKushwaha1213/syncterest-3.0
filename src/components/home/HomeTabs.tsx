@@ -6,6 +6,7 @@ import MatchesList from "@/components/matches/MatchesList";
 import NearbyTab from "@/components/nearby/NearbyTab";
 import LiveUsersTab from "@/components/live/LiveUsersTab";
 import FeedList from "@/components/feed/FeedList";
+import { useState } from "react";
 import {
   Users, MapPin, Wifi, CalendarDays, Star, UserCog,
 } from "lucide-react";
@@ -30,35 +31,54 @@ interface HomeTabsProps {
 }
 
 const HomeTabs = ({ selectedInterest }: HomeTabsProps) => {
+  const [activeTab, setActiveTab] = useState("people");
+
   return (
-    <Tabs defaultValue="people" className="w-full">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
       <div className="flex items-center justify-between flex-wrap gap-2 px-4 md:px-0">
-        <TabsList className="bg-transparent p-0">
-          {tabs.map(tab => (
-             <TabsTrigger key={tab.value} value={tab.value} className="gap-2 text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
-               <tab.icon className="h-4 w-4"/>
-               {tab.label}
-             </TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="relative">
+          <TabsList className="bg-transparent p-0 relative">
+            {tabs.map(tab => (
+               <TabsTrigger 
+                 key={tab.value} 
+                 value={tab.value} 
+                 className="gap-2 text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none relative z-10 transition-all duration-300 hover:scale-105"
+               >
+                 <tab.icon className="h-4 w-4"/>
+                 {tab.label}
+               </TabsTrigger>
+            ))}
+          </TabsList>
+          {/* Sliding pill indicator */}
+          <div 
+            className="absolute bottom-0 h-0.5 bg-primary transition-all duration-300 ease-out"
+            style={{
+              left: `${tabs.findIndex(tab => tab.value === activeTab) * (100 / tabs.length)}%`,
+              width: `${100 / tabs.length}%`
+            }}
+          />
+        </div>
       </div>
-      <TabsContent value="people" className="mt-4">
-        <FeedList selectedInterest={selectedInterest} />
-      </TabsContent>
-      <TabsContent value="nearby" className="mt-4 px-4 md:px-0">
-        <NearbyTab />
-      </TabsContent>
-      {tabs.filter(t => t.value !== 'people' && t.value !== 'nearby').map(tab => (
-        <TabsContent key={tab.value} value={tab.value} className="mt-4 px-4 md:px-0">
-           {
-             tab.value === 'live' ? <LiveUsersTab /> :
-             tab.value === 'events' ? <EventsList /> : 
-             tab.value === 'groups' ? <GroupsPage /> : 
-             tab.value === 'matches' ? <MatchesList /> : 
-             <PlaceholderContent tab={tab.label} />
-           }
+      
+      <div className="mt-4">
+        <TabsContent value="people" className="animate-fade-in">
+          <FeedList selectedInterest={selectedInterest} />
         </TabsContent>
-      ))}
+        <TabsContent value="nearby" className="px-4 md:px-0 animate-fade-in">
+          <NearbyTab />
+        </TabsContent>
+        {tabs.filter(t => t.value !== 'people' && t.value !== 'nearby').map(tab => (
+          <TabsContent key={tab.value} value={tab.value} className="px-4 md:px-0 animate-fade-in">
+             {
+               tab.value === 'live' ? <LiveUsersTab /> :
+               tab.value === 'events' ? <EventsList /> : 
+               tab.value === 'groups' ? <GroupsPage /> : 
+               tab.value === 'matches' ? <MatchesList /> : 
+               <PlaceholderContent tab={tab.label} />
+             }
+          </TabsContent>
+        ))}
+      </div>
     </Tabs>
   );
 };
