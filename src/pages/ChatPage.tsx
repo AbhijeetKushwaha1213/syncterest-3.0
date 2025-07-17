@@ -18,15 +18,29 @@ const ChatPage = () => {
 
   const { data: conversations, isLoading: conversationsLoading, error } = useQuery({
     queryKey: ['conversations', user?.id],
-    queryFn: () => getConversations(user!.id),
-    enabled: !!user,
+    queryFn: () => {
+      if (!user?.id) {
+        console.log("No user ID available for conversations");
+        return [];
+      }
+      return getConversations(user.id);
+    },
+    enabled: !!user?.id,
+    retry: 3,
+    retryDelay: 1000,
   });
 
   useEffect(() => {
-    if (conversations) {
+    if (conversations && Array.isArray(conversations)) {
       if (conversationId) {
         const found = conversations.find(c => c.id === conversationId);
-        setSelectedConversation(found || null);
+        if (found) {
+          setSelectedConversation(found);
+        } else {
+          console.warn(`Conversation ${conversationId} not found`);
+          // Don't redirect, just clear selection
+          setSelectedConversation(null);
+        }
       } else {
         setSelectedConversation(null);
       }
@@ -40,8 +54,10 @@ const ChatPage = () => {
 
   const handleBack = () => {
     navigate('/chat');
+    setSelectedConversation(null);
   };
 
+  // Show loading state
   if (authLoading || conversationsLoading) {
     return (
         <div className="flex h-full">
@@ -66,6 +82,19 @@ const ChatPage = () => {
     );
   }
 
+  // Handle error state
+  if (error) {
+    console.error("Chat page error:", error);
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold mb-2">Unable to load conversations</h2>
+          <p className="text-muted-foreground">Please try refreshing the page.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full bg-background">
       <div className={cn(
@@ -73,7 +102,7 @@ const ChatPage = () => {
           { "hidden md:flex flex-col": !!conversationId }
       )}>
         <ConversationList 
-          conversations={conversations}
+          conversations={conversations || []}
           error={error}
           selectedConversationId={selectedConversation?.id}
           onSelectConversation={handleSelectConversation}

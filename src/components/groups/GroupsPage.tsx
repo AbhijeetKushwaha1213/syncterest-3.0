@@ -10,35 +10,77 @@ import TrendingChannels from "@/components/home/TrendingChannels";
 const GroupsPage = () => {
   const { user } = useAuth();
 
-  const { data: groups, isLoading: isLoadingGroups } = useQuery<Group[]>({
+  const { data: groups, isLoading: isLoadingGroups, error: groupsError } = useQuery<Group[]>({
     queryKey: ["groups"],
     queryFn: async () => {
-      const { data, error } = await (supabase
-        .from("groups") as any)
-        .select("*, group_members(count)")
+      console.log("Fetching groups...");
+      const { data, error } = await supabase
+        .from("groups")
+        .select(`
+          *,
+          group_members!inner(count)
+        `)
         .order("created_at", { ascending: false });
-      if (error) throw error;
+        
+      if (error) {
+        console.error("Error fetching groups:", error);
+        throw error;
+      }
+      
+      console.log("Groups fetched successfully:", data);
       return data || [];
     },
+    retry: 3,
+    retryDelay: 1000,
   });
 
-  const { data: myMemberships, isLoading: isLoadingMyGroups } = useQuery<
-    string[]
-  >({
-    queryKey: ["my-groups"],
+  const { data: myMemberships, isLoading: isLoadingMyGroups, error: membershipsError } = useQuery<string[]>({
+    queryKey: ["my-groups", user?.id],
     queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await (supabase
-        .from("group_members") as any)
+      if (!user?.id) {
+        console.log("No user ID for memberships");
+        return [];
+      }
+      
+      console.log("Fetching user memberships...");
+      const { data, error } = await supabase
+        .from("group_members")
         .select("group_id")
         .eq("user_id", user.id);
-      if (error) throw error;
+        
+      if (error) {
+        console.error("Error fetching memberships:", error);
+        throw error;
+      }
+      
+      console.log("Memberships fetched:", data);
       return (data || []).map((m: { group_id: string }) => m.group_id);
     },
-    enabled: !!user,
+    enabled: !!user?.id,
+    retry: 3,
+    retryDelay: 1000,
   });
 
   const isLoading = isLoadingGroups || isLoadingMyGroups;
+  const hasError = groupsError || membershipsError;
+
+  if (hasError) {
+    console.error("Groups page error:", { groupsError, membershipsError });
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold tracking-tight">Groups</h2>
+          <CreateGroupDialog />
+        </div>
+        <div className="text-center py-10 border-2 border-dashed rounded-lg">
+          <h3 className="text-xl font-semibold text-red-500">Unable to load groups</h3>
+          <p className="text-muted-foreground mt-2">
+            Please try refreshing the page or check your connection.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -49,7 +91,7 @@ const GroupsPage = () => {
 
       {isLoading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(3)].map((_, i) => (
+          {[...Array(6)].map((_, i) => (
             <Skeleton key={i} className="h-40" />
           ))}
         </div>
