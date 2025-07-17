@@ -3,8 +3,8 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EventsList from "@/components/events/EventsList";
 import GroupsPage from "@/components/groups/GroupsPage";
-import { LiveUsersTab } from "@/components/live/LiveUsersTab";
-import { NearbyTab } from "@/components/nearby/NearbyTab";
+import LiveUsersTab from "@/components/live/LiveUsersTab";
+import NearbyTab from "@/components/nearby/NearbyTab";
 import MatchesList from "@/components/matches/MatchesList";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -49,11 +49,11 @@ const HomeTabs = ({ selectedInterest }: HomeTabsProps) => {
         </TabsList>
         
         <TabsContent value="live" className="space-y-4">
-          <LiveUsersTab selectedInterest={selectedInterest} />
+          <LiveUsersTab />
         </TabsContent>
         
         <TabsContent value="nearby" className="space-y-4">
-          <NearbyTab selectedInterest={selectedInterest} />
+          <NearbyTab />
         </TabsContent>
         
         <TabsContent value="matches" className="space-y-4">
