@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "@/hooks/use-toast";
 
+// Simple, explicit type definitions to avoid circular references
 interface CommentProfile {
   id: string;
   username: string | null;
@@ -24,7 +25,7 @@ export const useComments = (contentId: string, contentType: 'post' | 'event' | '
   
   const { data: comments = [], isLoading } = useQuery({
     queryKey: ['comments', contentType, contentId],
-    queryFn: async () => {
+    queryFn: async (): Promise<Comment[]> => {
       const columnName = `${contentType}_id`;
       const { data, error } = await supabase
         .from('comments')
@@ -44,7 +45,20 @@ export const useComments = (contentId: string, contentType: 'post' | 'event' | '
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      return data as unknown as Comment[];
+      
+      // Explicitly map the data to our Comment type
+      return (data || []).map(item => ({
+        id: item.id,
+        content: item.content,
+        created_at: item.created_at,
+        user_id: item.user_id,
+        profiles: {
+          id: item.profiles.id,
+          username: item.profiles.username,
+          full_name: item.profiles.full_name,
+          avatar_url: item.profiles.avatar_url
+        }
+      }));
     },
     enabled: !!contentId,
   });
@@ -65,7 +79,7 @@ export const useCreateComment = () => {
       contentId: string; 
       contentType: 'post' | 'event' | 'reel'; 
       content: string; 
-    }) => {
+    }): Promise<Comment> => {
       if (!user) throw new Error('User not authenticated');
 
       const commentData = {
@@ -92,7 +106,20 @@ export const useCreateComment = () => {
         .single();
 
       if (error) throw error;
-      return data as unknown as Comment;
+      
+      // Explicitly map the data to our Comment type
+      return {
+        id: data.id,
+        content: data.content,
+        created_at: data.created_at,
+        user_id: data.user_id,
+        profiles: {
+          id: data.profiles.id,
+          username: data.profiles.username,
+          full_name: data.profiles.full_name,
+          avatar_url: data.profiles.avatar_url
+        }
+      };
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
