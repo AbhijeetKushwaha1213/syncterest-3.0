@@ -4,17 +4,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "@/hooks/use-toast";
 
+interface CommentProfile {
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+}
+
 interface Comment {
   id: string;
   content: string;
   created_at: string;
   user_id: string;
-  profiles: {
-    id: string;
-    username: string | null;
-    full_name: string | null;
-    avatar_url: string | null;
-  };
+  profiles: CommentProfile;
 }
 
 export const useComments = (contentId: string, contentType: 'post' | 'event' | 'reel') => {
@@ -22,7 +24,7 @@ export const useComments = (contentId: string, contentType: 'post' | 'event' | '
   
   const { data: comments = [], isLoading } = useQuery({
     queryKey: ['comments', contentType, contentId],
-    queryFn: async (): Promise<Comment[]> => {
+    queryFn: async () => {
       const columnName = `${contentType}_id`;
       const { data, error } = await supabase
         .from('comments')
@@ -42,7 +44,7 @@ export const useComments = (contentId: string, contentType: 'post' | 'event' | '
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as Comment[];
     },
     enabled: !!contentId,
   });
@@ -90,7 +92,7 @@ export const useCreateComment = () => {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as Comment;
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
