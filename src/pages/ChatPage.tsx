@@ -38,7 +38,6 @@ const ChatPage = () => {
           setSelectedConversation(found);
         } else {
           console.warn(`Conversation ${conversationId} not found`);
-          // Don't redirect, just clear selection
           setSelectedConversation(null);
         }
       } else {
@@ -60,24 +59,24 @@ const ChatPage = () => {
   // Show loading state
   if (authLoading || conversationsLoading) {
     return (
-        <div className="flex h-full">
-            <div className="w-1/3 border-r p-4 space-y-2">
-                <Skeleton className="h-10 w-1/2 mb-4" />
-                <Skeleton className="h-8 w-full mb-4" />
-                {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
+      <div className="flex h-full">
+        <div className="w-1/3 border-r p-4 space-y-2">
+          <Skeleton className="h-10 w-1/2 mb-4" />
+          <Skeleton className="h-8 w-full mb-4" />
+          {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
+        </div>
+        <div className="w-2/3 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-6 w-24" />
             </div>
-            <div className="w-2/3 p-4">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <Skeleton className="h-10 w-10 rounded-full" />
-                        <Skeleton className="h-6 w-24" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Skeleton className="h-8 w-8" />
-                        <Skeleton className="h-8 w-8" />
-                    </div>
-                </div>
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-8 w-8" />
+              <Skeleton className="h-8 w-8" />
             </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -98,8 +97,8 @@ const ChatPage = () => {
   return (
     <div className="flex h-full bg-background">
       <div className={cn(
-          "w-full md:w-1/3 lg:w-1/4 border-r bg-background overflow-y-auto",
-          { "hidden md:flex flex-col": !!conversationId }
+        "w-full md:w-1/3 lg:w-1/4 border-r bg-background overflow-y-auto",
+        { "hidden md:flex flex-col": !!conversationId }
       )}>
         <ConversationList 
           conversations={conversations || []}
@@ -114,8 +113,8 @@ const ChatPage = () => {
         { "flex": !!conversationId }
       )}>
         <ChatWindow 
-            conversation={selectedConversation} 
-            onBack={handleBack} 
+          conversation={selectedConversation} 
+          onBack={handleBack} 
         />
       </div>
     </div>

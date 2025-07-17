@@ -8,6 +8,7 @@ import ChannelsDiscovery from '@/pages/ChannelsDiscovery';
 const ChannelsLayout = () => {
   const { id } = useParams<{ id: string }>();
 
+  // If no specific channel ID, show the discovery page
   if (!id) {
     return <ChannelsDiscovery />;
   }
@@ -16,7 +17,7 @@ const ChannelsLayout = () => {
     <div className="grid grid-cols-[260px_1fr] h-full">
       <aside className="border-r bg-muted/30">
         <ScrollArea className="h-full">
-            <ChannelList />
+          <ChannelList />
         </ScrollArea>
       </aside>
       <main className="overflow-y-auto">

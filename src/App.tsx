@@ -31,7 +31,14 @@ import HelpSettingsPage from "./pages/settings/HelpSettingsPage";
 import LinkedAccountsSettingsPage from "./pages/settings/LinkedAccountsSettingsPage";
 import DiscoverySettingsPage from './pages/settings/DiscoverySettingsPage';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -73,7 +80,6 @@ const App = () => (
               <Route path="/events/:id" element={<EventDetailPage />} />
             </Route>
 
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
