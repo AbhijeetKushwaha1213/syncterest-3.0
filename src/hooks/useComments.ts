@@ -27,36 +27,29 @@ export const useComments = (contentId: string, contentType: 'post' | 'event' | '
     queryKey: ['comments', contentType, contentId],
     queryFn: async (): Promise<Comment[]> => {
       const columnName = `${contentType}_id`;
+      
+      // Use a simpler query to avoid type inference issues
       const { data, error } = await supabase
         .from('comments')
-        .select(`
-          id,
-          content,
-          created_at,
-          user_id,
-          profiles!inner (
-            id,
-            username,
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*, profiles(*)')
         .eq(columnName, contentId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
       
-      // Explicitly map the data to our Comment type
-      return (data || []).map(item => ({
+      // Cast to any first to break type chain, then map to our types
+      const rawData = data as any[];
+      
+      return (rawData || []).map((item: any): Comment => ({
         id: item.id,
         content: item.content,
         created_at: item.created_at,
         user_id: item.user_id,
         profiles: {
-          id: item.profiles.id,
-          username: item.profiles.username,
-          full_name: item.profiles.full_name,
-          avatar_url: item.profiles.avatar_url
+          id: item.profiles?.id || '',
+          username: item.profiles?.username || null,
+          full_name: item.profiles?.full_name || null,
+          avatar_url: item.profiles?.avatar_url || null
         }
       }));
     },
@@ -88,36 +81,28 @@ export const useCreateComment = () => {
         [`${contentType}_id`]: contentId,
       };
 
+      // Use simpler query to avoid type inference issues
       const { data, error } = await supabase
         .from('comments')
         .insert(commentData)
-        .select(`
-          id,
-          content,
-          created_at,
-          user_id,
-          profiles!inner (
-            id,
-            username,
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*, profiles(*)')
         .single();
 
       if (error) throw error;
       
-      // Explicitly map the data to our Comment type
+      // Cast to any first to break type chain, then map to our type
+      const rawData = data as any;
+      
       return {
-        id: data.id,
-        content: data.content,
-        created_at: data.created_at,
-        user_id: data.user_id,
+        id: rawData.id,
+        content: rawData.content,
+        created_at: rawData.created_at,
+        user_id: rawData.user_id,
         profiles: {
-          id: data.profiles.id,
-          username: data.profiles.username,
-          full_name: data.profiles.full_name,
-          avatar_url: data.profiles.avatar_url
+          id: rawData.profiles?.id || '',
+          username: rawData.profiles?.username || null,
+          full_name: rawData.profiles?.full_name || null,
+          avatar_url: rawData.profiles?.avatar_url || null
         }
       };
     },
