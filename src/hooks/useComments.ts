@@ -20,8 +20,8 @@ type Comment = {
   profiles: CommentProfile;
 };
 
-export const useComments = (contentType: 'post' | 'event' | 'reel', contentId: string) => {
-  return useQuery({
+export const useComments = (contentId: string, contentType: 'post' | 'event' | 'reel') => {
+  const query = useQuery({
     queryKey: ['comments', contentType, contentId],
     queryFn: async () => {
       const columnName = `${contentType}_id`;
@@ -29,7 +29,7 @@ export const useComments = (contentType: 'post' | 'event' | 'reel', contentId: s
       // Use completely raw query to avoid any type inference
       const { data, error } = await supabase
         .from('comments')
-        .select('id, content, created_at, user_id, profiles(id, username, full_name, avatar_url)')
+        .select('*, profiles(*)')
         .eq(columnName, contentId)
         .order('created_at', { ascending: true });
 
@@ -53,6 +53,12 @@ export const useComments = (contentType: 'post' | 'event' | 'reel', contentId: s
     },
     enabled: !!contentId,
   });
+
+  return {
+    comments: query.data || [],
+    isLoading: query.isLoading,
+    error: query.error
+  };
 };
 
 export const useCreateComment = () => {
@@ -82,7 +88,7 @@ export const useCreateComment = () => {
       const { data, error } = await supabase
         .from('comments')
         .insert(commentData)
-        .select('id, content, created_at, user_id, profiles(id, username, full_name, avatar_url)')
+        .select('*, profiles(*)')
         .single();
 
       if (error) throw error;
