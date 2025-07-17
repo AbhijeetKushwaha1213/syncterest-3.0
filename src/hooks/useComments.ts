@@ -44,7 +44,7 @@ export const useComments = (contentId: string, contentType: 'post' | 'event' | '
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      return (data || []) as Comment[];
+      return data as unknown as Comment[];
     },
     enabled: !!contentId,
   });
@@ -92,7 +92,7 @@ export const useCreateComment = () => {
         .single();
 
       if (error) throw error;
-      return data as Comment;
+      return data as unknown as Comment;
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
