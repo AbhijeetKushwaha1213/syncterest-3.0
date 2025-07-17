@@ -1,3 +1,4 @@
+
 import { Channel } from '@/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
@@ -13,6 +14,7 @@ import ChannelMessageForm, { channelMessageFormSchema } from './ChannelMessageFo
 import TypingIndicator from './TypingIndicator';
 import { useMarkChannelAsRead } from '@/hooks/useMarkChannelAsRead';
 import { useChannelMessages } from '@/hooks/useChannelMessages';
+import { uploadChannelAttachment } from '@/api/channelChat';
 
 interface ChannelChatProps {
     channel: Channel;
@@ -77,7 +79,6 @@ const ChannelChat = ({ channel }: ChannelChatProps) => {
             });
 
             if (insertError) {
-                // TODO: In a real app, you might want to delete the uploaded file if the message fails to send.
                 throw new Error(`Failed to send message: ${insertError.message}`);
             }
         },
@@ -114,6 +115,72 @@ const ChannelChat = ({ channel }: ChannelChatProps) => {
         setAttachment(file);
     };
 
+    const handleAudioRecorded = async (audioBlob: Blob) => {
+        try {
+            setIsUploading(true);
+            const path = await uploadChannelAttachment(channel.id, audioBlob, 'webm');
+            
+            const { error } = await supabase.from('channel_messages').insert({
+                channel_id: channel.id,
+                user_id: user!.id,
+                content: null,
+                attachment_url: path,
+                attachment_type: 'audio/webm',
+            });
+
+            if (error) {
+                throw new Error(`Failed to send audio message: ${error.message}`);
+            }
+
+            toast({
+                title: "Audio message sent",
+                description: "Your audio message has been sent successfully.",
+            });
+        } catch (error) {
+            console.error("Failed to send audio message", error);
+            toast({
+                variant: "destructive",
+                title: "Failed to send audio message",
+                description: error instanceof Error ? error.message : "An error occurred",
+            });
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleImageCaptured = async (imageBlob: Blob) => {
+        try {
+            setIsUploading(true);
+            const path = await uploadChannelAttachment(channel.id, imageBlob, 'jpg');
+            
+            const { error } = await supabase.from('channel_messages').insert({
+                channel_id: channel.id,
+                user_id: user!.id,
+                content: null,
+                attachment_url: path,
+                attachment_type: 'image/jpeg',
+            });
+
+            if (error) {
+                throw new Error(`Failed to send image: ${error.message}`);
+            }
+
+            toast({
+                title: "Image sent",
+                description: "Your captured image has been sent successfully.",
+            });
+        } catch (error) {
+            console.error("Failed to send image", error);
+            toast({
+                variant: "destructive",
+                title: "Failed to send image",
+                description: error instanceof Error ? error.message : "An error occurred",
+            });
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     return (
         <div className="flex flex-col h-full bg-muted/20">
             <main className="flex-1 p-4 overflow-y-auto">
@@ -131,6 +198,8 @@ const ChannelChat = ({ channel }: ChannelChatProps) => {
                 attachment={attachment}
                 onFileSelect={handleFileSelect}
                 onRemoveAttachment={() => setAttachment(null)}
+                onAudioRecorded={handleAudioRecorded}
+                onImageCaptured={handleImageCaptured}
             />
         </div>
     );

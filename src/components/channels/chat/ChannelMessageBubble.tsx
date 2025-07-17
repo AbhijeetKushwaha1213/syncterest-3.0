@@ -4,10 +4,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from 'date-fns';
-import { Download, FileText } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { Download, FileText, Play, Pause } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '../../ui/skeleton';
+import { Button } from '../../ui/button';
 
 interface MessageBubbleProps {
   message: ChannelMessageWithSender;
@@ -16,6 +17,8 @@ interface MessageBubbleProps {
 const AttachmentDisplay = ({ message }: { message: ChannelMessageWithSender }) => {
     const [url, setUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioRef = useRef<HTMLAudioElement>(null);
 
     useEffect(() => {
         if (message.attachment_url) {
@@ -25,11 +28,27 @@ const AttachmentDisplay = ({ message }: { message: ChannelMessageWithSender }) =
         setLoading(false);
     }, [message.attachment_url]);
 
+    const handleAudioPlay = () => {
+        if (audioRef.current) {
+            if (isPlaying) {
+                audioRef.current.pause();
+            } else {
+                audioRef.current.play();
+            }
+            setIsPlaying(!isPlaying);
+        }
+    };
+
+    const handleAudioEnded = () => {
+        setIsPlaying(false);
+    };
+
     if (loading || !url) {
         return <Skeleton className="w-48 h-24 rounded-lg" />;
     }
 
     const isImage = message.attachment_type?.startsWith('image/');
+    const isAudio = message.attachment_type?.startsWith('audio/');
     const fileName = message.attachment_url?.split('/').pop() || 'attachment';
 
     if (isImage) {
@@ -37,6 +56,35 @@ const AttachmentDisplay = ({ message }: { message: ChannelMessageWithSender }) =
             <a href={url} target="_blank" rel="noopener noreferrer">
                 <img src={url} alt="attachment" className="rounded-lg max-w-full h-auto object-cover cursor-pointer" />
             </a>
+        );
+    }
+
+    if (isAudio) {
+        return (
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50 max-w-xs">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleAudioPlay}
+                    className="shrink-0"
+                >
+                    {isPlaying ? (
+                        <Pause className="h-5 w-5" />
+                    ) : (
+                        <Play className="h-5 w-5" />
+                    )}
+                </Button>
+                <div className="flex-1">
+                    <p className="text-sm font-medium">Audio Message</p>
+                    <audio
+                        ref={audioRef}
+                        src={url}
+                        onEnded={handleAudioEnded}
+                        className="hidden"
+                        preload="metadata"
+                    />
+                </div>
+            </div>
         );
     }
 
@@ -51,7 +99,6 @@ const AttachmentDisplay = ({ message }: { message: ChannelMessageWithSender }) =
         </a>
     );
 }
-
 
 const ChannelMessageBubble = ({ message }: MessageBubbleProps) => {
     const { user } = useAuth();

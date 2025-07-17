@@ -54,6 +54,24 @@ export const sendChannelMessage = async ({ channelId, content }: { channelId: st
     return data;
 };
 
+export const uploadChannelAttachment = async (channelId: string, file: Blob, fileExtension: string): Promise<string> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("User not authenticated");
+
+  const fileName = `${Date.now()}.${fileExtension}`;
+  const path = `channels/${channelId}/${fileName}`;
+  
+  const { error: uploadError } = await supabase.storage
+    .from('channel_attachments')
+    .upload(path, file);
+  
+  if (uploadError) {
+    throw new Error(`Failed to upload attachment: ${uploadError.message}`);
+  }
+
+  return path;
+};
+
 export const addChannelReaction = async ({ messageId, emoji }: { messageId: number; emoji: string }) => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("User not authenticated");

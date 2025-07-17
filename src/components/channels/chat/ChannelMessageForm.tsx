@@ -5,11 +5,13 @@ import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Paperclip, Send, Smile, Mic, Camera } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
-import React from 'react';
+import React, { useState } from 'react';
 import AttachmentPreview from '@/components/chat/AttachmentPreview';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import AudioRecorder from './AudioRecorder';
+import CameraCapture from './CameraCapture';
 
 export const channelMessageFormSchema = z.object({
   content: z.string().max(1000, "Message is too long."),
@@ -25,10 +27,24 @@ interface ChannelMessageFormProps {
     onFileSelect: (file: File) => void;
     onRemoveAttachment: () => void;
     onTyping: () => void;
+    onAudioRecorded?: (audioBlob: Blob) => void;
+    onImageCaptured?: (imageBlob: Blob) => void;
 }
 
-const ChannelMessageForm = ({ form, onSubmit, isSending, attachment, onFileSelect, onRemoveAttachment, onTyping }: ChannelMessageFormProps) => {
+const ChannelMessageForm = ({ 
+    form, 
+    onSubmit, 
+    isSending, 
+    attachment, 
+    onFileSelect, 
+    onRemoveAttachment, 
+    onTyping,
+    onAudioRecorded,
+    onImageCaptured
+}: ChannelMessageFormProps) => {
     const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const [showAudioRecorder, setShowAudioRecorder] = useState(false);
+    const [showCameraCapture, setShowCameraCapture] = useState(false);
 
     const handlePaperclipClick = () => {
         fileInputRef.current?.click();
@@ -46,6 +62,18 @@ const ChannelMessageForm = ({ form, onSubmit, isSending, attachment, onFileSelec
 
     const handleEmojiClick = (emojiData: EmojiClickData) => {
         form.setValue('content', form.getValues('content') + emojiData.emoji);
+    };
+
+    const handleAudioRecorded = (audioBlob: Blob) => {
+        if (onAudioRecorded) {
+            onAudioRecorded(audioBlob);
+        }
+    };
+
+    const handleImageCaptured = (imageBlob: Blob) => {
+        if (onImageCaptured) {
+            onImageCaptured(imageBlob);
+        }
     };
 
     const disableSend = isSending || (!form.getValues("content").trim() && !attachment);
@@ -77,20 +105,32 @@ const ChannelMessageForm = ({ form, onSubmit, isSending, attachment, onFileSelec
                         
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button type="button" variant="ghost" size="icon" disabled>
+                                <Button 
+                                    type="button" 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    disabled={isSending}
+                                    onClick={() => setShowAudioRecorder(true)}
+                                >
                                     <Mic className="h-5 w-5"/>
                                 </Button>
                             </TooltipTrigger>
-                            <TooltipContent><p>Record audio (coming soon)</p></TooltipContent>
+                            <TooltipContent><p>Record audio</p></TooltipContent>
                         </Tooltip>
 
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button type="button" variant="ghost" size="icon" disabled>
+                                <Button 
+                                    type="button" 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    disabled={isSending}
+                                    onClick={() => setShowCameraCapture(true)}
+                                >
                                     <Camera className="h-5 w-5"/>
                                 </Button>
                             </TooltipTrigger>
-                            <TooltipContent><p>Capture image (coming soon)</p></TooltipContent>
+                            <TooltipContent><p>Capture image</p></TooltipContent>
                         </Tooltip>
 
                         <FormField
@@ -129,6 +169,18 @@ const ChannelMessageForm = ({ form, onSubmit, isSending, attachment, onFileSelec
                     </form>
                 </TooltipProvider>
             </Form>
+
+            <AudioRecorder
+                isOpen={showAudioRecorder}
+                onClose={() => setShowAudioRecorder(false)}
+                onRecordingComplete={handleAudioRecorded}
+            />
+
+            <CameraCapture
+                isOpen={showCameraCapture}
+                onClose={() => setShowCameraCapture(false)}
+                onCapture={handleImageCaptured}
+            />
         </footer>
     );
 };
