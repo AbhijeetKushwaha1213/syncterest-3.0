@@ -20,9 +20,9 @@ interface Comment {
 export const useComments = (contentId: string, contentType: 'post' | 'event' | 'reel') => {
   const { user } = useAuth();
   
-  const { data: comments = [], isLoading } = useQuery<Comment[]>({
+  const { data: comments = [], isLoading } = useQuery({
     queryKey: ['comments', contentType, contentId],
-    queryFn: async () => {
+    queryFn: async (): Promise<Comment[]> => {
       const columnName = `${contentType}_id`;
       const { data, error } = await supabase
         .from('comments')
