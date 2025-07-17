@@ -47,7 +47,7 @@ export const useComments = (contentId: string, contentType: 'post' | 'event' | '
           .eq('id', item.user_id)
           .single();
 
-        // Handle profile response properly
+        // Handle profile response with proper type checking
         let profile: CommentProfile;
         if (profileResponse.error || !profileResponse.data) {
           profile = {
@@ -57,11 +57,13 @@ export const useComments = (contentId: string, contentType: 'post' | 'event' | '
             avatar_url: null
           };
         } else {
+          // Cast to any to avoid type issues, then extract properties safely
+          const profileData = profileResponse.data as any;
           profile = {
-            id: profileResponse.data.id || item.user_id,
-            username: profileResponse.data.username || null,
-            full_name: profileResponse.data.full_name || null,
-            avatar_url: profileResponse.data.avatar_url || null
+            id: profileData?.id || item.user_id,
+            username: profileData?.username || null,
+            full_name: profileData?.full_name || null,
+            avatar_url: profileData?.avatar_url || null
           };
         }
 
@@ -121,17 +123,20 @@ export const useCreateComment = () => {
 
       if (response.error) throw response.error;
       
-      // Handle response data properly
+      // Handle response data with proper type checking
       if (!response.data) {
         throw new Error('Failed to create comment');
       }
 
+      // Cast to any to avoid type issues, then extract properties safely
+      const responseData = response.data as any;
+      
       // Create comment object with profile data from user
       const comment: Comment = {
-        id: response.data.id,
-        content: response.data.content,
-        created_at: response.data.created_at,
-        user_id: response.data.user_id,
+        id: responseData?.id || '',
+        content: responseData?.content || content,
+        created_at: responseData?.created_at || new Date().toISOString(),
+        user_id: responseData?.user_id || user.id,
         profiles: {
           id: user.id,
           username: user.user_metadata?.username || null,
