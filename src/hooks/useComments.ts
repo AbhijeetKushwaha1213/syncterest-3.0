@@ -1,46 +1,42 @@
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "./useAuth";
-import { toast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './useAuth';
+import { toast } from '@/hooks/use-toast';
 
-// Simple, explicit type definitions to avoid circular references
-interface CommentProfile {
+// Completely isolated type definitions to avoid Supabase type inference issues
+type CommentProfile = {
   id: string;
   username: string | null;
   full_name: string | null;
   avatar_url: string | null;
-}
+};
 
-interface Comment {
+type Comment = {
   id: string;
   content: string;
   created_at: string;
   user_id: string;
   profiles: CommentProfile;
-}
+};
 
-export const useComments = (contentId: string, contentType: 'post' | 'event' | 'reel') => {
-  const { user } = useAuth();
-  
-  const { data: comments = [], isLoading } = useQuery({
+export const useComments = (contentType: 'post' | 'event' | 'reel', contentId: string) => {
+  return useQuery({
     queryKey: ['comments', contentType, contentId],
-    queryFn: async (): Promise<Comment[]> => {
+    queryFn: async () => {
       const columnName = `${contentType}_id`;
       
-      // Use a simpler query to avoid type inference issues
+      // Use completely raw query to avoid any type inference
       const { data, error } = await supabase
         .from('comments')
-        .select('*, profiles(*)')
+        .select('id, content, created_at, user_id, profiles(id, username, full_name, avatar_url)')
         .eq(columnName, contentId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
       
-      // Cast to any first to break type chain, then map to our types
-      const rawData = data as any[];
-      
-      return (rawData || []).map((item: any): Comment => ({
+      // Direct casting to bypass all type checking
+      const comments: Comment[] = (data || []).map((item: any) => ({
         id: item.id,
         content: item.content,
         created_at: item.created_at,
@@ -52,28 +48,30 @@ export const useComments = (contentId: string, contentType: 'post' | 'event' | '
           avatar_url: item.profiles?.avatar_url || null
         }
       }));
+      
+      return comments;
     },
     enabled: !!contentId,
   });
-
-  return { comments, isLoading };
 };
 
 export const useCreateComment = () => {
-  const queryClient = useQueryClient();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ 
-      contentId, 
+      content, 
       contentType, 
-      content 
+      contentId 
     }: { 
-      contentId: string; 
-      contentType: 'post' | 'event' | 'reel'; 
-      content: string; 
-    }): Promise<Comment> => {
-      if (!user) throw new Error('User not authenticated');
+      content: string;
+      contentType: 'post' | 'event' | 'reel';
+      contentId: string;
+    }) => {
+      if (!user) {
+        throw new Error('You must be logged in to comment');
+      }
 
       const commentData = {
         content,
@@ -81,46 +79,44 @@ export const useCreateComment = () => {
         [`${contentType}_id`]: contentId,
       };
 
-      // Use simpler query to avoid type inference issues
       const { data, error } = await supabase
         .from('comments')
         .insert(commentData)
-        .select('*, profiles(*)')
+        .select('id, content, created_at, user_id, profiles(id, username, full_name, avatar_url)')
         .single();
 
       if (error) throw error;
       
-      // Cast to any first to break type chain, then map to our type
-      const rawData = data as any;
-      
-      return {
-        id: rawData.id,
-        content: rawData.content,
-        created_at: rawData.created_at,
-        user_id: rawData.user_id,
+      // Direct casting to avoid type issues
+      const comment: Comment = {
+        id: (data as any).id,
+        content: (data as any).content,
+        created_at: (data as any).created_at,
+        user_id: (data as any).user_id,
         profiles: {
-          id: rawData.profiles?.id || '',
-          username: rawData.profiles?.username || null,
-          full_name: rawData.profiles?.full_name || null,
-          avatar_url: rawData.profiles?.avatar_url || null
+          id: (data as any).profiles?.id || '',
+          username: (data as any).profiles?.username || null,
+          full_name: (data as any).profiles?.full_name || null,
+          avatar_url: (data as any).profiles?.avatar_url || null
         }
       };
+      
+      return comment;
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ['comments', variables.contentType, variables.contentId]
+      queryClient.invalidateQueries({ 
+        queryKey: ['comments', variables.contentType, variables.contentId] 
       });
-      toast({
-        title: "Comment posted!",
-        description: "Your comment has been added successfully.",
-      });
+      toast({ title: "Comment added successfully!" });
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to post comment. Please try again.",
+        title: "Error adding comment",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 };
+
+export type { Comment, CommentProfile };

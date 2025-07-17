@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { UserPlus, Compass } from "lucide-react";
+import { UserPlus, Compass, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import type { Database } from "@/integrations/supabase/types";
 import { useLocation } from "@/hooks/useLocation";
@@ -57,7 +57,14 @@ const NearbyTab = () => {
             <h3 className="text-lg font-semibold">Find people near you</h3>
             <p className="text-muted-foreground mb-4">Share your location to see who's around.</p>
             <Button onClick={getLocation} disabled={locationLoading}>
-                {locationLoading ? 'Getting Location...' : 'Share My Location'}
+                {locationLoading ? (
+                    <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Getting Location...
+                    </>
+                ) : (
+                    'Share My Location'
+                )}
             </Button>
             {locationError && <p className="text-sm text-red-500 mt-2">{locationError}</p>}
         </div>

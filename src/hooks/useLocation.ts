@@ -58,21 +58,75 @@ export const useLocation = () => {
       }
 
       setLoading(true);
-      console.log("useLocation: Requesting location from browser...");
+      console.log("useLocation: Attempting quick location fetch...");
 
-      const handleSuccess = (position: GeolocationPosition) => {
-        console.log("useLocation: Geolocation success.", position.coords);
-        const { latitude, longitude } = position.coords;
-        updateProfileLocation(latitude, longitude);
-        resolve({ latitude, longitude });
+      // First attempt: Quick, low-accuracy fetch
+      const attemptQuickLocation = () => {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            console.log("useLocation: Quick location success.", position.coords);
+            const { latitude, longitude } = position.coords;
+            updateProfileLocation(latitude, longitude);
+            resolve({ latitude, longitude });
+          },
+          (err) => {
+            console.log("useLocation: Quick location failed, trying accurate fetch...");
+            handleQuickLocationError(err);
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 5000, // 5 seconds
+            maximumAge: 60000, // Allow 1-minute cached position
+          }
+        );
       };
 
-      const handleError = (err: GeolocationPositionError) => {
-        console.error("useLocation: Geolocation error.", err);
+      const handleQuickLocationError = (err: GeolocationPositionError) => {
+        // Don't show error for quick attempt, just inform about trying accurate search
+        if (err.code === err.PERMISSION_DENIED) {
+          const msg = "Location access is blocked. Please enable it in your browser's site settings to use this feature.";
+          setError(msg);
+          toast({ title: "Location Access Blocked", description: msg, variant: "destructive" });
+          setLoading(false);
+          resolve(null);
+          return;
+        }
+
+        // Inform user we're trying a more accurate search
+        toast({ 
+          title: "Getting location...", 
+          description: "Having trouble getting a quick location, trying a more accurate search..." 
+        });
+
+        // Second attempt: High-accuracy fetch
+        attemptAccurateLocation();
+      };
+
+      const attemptAccurateLocation = () => {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            console.log("useLocation: Accurate location success.", position.coords);
+            const { latitude, longitude } = position.coords;
+            updateProfileLocation(latitude, longitude);
+            resolve({ latitude, longitude });
+          },
+          (err) => {
+            console.error("useLocation: Accurate location failed.", err);
+            handleAccurateLocationError(err);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 15000, // 15 seconds
+            maximumAge: 0, // Force fresh location
+          }
+        );
+      };
+
+      const handleAccurateLocationError = (err: GeolocationPositionError) => {
         let msg = `Unable to retrieve your location: ${err.message}`;
         switch (err.code) {
           case err.PERMISSION_DENIED:
-            msg = "Location access was denied. Please enable it in your browser settings.";
+            msg = "Location access is blocked. Please enable it in your browser's site settings to use this feature.";
             break;
           case err.POSITION_UNAVAILABLE:
             msg = "Your location could not be determined. This can be due to a poor signal. Please ensure location services are enabled on your device and try again.";
@@ -87,17 +141,8 @@ export const useLocation = () => {
         resolve(null);
       };
 
-      // Forcing a fresh, low-accuracy position. This might be more reliable if
-      // the device is having trouble getting a fix or if there's a bad cached position.
-      navigator.geolocation.getCurrentPosition(
-        handleSuccess,
-        handleError,
-        {
-          enableHighAccuracy: false,
-          timeout: 20000, // 20 seconds
-          maximumAge: 0, // Don't use a cached position, get a fresh one.
-        }
-      );
+      // Start with quick location attempt
+      attemptQuickLocation();
     });
   };
   
@@ -105,4 +150,3 @@ export const useLocation = () => {
 
   return { error, loading, getLocation, hasLocation, profileLocation: { latitude: profile?.latitude, longitude: profile?.longitude } };
 };
-
