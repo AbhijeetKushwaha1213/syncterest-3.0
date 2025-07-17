@@ -5,6 +5,7 @@ import type { Database } from '@/integrations/supabase/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { UserPlus } from 'lucide-react';
+import { useFollow } from '@/hooks/useFollow';
 import React from 'react';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -14,11 +15,12 @@ interface UserCardProps {
 }
 
 const UserCard = ({ profile }: UserCardProps) => {
+  const { followMutation } = useFollow();
+
   const handleConnectClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log(`Connecting with ${profile.username}`);
-    // In the future, we can add a toast notification here.
+    followMutation.mutate(profile.id);
   };
 
   return (
@@ -50,6 +52,7 @@ const UserCard = ({ profile }: UserCardProps) => {
         variant="secondary"
         className="absolute top-3 right-3 z-20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
         onClick={handleConnectClick}
+        disabled={followMutation.isPending}
       >
         <UserPlus className="h-5 w-5" />
       </Button>

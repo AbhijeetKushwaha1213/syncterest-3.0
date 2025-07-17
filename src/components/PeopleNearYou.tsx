@@ -6,8 +6,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useFollow } from "@/hooks/useFollow";
 import type { Database } from "@/integrations/supabase/types";
 import { Link } from "react-router-dom";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Carousel,
   CarouselContent,
@@ -35,6 +37,7 @@ const getUserStatus = (lastActiveAt: string | null): UserStatus => {
 const PeopleNearYou = () => {
   const { profile } = useAuth();
   const [hoveredProfile, setHoveredProfile] = useState<string | null>(null);
+  const { followMutation } = useFollow();
 
   const { data: profiles, isLoading } = useQuery<Profile[]>({
     queryKey: ["profiles_nearby_sidebar", profile?.id, profile?.latitude, profile?.longitude],
@@ -82,6 +85,15 @@ const PeopleNearYou = () => {
     return "From the community";
   }
 
+  const handleConnect = (profileId: string) => {
+    followMutation.mutate(profileId);
+  };
+
+  const getInterestTooltip = (interests: string[] | null) => {
+    if (!interests || interests.length === 0) return "No interests listed";
+    return interests.join(", ");
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -111,6 +123,8 @@ const PeopleNearYou = () => {
                 const status = getUserStatus(p.last_active_at);
                 const isHovered = hoveredProfile === p.id;
                 const isAdjacent = hoveredProfile && Math.abs(profiles.findIndex(prof => prof.id === hoveredProfile) - index) === 1;
+                const displayedInterests = p.interests?.slice(0, 2) || [];
+                const remainingCount = (p.interests?.length || 0) - 2;
                 
                 return (
                   <CarouselItem 
@@ -123,60 +137,85 @@ const PeopleNearYou = () => {
                     }}
                   >
                     <div className="p-1 h-full">
-                      <Card 
-                        className="text-center h-full flex flex-col transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
-                        onMouseEnter={() => setHoveredProfile(p.id)}
-                        onMouseLeave={() => setHoveredProfile(null)}
-                        style={{
-                          transform: isHovered ? 'translateY(-4px) scale(1.02)' : 'translateY(0) scale(1)',
-                        }}
-                      >
-                        <CardContent className="p-4 flex flex-col items-center gap-2 flex-1 justify-between">
-                          <div className="flex flex-col items-center gap-2">
-                            <div className="relative">
-                              <Link to={`/profile/${p.id}`}>
-                                <Avatar className="h-16 w-16 border-2 border-primary/50 transition-all duration-300 hover:border-primary hover:scale-110">
-                                  <AvatarImage src={p.avatar_url ?? ""} alt={p.username ?? "avatar"} />
-                                  <AvatarFallback>{p.username?.charAt(0).toUpperCase()}</AvatarFallback>
-                                </Avatar>
-                              </Link>
-                              {status !== 'offline' && (
-                                <span
-                                  className={`absolute bottom-1 right-1 block h-4 w-4 rounded-full ${
-                                    status === 'online' ? 'bg-green-500' : 'bg-amber-400'
-                                  } border-2 border-background transition-all duration-300 ${isHovered ? 'scale-110' : ''}`}
-                                  title={status === 'online' ? 'Online' : 'Recently Active'}
-                                />
-                              )}
-                            </div>
-                            <Link 
-                              to={`/profile/${p.id}`} 
-                              className="font-semibold text-sm hover:underline truncate w-full transition-colors duration-200 hover:text-primary" 
-                              title={p.full_name || p.username || ''}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Card 
+                              className="text-center h-full flex flex-col transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
+                              onMouseEnter={() => setHoveredProfile(p.id)}
+                              onMouseLeave={() => setHoveredProfile(null)}
+                              style={{
+                                transform: isHovered ? 'translateY(-4px) scale(1.02)' : 'translateY(0) scale(1)',
+                              }}
                             >
-                              {p.full_name || p.username}
-                            </Link>
-                            <p className="text-xs text-muted-foreground">{getSubtext(p)}</p>
-                            <div className="flex flex-wrap gap-1 justify-center w-full min-h-[22px] items-center">
-                              {p.interests?.slice(0, 2).map((interest) => (
-                                <span 
-                                  key={interest} 
-                                  className="text-[10px] bg-primary/10 text-primary font-medium px-1.5 py-0.5 rounded-full truncate transition-all duration-200 hover:bg-primary/20"
+                              <CardContent className="p-4 flex flex-col items-center gap-2 flex-1 justify-between">
+                                <div className="flex flex-col items-center gap-2">
+                                  <div className="relative">
+                                    <Link to={`/profile/${p.id}`}>
+                                      <Avatar className="h-16 w-16 border-2 border-primary/50 transition-all duration-300 hover:border-primary hover:scale-110">
+                                        <AvatarImage src={p.avatar_url ?? ""} alt={p.username ?? "avatar"} />
+                                        <AvatarFallback>{p.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                                      </Avatar>
+                                    </Link>
+                                    {status !== 'offline' && (
+                                      <span
+                                        className={`absolute bottom-1 right-1 block h-4 w-4 rounded-full ${
+                                          status === 'online' ? 'bg-green-500' : 'bg-amber-400'
+                                        } border-2 border-background transition-all duration-300 ${isHovered ? 'scale-110' : ''}`}
+                                        title={status === 'online' ? 'Online' : 'Recently Active'}
+                                      />
+                                    )}
+                                  </div>
+                                  <Link 
+                                    to={`/profile/${p.id}`} 
+                                    className="font-semibold text-sm hover:underline truncate w-full transition-colors duration-200 hover:text-primary" 
+                                    title={p.full_name || p.username || ''}
+                                  >
+                                    {p.full_name || p.username}
+                                  </Link>
+                                  <p className="text-xs text-muted-foreground">{getSubtext(p)}</p>
+                                  <div className="flex flex-wrap gap-1 justify-center w-full min-h-[22px] items-center">
+                                    {displayedInterests.map((interest) => (
+                                      <span 
+                                        key={interest} 
+                                        className="text-[10px] bg-primary/10 text-primary font-medium px-1.5 py-0.5 rounded-full truncate transition-all duration-200 hover:bg-primary/20"
+                                      >
+                                        {interest}
+                                      </span>
+                                    ))}
+                                    {remainingCount > 0 && (
+                                      <span className="text-[10px] bg-muted text-muted-foreground font-medium px-1.5 py-0.5 rounded-full">
+                                        +{remainingCount} more
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <Button 
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleConnect(p.id);
+                                  }}
+                                  variant="secondary" 
+                                  size="sm" 
+                                  className="w-full mt-2 whitespace-nowrap transition-all duration-300 hover:scale-105 hover:shadow-md"
+                                  disabled={followMutation.isPending}
                                 >
-                                  {interest}
-                                </span>
-                              ))}
+                                  {followMutation.isPending ? "Connecting..." : "Connect"}
+                                </Button>
+                              </CardContent>
+                            </Card>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <div className="max-w-xs">
+                              <p className="font-semibold">{p.full_name || p.username}</p>
+                              <p className="text-sm text-muted-foreground">
+                                Interests: {getInterestTooltip(p.interests)}
+                              </p>
                             </div>
-                          </div>
-                          <Button 
-                            variant="secondary" 
-                            size="sm" 
-                            className="w-full mt-2 whitespace-nowrap transition-all duration-300 hover:scale-105 hover:shadow-md"
-                          >
-                            Connect
-                          </Button>
-                        </CardContent>
-                      </Card>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </CarouselItem>
                 );

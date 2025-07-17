@@ -8,11 +8,11 @@ import LiveUsersTab from "@/components/live/LiveUsersTab";
 import FeedList from "@/components/feed/FeedList";
 import { useState } from "react";
 import {
-  Users, MapPin, Wifi, CalendarDays, Star, UserCog,
+  BookOpen, MapPin, Wifi, CalendarDays, Star, UserCog,
 } from "lucide-react";
 
 const tabs = [
-  { value: "people", label: "People", icon: Users },
+  { value: "feed", label: "Feed", icon: BookOpen },
   { value: "nearby", label: "Nearby", icon: MapPin },
   { value: "live", label: "Live", icon: Wifi },
   { value: "events", label: "Events", icon: CalendarDays },
@@ -31,7 +31,7 @@ interface HomeTabsProps {
 }
 
 const HomeTabs = ({ selectedInterest }: HomeTabsProps) => {
-  const [activeTab, setActiveTab] = useState("people");
+  const [activeTab, setActiveTab] = useState("feed");
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -61,13 +61,13 @@ const HomeTabs = ({ selectedInterest }: HomeTabsProps) => {
       </div>
       
       <div className="mt-4">
-        <TabsContent value="people" className="animate-fade-in">
+        <TabsContent value="feed" className="animate-fade-in">
           <FeedList selectedInterest={selectedInterest} />
         </TabsContent>
         <TabsContent value="nearby" className="px-4 md:px-0 animate-fade-in">
           <NearbyTab />
         </TabsContent>
-        {tabs.filter(t => t.value !== 'people' && t.value !== 'nearby').map(tab => (
+        {tabs.filter(t => t.value !== 'feed' && t.value !== 'nearby').map(tab => (
           <TabsContent key={tab.value} value={tab.value} className="px-4 md:px-0 animate-fade-in">
              {
                tab.value === 'live' ? <LiveUsersTab /> :

@@ -27,7 +27,7 @@ const FeedList = ({ selectedInterest }: { selectedInterest: string | null }) => 
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-4 md:px-0">
+      <div className="flex flex-col gap-4 px-4 md:px-0">
         {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-96 w-full" />)}
       </div>
     );
@@ -49,7 +49,7 @@ const FeedList = ({ selectedInterest }: { selectedInterest: string | null }) => 
 
   return (
     <div 
-      className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-4 md:px-0 transition-all duration-300 ${
+      className={`flex flex-col gap-4 px-4 md:px-0 transition-all duration-300 ${
         isTransitioning ? 'opacity-0 transform translate-y-4' : 'opacity-100 transform translate-y-0'
       }`}
     >

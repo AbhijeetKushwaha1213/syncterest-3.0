@@ -3,11 +3,12 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { FileText, Calendar, MessageCircle, Video } from "lucide-react";
+import { Heart, MessageCircle, Share2, Calendar, Video } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { FeedItem, Profile } from "./types";
 import { getDistance } from "@/lib/location";
 import { useState } from "react";
+import CommentSection from "@/components/comments/CommentSection";
 
 interface ContentCardProps {
   item: FeedItem;
@@ -15,7 +16,7 @@ interface ContentCardProps {
 }
 
 export const ContentCard = ({ item, currentUserProfile }: ContentCardProps) => {
-  const [isHovered, setIsHovered] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const creator = item.profiles;
   if (!creator) return null;
 
@@ -32,10 +33,6 @@ export const ContentCard = ({ item, currentUserProfile }: ContentCardProps) => {
 
   const isEvent = item.item_type === 'event';
   const isReel = item.item_type === 'reel';
-  
-  const itemPath = isEvent ? `/events/${item.id}` : `/profile/${creator.id}`;
-
-  const ItemIcon = isEvent ? Calendar : isReel ? Video : FileText;
   
   let title, description, mediaUrl;
 
@@ -54,82 +51,94 @@ export const ContentCard = ({ item, currentUserProfile }: ContentCardProps) => {
   }
 
   return (
-    <Card 
-      className="flex flex-col h-full group overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 cursor-pointer"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      style={{
-        transform: isHovered ? 'perspective(1000px) rotateX(2deg) rotateY(2deg)' : 'none',
-      }}
-    >
-      <Link to={itemPath} className="block">
-        <div className="relative overflow-hidden aspect-video">
-          {isReel && mediaUrl ? (
-            <video 
-              src={mediaUrl} 
-              className={`w-full h-full object-cover transition-transform duration-700 ${isHovered ? 'scale-110' : 'scale-100'}`}
-              controls 
-              muted 
-              autoPlay 
-              loop 
-              playsInline 
-            />
-          ) : mediaUrl ? (
-            <img 
-              src={mediaUrl} 
-              alt={title || ""} 
-              className={`w-full h-full object-cover transition-transform duration-700 ${isHovered ? 'scale-110' : 'scale-100'}`}
-            />
-          ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center">
-              <ItemIcon className="h-12 w-12 text-muted-foreground/50" />
-            </div>
-          )}
-          <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm p-1.5 rounded-full transition-all duration-300 hover:bg-background/90">
-            <ItemIcon className="h-4 w-4" />
-          </div>
-        </div>
-      </Link>
-      <CardHeader>
-        <div className="flex items-center gap-3">
+    <Card className="w-full transition-all duration-300 hover:shadow-lg">
+      {/* Header */}
+      <CardHeader className="pb-3">
+        <div className="flex items-start gap-3">
           <Link to={`/profile/${creator.id}`}>
-            <Avatar className="h-10 w-10 transition-transform duration-300 hover:scale-110">
+            <Avatar className="h-12 w-12 transition-transform duration-300 hover:scale-110">
               <AvatarImage src={creator.avatar_url ?? ""} />
               <AvatarFallback>{creator.username?.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
           </Link>
-          <div>
-            <Link 
-              to={`/profile/${creator.id}`} 
-              className="font-semibold hover:underline transition-colors duration-200 hover:text-primary"
-            >
-              {creator.username}
-            </Link>
-            <div className="text-xs text-muted-foreground flex items-center gap-2">
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <Link 
+                to={`/profile/${creator.id}`} 
+                className="font-semibold hover:underline transition-colors duration-200 hover:text-primary"
+              >
+                {creator.username}
+              </Link>
+              {isEvent && <Calendar className="h-4 w-4 text-primary" />}
+              {isReel && <Video className="h-4 w-4 text-primary" />}
+            </div>
+            <div className="text-sm text-muted-foreground flex items-center gap-2">
               <span>{formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}</span>
               {distance !== null && <span>· {distance.toFixed(1)} km away</span>}
             </div>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex-grow">
-        <Link to={itemPath} className="hover:underline">
-            <h3 className="font-bold text-lg leading-tight truncate transition-colors duration-200 hover:text-primary">
-              {title}
-            </h3>
-        </Link>
-        <p className="text-muted-foreground text-sm mt-1 line-clamp-2">{description}</p>
+
+      {/* Content */}
+      <CardContent className="pt-0">
+        {description && (
+          <div className="mb-4">
+            <p className="text-sm leading-relaxed">{description}</p>
+          </div>
+        )}
+        
+        {/* Media */}
+        {mediaUrl && (
+          <div className="relative overflow-hidden rounded-lg">
+            {isReel ? (
+              <video 
+                src={mediaUrl} 
+                className="w-full h-auto max-h-96 object-cover"
+                controls 
+                muted 
+                playsInline 
+              />
+            ) : (
+              <img 
+                src={mediaUrl} 
+                alt={title || ""} 
+                className="w-full h-auto max-h-96 object-cover"
+              />
+            )}
+          </div>
+        )}
       </CardContent>
-      <CardFooter>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="text-muted-foreground gap-2 transition-all duration-200 hover:scale-105 hover:text-primary"
-        >
+
+      {/* Action Bar */}
+      <CardFooter className="pt-0 pb-3">
+        <div className="flex items-center gap-1 w-full">
+          <Button variant="ghost" size="sm" className="text-muted-foreground gap-2 hover:text-red-500">
+            <Heart className="h-4 w-4" />
+            Like
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-muted-foreground gap-2 hover:text-primary"
+            onClick={() => setShowComments(!showComments)}
+          >
             <MessageCircle className="h-4 w-4" />
             Comment
-        </Button>
+          </Button>
+          <Button variant="ghost" size="sm" className="text-muted-foreground gap-2 hover:text-blue-500">
+            <Share2 className="h-4 w-4" />
+            Share
+          </Button>
+        </div>
       </CardFooter>
+
+      {/* Comments Section */}
+      {showComments && (
+        <div className="border-t px-6 py-4">
+          <CommentSection contentId={item.id} contentType={item.item_type} />
+        </div>
+      )}
     </Card>
   );
 };
