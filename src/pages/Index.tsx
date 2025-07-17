@@ -1,10 +1,9 @@
-
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
-import { UserCard } from "@/components/UserCard";
+import UserCard from "@/components/UserCard";
 import { useQuery } from "@tanstack/react-query";
 import type { Database } from "@/integrations/supabase/types";
 
