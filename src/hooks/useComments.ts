@@ -26,68 +26,42 @@ export const useComments = (contentId: string, contentType: 'post' | 'event' | '
     queryFn: async () => {
       const columnName = `${contentType}_id`;
       
-      // Use raw query with any casting to completely bypass type checking
-      const response = await supabase.rpc('exec', {
-        sql: `
-          SELECT 
-            c.id,
-            c.content,
-            c.created_at,
-            c.user_id,
-            json_build_object(
-              'id', p.id,
-              'username', p.username,
-              'full_name', p.full_name,
-              'avatar_url', p.avatar_url
-            ) as profiles
-          FROM comments c
-          LEFT JOIN profiles p ON c.user_id = p.id
-          WHERE c.${columnName} = $1
-          ORDER BY c.created_at ASC
-        `,
-        args: [contentId]
-      });
+      // Use basic query with minimal select to avoid type issues
+      const response = await supabase
+        .from('comments' as any)
+        .select('id, content, created_at, user_id')
+        .eq(columnName, contentId)
+        .order('created_at', { ascending: true });
 
-      if (response.error) {
-        // Fallback to basic query if RPC fails
-        const { data: basicData, error: basicError } = await supabase
-          .from('comments')
-          .select(`
-            id,
-            content,
-            created_at,
-            user_id
-          `)
-          .eq(columnName, contentId)
-          .order('created_at', { ascending: true });
+      if (response.error) throw response.error;
 
-        if (basicError) throw basicError;
+      // Get profile data separately to avoid complex joins
+      const comments: Comment[] = [];
+      const commentData = response.data as any[] || [];
 
-        // Transform basic data to match our type
-        const comments: Comment[] = (basicData || []).map((item: any) => ({
+      for (const item of commentData) {
+        // Get profile for each comment separately
+        const profileResponse = await supabase
+          .from('profiles' as any)
+          .select('id, username, full_name, avatar_url')
+          .eq('id', item.user_id)
+          .single();
+
+        const profile = profileResponse.data || {
+          id: '',
+          username: null,
+          full_name: null,
+          avatar_url: null
+        };
+
+        comments.push({
           id: item.id,
           content: item.content,
           created_at: item.created_at,
           user_id: item.user_id,
-          profiles: {
-            id: '',
-            username: null,
-            full_name: null,
-            avatar_url: null
-          }
-        }));
-        
-        return comments;
+          profiles: profile
+        });
       }
-      
-      // Transform RPC data to our Comment type
-      const comments: Comment[] = (response.data || []).map((item: any) => ({
-        id: item.id,
-        content: item.content,
-        created_at: item.created_at,
-        user_id: item.user_id,
-        profiles: typeof item.profiles === 'string' ? JSON.parse(item.profiles) : item.profiles
-      }));
       
       return comments;
     },
@@ -119,7 +93,7 @@ export const useCreateComment = () => {
         throw new Error('You must be logged in to comment');
       }
 
-      const commentData: any = {
+      const commentData: Record<string, any> = {
         content,
         user_id: user.id,
       };
@@ -128,20 +102,20 @@ export const useCreateComment = () => {
       commentData[`${contentType}_id`] = contentId;
 
       // Use basic insert without complex select to avoid type issues
-      const { data, error } = await supabase
-        .from('comments')
+      const response = await supabase
+        .from('comments' as any)
         .insert(commentData)
         .select('id, content, created_at, user_id')
         .single();
 
-      if (error) throw error;
+      if (response.error) throw response.error;
       
-      // Create comment object with profile data
+      // Create comment object with profile data from user
       const comment: Comment = {
-        id: data.id,
-        content: data.content,
-        created_at: data.created_at,
-        user_id: data.user_id,
+        id: response.data.id,
+        content: response.data.content,
+        created_at: response.data.created_at,
+        user_id: response.data.user_id,
         profiles: {
           id: user.id,
           username: user.user_metadata?.username || null,
