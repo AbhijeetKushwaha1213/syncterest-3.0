@@ -65,7 +65,7 @@ const HomeTabs = ({ selectedInterest }: HomeTabsProps) => {
         </TabsContent>
         
         <TabsContent value="events" className="space-y-4">
-          <EventsList selectedInterest={selectedInterest} />
+          <EventsList />
         </TabsContent>
       </Tabs>
     </div>
