@@ -33,24 +33,32 @@ import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import EventImageUpload from "./EventImageUpload";
+import EventMapSelector from "./EventMapSelector";
+import TimeSelector from "./TimeSelector";
 
 const eventFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
-  event_time: z.date({ required_error: "Event date is required." }),
+  event_date: z.date({ required_error: "Event date is required." }),
+  event_time: z.string().min(1, "Event time is required"),
   location: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
   image_file: z.instanceof(File).optional(),
 });
 
 type EventFormValues = z.infer<typeof eventFormSchema>;
 
 type NewEventPayload = {
-    title: string;
-    description?: string;
-    location?: string;
-    event_time: string;
-    created_by: string;
-    image_url: string | null;
+  title: string;
+  description?: string;
+  location?: string;
+  event_time: string;
+  created_by: string;
+  image_url: string | null;
+  latitude?: number;
+  longitude?: number;
 };
 
 const CreateEventDialog = () => {
@@ -65,7 +73,7 @@ const CreateEventDialog = () => {
       title: "",
       description: "",
       location: "",
-      image_file: undefined,
+      event_time: "18:00", // Default to 6 PM
     },
   });
 
@@ -128,14 +136,21 @@ const CreateEventDialog = () => {
       }
       setIsUploading(false);
     }
+
+    // Combine date and time
+    const eventDateTime = new Date(values.event_date);
+    const [hours, minutes] = values.event_time.split(':').map(Number);
+    eventDateTime.setHours(hours, minutes, 0, 0);
     
     createEventMutation.mutate({
       title: values.title,
       description: values.description,
       location: values.location,
-      event_time: values.event_time.toISOString(),
+      event_time: eventDateTime.toISOString(),
       created_by: user.id,
       image_url: imageUrl,
+      latitude: values.latitude,
+      longitude: values.longitude,
     });
   };
 
@@ -147,7 +162,7 @@ const CreateEventDialog = () => {
           Create Event
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Event</DialogTitle>
           <DialogDescription>
@@ -155,104 +170,165 @@ const CreateEventDialog = () => {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Event Title" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Event Description" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="event_time"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Event Date</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column - Image Upload */}
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="image_file"
+                  render={({ field }) => (
+                    <FormItem>
                       <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
+                        <EventImageUpload
+                          onImageChange={(file) => field.onChange(file)}
+                          currentImage={field.value}
+                        />
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Location</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Event Location" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="image_file"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Event Image</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="file"
-                      accept="image/png, image/jpeg, image/gif"
-                      onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : undefined)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Map Selector */}
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <EventMapSelector
+                          onLocationChange={(location) => {
+                            if (location) {
+                              field.onChange(location.address);
+                              form.setValue("latitude", location.latitude);
+                              form.setValue("longitude", location.longitude);
+                            } else {
+                              field.onChange("");
+                              form.setValue("latitude", undefined);
+                              form.setValue("longitude", undefined);
+                            }
+                          }}
+                          initialLocation={
+                            field.value && form.getValues("latitude") && form.getValues("longitude")
+                              ? {
+                                  address: field.value,
+                                  latitude: form.getValues("latitude")!,
+                                  longitude: form.getValues("longitude")!,
+                                }
+                              : undefined
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Right Column - Form Fields */}
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Event Title</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter event title..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Describe your event..." 
+                          className="min-h-[100px]"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Date and Time Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="event_date"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Event Date</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value ? (
+                                  format(field.value, "PPP")
+                                ) : (
+                                  <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              disabled={(date) => date < new Date()}
+                              initialFocus
+                              className="pointer-events-auto"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="event_time"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Event Time</FormLabel>
+                        <FormControl>
+                          <TimeSelector
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
+
             <DialogFooter>
-              <Button type="submit" disabled={createEventMutation.isPending || isUploading}>
+              <Button 
+                type="submit" 
+                disabled={createEventMutation.isPending || isUploading}
+                className="w-full sm:w-auto"
+              >
                 {isUploading ? 'Uploading...' : createEventMutation.isPending ? "Creating..." : "Create Event"}
               </Button>
             </DialogFooter>
