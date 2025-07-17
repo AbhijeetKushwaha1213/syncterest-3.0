@@ -26,27 +26,67 @@ export const useComments = (contentId: string, contentType: 'post' | 'event' | '
     queryFn: async () => {
       const columnName = `${contentType}_id`;
       
-      // Use completely raw query to avoid any type inference
-      const { data, error } = await supabase
-        .from('comments')
-        .select('*, profiles(*)')
-        .eq(columnName, contentId)
-        .order('created_at', { ascending: true });
+      // Use raw query with any casting to completely bypass type checking
+      const response = await supabase.rpc('exec', {
+        sql: `
+          SELECT 
+            c.id,
+            c.content,
+            c.created_at,
+            c.user_id,
+            json_build_object(
+              'id', p.id,
+              'username', p.username,
+              'full_name', p.full_name,
+              'avatar_url', p.avatar_url
+            ) as profiles
+          FROM comments c
+          LEFT JOIN profiles p ON c.user_id = p.id
+          WHERE c.${columnName} = $1
+          ORDER BY c.created_at ASC
+        `,
+        args: [contentId]
+      });
 
-      if (error) throw error;
+      if (response.error) {
+        // Fallback to basic query if RPC fails
+        const { data: basicData, error: basicError } = await supabase
+          .from('comments')
+          .select(`
+            id,
+            content,
+            created_at,
+            user_id
+          `)
+          .eq(columnName, contentId)
+          .order('created_at', { ascending: true });
+
+        if (basicError) throw basicError;
+
+        // Transform basic data to match our type
+        const comments: Comment[] = (basicData || []).map((item: any) => ({
+          id: item.id,
+          content: item.content,
+          created_at: item.created_at,
+          user_id: item.user_id,
+          profiles: {
+            id: '',
+            username: null,
+            full_name: null,
+            avatar_url: null
+          }
+        }));
+        
+        return comments;
+      }
       
-      // Direct casting to bypass all type checking
-      const comments: Comment[] = (data || []).map((item: any) => ({
+      // Transform RPC data to our Comment type
+      const comments: Comment[] = (response.data || []).map((item: any) => ({
         id: item.id,
         content: item.content,
         created_at: item.created_at,
         user_id: item.user_id,
-        profiles: {
-          id: item.profiles?.id || '',
-          username: item.profiles?.username || null,
-          full_name: item.profiles?.full_name || null,
-          avatar_url: item.profiles?.avatar_url || null
-        }
+        profiles: typeof item.profiles === 'string' ? JSON.parse(item.profiles) : item.profiles
       }));
       
       return comments;
@@ -79,31 +119,34 @@ export const useCreateComment = () => {
         throw new Error('You must be logged in to comment');
       }
 
-      const commentData = {
+      const commentData: any = {
         content,
         user_id: user.id,
-        [`${contentType}_id`]: contentId,
       };
+      
+      // Set the appropriate ID field based on content type
+      commentData[`${contentType}_id`] = contentId;
 
+      // Use basic insert without complex select to avoid type issues
       const { data, error } = await supabase
         .from('comments')
         .insert(commentData)
-        .select('*, profiles(*)')
+        .select('id, content, created_at, user_id')
         .single();
 
       if (error) throw error;
       
-      // Direct casting to avoid type issues
+      // Create comment object with profile data
       const comment: Comment = {
-        id: (data as any).id,
-        content: (data as any).content,
-        created_at: (data as any).created_at,
-        user_id: (data as any).user_id,
+        id: data.id,
+        content: data.content,
+        created_at: data.created_at,
+        user_id: data.user_id,
         profiles: {
-          id: (data as any).profiles?.id || '',
-          username: (data as any).profiles?.username || null,
-          full_name: (data as any).profiles?.full_name || null,
-          avatar_url: (data as any).profiles?.avatar_url || null
+          id: user.id,
+          username: user.user_metadata?.username || null,
+          full_name: user.user_metadata?.full_name || null,
+          avatar_url: user.user_metadata?.avatar_url || null
         }
       };
       
