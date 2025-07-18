@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Outlet, useParams, useNavigate } from 'react-router-dom';
+import { Outlet, useParams } from 'react-router-dom';
 import ChannelList from '@/components/channels/ChannelList';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ChannelsDiscovery from '@/pages/ChannelsDiscovery';
@@ -10,9 +10,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 const ChannelsLayout = () => {
   const { id } = useParams<{ id: string }>();
   const { loading } = useAuth();
-  const navigate = useNavigate();
 
-  // Show loading state
+  // Show loading state while auth is loading
   if (loading) {
     return (
       <div className="flex h-full">
@@ -34,10 +33,12 @@ const ChannelsLayout = () => {
     );
   }
 
+  // If no specific channel ID, show the discovery page
   if (!id) {
     return <ChannelsDiscovery />;
   }
 
+  // If we have a channel ID, show the layout with sidebar and outlet
   return (
     <div className="grid grid-cols-[260px_1fr] h-full">
       <aside className="border-r bg-muted/30">

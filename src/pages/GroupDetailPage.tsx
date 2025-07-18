@@ -6,18 +6,19 @@ import { useGroupMembership } from '@/hooks/useGroupMembership';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Image } from 'lucide-react';
+import { Users, Image, AlertTriangle } from 'lucide-react';
 import GroupMemberItem from '@/components/groups/GroupMemberItem';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const GroupDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const { user } = useAuth();
-    const { data: group, isLoading: isLoadingGroup } = useGroup(id);
-    const { data: members, isLoading: isLoadingMembers } = useGroupMembers(id);
+    const { data: group, isLoading: isLoadingGroup, error: groupError } = useGroup(id);
+    const { data: members, isLoading: isLoadingMembers, error: membersError } = useGroupMembers(id);
     const { isMember, isLoadingMembership, joinOrLeave, isJoiningOrLeaving } = useGroupMembership(id);
 
     const isLoading = isLoadingGroup || isLoadingMembers;
+    const hasError = groupError || membersError;
 
     if (isLoading) {
         return (
@@ -37,8 +38,31 @@ const GroupDetailPage = () => {
         );
     }
 
+    if (hasError) {
+        return (
+            <div className="container mx-auto max-w-4xl py-8">
+                <div className="text-center">
+                    <AlertTriangle className="mx-auto h-12 w-12 text-destructive mb-4" />
+                    <h2 className="text-xl font-semibold mb-2">Unable to load group</h2>
+                    <p className="text-muted-foreground">
+                        There was an error loading the group details. Please try refreshing the page.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     if (!group) {
-        return <div className="text-center py-10">Group not found.</div>;
+        return (
+            <div className="container mx-auto max-w-4xl py-8">
+                <div className="text-center">
+                    <h2 className="text-xl font-semibold mb-2">Group not found</h2>
+                    <p className="text-muted-foreground">
+                        The group you're looking for doesn't exist or may have been removed.
+                    </p>
+                </div>
+            </div>
+        );
     }
 
     const isCreator = user?.id === group.created_by;

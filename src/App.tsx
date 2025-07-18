@@ -30,7 +30,7 @@ import DataManagementSettingsPage from "./pages/settings/DataManagementSettingsP
 import HelpSettingsPage from "./pages/settings/HelpSettingsPage";
 import LinkedAccountsSettingsPage from "./pages/settings/LinkedAccountsSettingsPage";
 import DiscoverySettingsPage from './pages/settings/DiscoverySettingsPage';
-import GroupsPage from './components/groups/GroupsPage';
+import GroupsPage from './pages/GroupsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {

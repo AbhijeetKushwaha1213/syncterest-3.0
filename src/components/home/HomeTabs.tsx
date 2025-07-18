@@ -1,7 +1,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EventsList from "@/components/events/EventsList";
-import GroupsPage from "@/components/groups/GroupsPage";
+import GroupsPage from "@/pages/GroupsPage";
 import MatchesList from "@/components/matches/MatchesList";
 import NearbyTab from "@/components/nearby/NearbyTab";
 import LiveUsersTab from "@/components/live/LiveUsersTab";
