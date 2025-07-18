@@ -4,7 +4,6 @@ import { useState } from "react";
 import AppHeader from "./AppHeader";
 import DesktopSidebar from "./DesktopSidebar";
 import MobileBottomNav from "./MobileBottomNav";
-import ErrorBoundary from "./ErrorBoundary";
 import { usePresence } from "@/hooks/usePresence";
 import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
 
@@ -27,9 +26,7 @@ const LoggedInLayoutContent = () => {
           onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         />
         <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
-          <ErrorBoundary>
-            <Outlet />
-          </ErrorBoundary>
+          <Outlet />
         </main>
       </div>
       <MobileBottomNav />

@@ -8,8 +8,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import { AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 const ChatPage = () => {
   const { conversationId } = useParams<{ conversationId: string }>();
@@ -18,30 +16,17 @@ const ChatPage = () => {
   
   const [selectedConversation, setSelectedConversation] = useState<ConversationWithOtherParticipant | null>(null);
 
-  const { data: conversations, isLoading: conversationsLoading, error, refetch } = useQuery({
+  const { data: conversations, isLoading: conversationsLoading, error } = useQuery({
     queryKey: ['conversations', user?.id],
-    queryFn: () => {
-      if (!user?.id) {
-        console.log("No user ID available for conversations");
-        return [];
-      }
-      return getConversations(user.id);
-    },
-    enabled: !!user?.id,
-    retry: 3,
-    retryDelay: 1000,
+    queryFn: () => getConversations(user!.id),
+    enabled: !!user,
   });
 
   useEffect(() => {
-    if (conversations && Array.isArray(conversations)) {
+    if (conversations) {
       if (conversationId) {
         const found = conversations.find(c => c.id === conversationId);
-        if (found) {
-          setSelectedConversation(found);
-        } else {
-          console.warn(`Conversation ${conversationId} not found`);
-          setSelectedConversation(null);
-        }
+        setSelectedConversation(found || null);
       } else {
         setSelectedConversation(null);
       }
@@ -55,59 +40,28 @@ const ChatPage = () => {
 
   const handleBack = () => {
     navigate('/chat');
-    setSelectedConversation(null);
   };
 
-  const isLoading = authLoading || conversationsLoading;
-
-  // Full page loading state
-  if (isLoading) {
+  if (authLoading || conversationsLoading) {
     return (
-      <div className="flex h-full">
-        <div className="w-full md:w-1/3 lg:w-1/4 border-r p-4 space-y-2">
-          <Skeleton className="h-10 w-1/2 mb-4" />
-          <Skeleton className="h-8 w-full mb-4" />
-          {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
-        </div>
-        <div className="hidden md:flex w-2/3 lg:w-3/4 p-4 flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-10 w-10 rounded-full" />
-              <Skeleton className="h-6 w-24" />
+        <div className="flex h-full">
+            <div className="w-1/3 border-r p-4 space-y-2">
+                <Skeleton className="h-10 w-1/2 mb-4" />
+                <Skeleton className="h-8 w-full mb-4" />
+                {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
             </div>
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-8 w-8" />
-              <Skeleton className="h-8 w-8" />
+            <div className="w-2/3 p-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <Skeleton className="h-6 w-24" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Skeleton className="h-8 w-8" />
+                        <Skeleton className="h-8 w-8" />
+                    </div>
+                </div>
             </div>
-          </div>
-          <div className="flex-1 space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <Skeleton className="h-8 w-8 rounded-full" />
-                <Skeleton className="h-12 w-3/4" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Error state with retry option
-  if (error) {
-    console.error("Chat page error:", error);
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6">
-          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold mb-2">Unable to load conversations</h2>
-          <p className="text-muted-foreground mb-4">
-            There was an error loading your conversations. Please try again.
-          </p>
-          <Button onClick={() => refetch()}>
-            Try Again
-          </Button>
-        </div>
       </div>
     );
   }
@@ -115,11 +69,11 @@ const ChatPage = () => {
   return (
     <div className="flex h-full bg-background">
       <div className={cn(
-        "w-full md:w-1/3 lg:w-1/4 border-r bg-background overflow-y-auto",
-        { "hidden md:flex flex-col": !!conversationId }
+          "w-full md:w-1/3 lg:w-1/4 border-r bg-background overflow-y-auto",
+          { "hidden md:flex flex-col": !!conversationId }
       )}>
         <ConversationList 
-          conversations={conversations || []}
+          conversations={conversations}
           error={error}
           selectedConversationId={selectedConversation?.id}
           onSelectConversation={handleSelectConversation}
@@ -131,8 +85,8 @@ const ChatPage = () => {
         { "flex": !!conversationId }
       )}>
         <ChatWindow 
-          conversation={selectedConversation} 
-          onBack={handleBack} 
+            conversation={selectedConversation} 
+            onBack={handleBack} 
         />
       </div>
     </div>

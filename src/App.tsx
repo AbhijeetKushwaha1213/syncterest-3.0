@@ -13,7 +13,6 @@ import ChatPage from "./pages/ChatPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import LoggedInLayout from "./components/LoggedInLayout";
 import SearchPage from "./pages/SearchPage";
-import GroupsPage from "./pages/GroupsPage";
 import GroupDetailPage from "./pages/GroupDetailPage";
 import EventDetailPage from "./pages/EventDetailPage";
 import ChannelDetailPage from "./pages/ChannelDetailPage";
@@ -32,14 +31,7 @@ import HelpSettingsPage from "./pages/settings/HelpSettingsPage";
 import LinkedAccountsSettingsPage from "./pages/settings/LinkedAccountsSettingsPage";
 import DiscoverySettingsPage from './pages/settings/DiscoverySettingsPage';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -55,7 +47,6 @@ const App = () => (
             <Route element={<LoggedInLayout />}>
               <Route path="/home" element={<HomePage />} />
               <Route path="/chat/:conversationId?" element={<ChatPage />} />
-              <Route path="/groups" element={<GroupsPage />} />
               
               <Route path="/channels" element={<ChannelsLayout />}>
                 <Route index element={<ChannelPlaceholder />} />
@@ -82,6 +73,7 @@ const App = () => (
               <Route path="/events/:id" element={<EventDetailPage />} />
             </Route>
 
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

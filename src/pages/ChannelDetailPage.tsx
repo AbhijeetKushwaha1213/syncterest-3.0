@@ -13,7 +13,7 @@ import ChannelChat from '@/components/channels/chat/ChannelChat';
 import { useChannelRole } from '@/hooks/useChannelRole';
 import { EditChannelDialog } from '@/components/channels/EditChannelDialog';
 import { Button } from '@/components/ui/button';
-import { Settings, Users, Video, ScreenShare, AlertTriangle } from 'lucide-react';
+import { Settings, Users, Video, ScreenShare } from 'lucide-react';
 import ChannelVoice from '@/components/channels/voice/ChannelVoice';
 import ChannelSidebar from '@/components/channels/ChannelSidebar';
 
@@ -66,7 +66,6 @@ const ChannelDetailPage = () => {
     }
   }, [channel]);
 
-  // Full page loading state
   if (isLoading) {
     return (
       <div className="flex flex-col h-full bg-muted/20">
@@ -105,26 +104,11 @@ const ChannelDetailPage = () => {
     );
   }
 
-  // Error state
-  if (error) {
+  if (error || !channel) {
     return (
         <div className="flex h-full flex-col items-center justify-center bg-background">
-            <AlertTriangle className="h-12 w-12 text-red-500 mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Error loading channel</h2>
-            <p className="text-muted-foreground">
-              There was an error loading the channel. Please try refreshing the page.
-            </p>
-        </div>
-    );
-  }
-
-  // Channel not found
-  if (!channel) {
-    return (
-        <div className="flex h-full flex-col items-center justify-center bg-background">
-            <h2 className="text-xl font-semibold mb-2">Channel not found</h2>
-            <p className="text-muted-foreground">
-              The channel you're looking for doesn't exist or may have been deleted.
+            <p className="mt-4 text-lg text-muted-foreground">
+              {error ? 'Error loading channel.' : 'Channel not found'}
             </p>
         </div>
     );
