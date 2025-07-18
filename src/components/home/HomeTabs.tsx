@@ -28,11 +28,11 @@ const HomeTabs = ({ selectedInterest }: HomeTabsProps) => {
         </TabsContent>
         
         <TabsContent value="live" className="space-y-4">
-          <LiveUsersTab selectedInterest={selectedInterest} />
+          <LiveUsersTab />
         </TabsContent>
         
         <TabsContent value="nearby" className="space-y-4">
-          <NearbyTab selectedInterest={selectedInterest} />
+          <NearbyTab />
         </TabsContent>
         
         <TabsContent value="events" className="space-y-4">
