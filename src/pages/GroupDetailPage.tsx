@@ -6,22 +6,25 @@ import { useGroupMembership } from '@/hooks/useGroupMembership';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Image } from 'lucide-react';
+import { Users, Image, AlertTriangle } from 'lucide-react';
 import GroupMemberItem from '@/components/groups/GroupMemberItem';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const GroupDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const { user } = useAuth();
-    const { data: group, isLoading: isLoadingGroup } = useGroup(id);
-    const { data: members, isLoading: isLoadingMembers } = useGroupMembers(id);
+    const { data: group, isLoading: isLoadingGroup, error: groupError } = useGroup(id);
+    const { data: members, isLoading: isLoadingMembers, error: membersError } = useGroupMembers(id);
     const { isMember, isLoadingMembership, joinOrLeave, isJoiningOrLeaving } = useGroupMembership(id);
 
     const isLoading = isLoadingGroup || isLoadingMembers;
+    const hasError = groupError || membersError;
 
+    // Full page loading state
     if (isLoading) {
         return (
             <div className="container mx-auto max-w-4xl py-8">
+                <Skeleton className="h-64 w-full mb-4" />
                 <Skeleton className="h-12 w-1/2 mb-2" />
                 <Skeleton className="h-6 w-3/4 mb-8" />
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -37,8 +40,33 @@ const GroupDetailPage = () => {
         );
     }
 
+    // Error state
+    if (hasError) {
+        return (
+            <div className="container mx-auto max-w-4xl py-8">
+                <div className="text-center py-20">
+                    <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                    <h2 className="text-xl font-semibold mb-2">Error loading group</h2>
+                    <p className="text-muted-foreground">
+                        There was an error loading the group details. Please try refreshing the page.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    // Group not found
     if (!group) {
-        return <div className="text-center py-10">Group not found.</div>;
+        return (
+            <div className="container mx-auto max-w-4xl py-8">
+                <div className="text-center py-20">
+                    <h2 className="text-xl font-semibold mb-2">Group not found</h2>
+                    <p className="text-muted-foreground">
+                        The group you're looking for doesn't exist or may have been deleted.
+                    </p>
+                </div>
+            </div>
+        );
     }
 
     const isCreator = user?.id === group.created_by;

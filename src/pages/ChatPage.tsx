@@ -8,6 +8,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const ChatPage = () => {
   const { conversationId } = useParams<{ conversationId: string }>();
@@ -16,7 +18,7 @@ const ChatPage = () => {
   
   const [selectedConversation, setSelectedConversation] = useState<ConversationWithOtherParticipant | null>(null);
 
-  const { data: conversations, isLoading: conversationsLoading, error } = useQuery({
+  const { data: conversations, isLoading: conversationsLoading, error, refetch } = useQuery({
     queryKey: ['conversations', user?.id],
     queryFn: () => {
       if (!user?.id) {
@@ -56,17 +58,19 @@ const ChatPage = () => {
     setSelectedConversation(null);
   };
 
-  // Show loading state
-  if (authLoading || conversationsLoading) {
+  const isLoading = authLoading || conversationsLoading;
+
+  // Full page loading state
+  if (isLoading) {
     return (
       <div className="flex h-full">
-        <div className="w-1/3 border-r p-4 space-y-2">
+        <div className="w-full md:w-1/3 lg:w-1/4 border-r p-4 space-y-2">
           <Skeleton className="h-10 w-1/2 mb-4" />
           <Skeleton className="h-8 w-full mb-4" />
           {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
         </div>
-        <div className="w-2/3 p-4">
-          <div className="flex items-center justify-between">
+        <div className="hidden md:flex w-2/3 lg:w-3/4 p-4 flex-col">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <Skeleton className="h-10 w-10 rounded-full" />
               <Skeleton className="h-6 w-24" />
@@ -76,19 +80,33 @@ const ChatPage = () => {
               <Skeleton className="h-8 w-8" />
             </div>
           </div>
+          <div className="flex-1 space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-12 w-3/4" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
-  // Handle error state
+  // Error state with retry option
   if (error) {
     console.error("Chat page error:", error);
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-lg font-semibold mb-2">Unable to load conversations</h2>
-          <p className="text-muted-foreground">Please try refreshing the page.</p>
+          <p className="text-muted-foreground mb-4">
+            There was an error loading your conversations. Please try again.
+          </p>
+          <Button onClick={() => refetch()}>
+            Try Again
+          </Button>
         </div>
       </div>
     );

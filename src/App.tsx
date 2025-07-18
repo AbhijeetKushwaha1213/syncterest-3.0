@@ -13,6 +13,7 @@ import ChatPage from "./pages/ChatPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import LoggedInLayout from "./components/LoggedInLayout";
 import SearchPage from "./pages/SearchPage";
+import GroupsPage from "./pages/GroupsPage";
 import GroupDetailPage from "./pages/GroupDetailPage";
 import EventDetailPage from "./pages/EventDetailPage";
 import ChannelDetailPage from "./pages/ChannelDetailPage";
@@ -54,6 +55,7 @@ const App = () => (
             <Route element={<LoggedInLayout />}>
               <Route path="/home" element={<HomePage />} />
               <Route path="/chat/:conversationId?" element={<ChatPage />} />
+              <Route path="/groups" element={<GroupsPage />} />
               
               <Route path="/channels" element={<ChannelsLayout />}>
                 <Route index element={<ChannelPlaceholder />} />

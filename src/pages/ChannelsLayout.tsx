@@ -4,24 +4,24 @@ import { Outlet, useParams } from 'react-router-dom';
 import ChannelList from '@/components/channels/ChannelList';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ChannelsDiscovery from '@/pages/ChannelsDiscovery';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const ChannelsLayout = () => {
   const { id } = useParams<{ id: string }>();
-
-  // If no specific channel ID, show the discovery page
-  if (!id) {
-    return <ChannelsDiscovery />;
-  }
 
   return (
     <div className="grid grid-cols-[260px_1fr] h-full">
       <aside className="border-r bg-muted/30">
         <ScrollArea className="h-full">
-          <ChannelList />
+          <ErrorBoundary>
+            <ChannelList />
+          </ErrorBoundary>
         </ScrollArea>
       </aside>
       <main className="overflow-y-auto">
-        <Outlet />
+        <ErrorBoundary>
+          <Outlet />
+        </ErrorBoundary>
       </main>
     </div>
   );
