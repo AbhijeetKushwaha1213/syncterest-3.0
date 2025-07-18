@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAdvancedSearch, ProfileWithCompatibility } from '@/hooks/useAdvancedSearch';
@@ -42,6 +43,14 @@ const SearchPage = () => {
     }
     const currentUserTags = new Set(currentUserProfile.personality_tags);
     return profileTags.filter(tag => currentUserTags.has(tag));
+  };
+
+  const getMatchingInterests = (profileInterests: string[] | null) => {
+    if (!profileInterests || !currentUserProfile?.interests) {
+      return [];
+    }
+    const currentUserInterests = new Set(currentUserProfile.interests);
+    return profileInterests.filter(interest => currentUserInterests.has(interest));
   };
 
   return (
@@ -117,25 +126,43 @@ const SearchPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {results.map((profile: ProfileWithCompatibility) => {
                       const matchingTags = getMatchingPersonalityTags(profile.personality_tags);
+                      const matchingInterests = getMatchingInterests(profile.interests);
+                      
                       return (
                         <div key={profile.id} className="relative group">
                           <UserCard profile={profile} />
-                          {filters.sortBy === 'compatible' && typeof profile.compatibility_score === 'number' && (
-                            <Badge variant="destructive" className="absolute top-2 right-2 flex items-center gap-1">
+                          {filters.sortBy === 'compatible' && typeof profile.compatibility_score === 'number' && profile.compatibility_score > 0 && (
+                            <Badge variant="destructive" className="absolute top-2 right-2 flex items-center gap-1 bg-pink-500 hover:bg-pink-600">
                               <Heart className="h-3 w-3" />
                               {Math.round(profile.compatibility_score * 100)}%
                             </Badge>
                           )}
-                          {matchingTags.length > 0 && (
+                          {(matchingTags.length > 0 || matchingInterests.length > 0) && (
                             <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
-                               <p className="text-xs font-semibold text-white mb-1">Matching Vibes:</p>
-                               <div className="flex flex-wrap gap-1">
-                                {matchingTags.map(tag => (
-                                  <Badge key={tag} variant="secondary" className="text-xs px-2 py-1 backdrop-blur-sm">
-                                    {tag.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                  </Badge>
-                                ))}
-                              </div>
+                              {matchingTags.length > 0 && (
+                                <div className="mb-1">
+                                  <p className="text-xs font-semibold text-white mb-1">Matching Vibes:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {matchingTags.slice(0, 2).map(tag => (
+                                      <Badge key={tag} variant="secondary" className="text-xs px-2 py-1 backdrop-blur-sm bg-purple-500/80 text-white">
+                                        {tag.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              {matchingInterests.length > 0 && (
+                                <div>
+                                  <p className="text-xs font-semibold text-white mb-1">Shared Interests:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {matchingInterests.slice(0, 2).map(interest => (
+                                      <Badge key={interest} variant="secondary" className="text-xs px-2 py-1 backdrop-blur-sm bg-blue-500/80 text-white">
+                                        {interest.split(':').pop()?.replace(/_/g, ' ')}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -146,10 +173,13 @@ const SearchPage = () => {
                   <div className="space-y-4">
                     {results.map((profile: ProfileWithCompatibility) => {
                       const matchingTags = getMatchingPersonalityTags(profile.personality_tags);
+                      const matchingInterests = getMatchingInterests(profile.interests);
+                      const allMatching = [...matchingTags, ...matchingInterests.map(i => i.split(':').pop() || i)];
+                      
                       const resultItem: GlobalSearchResult = {
                         id: profile.id,
                         type: 'profile',
-                        title: profile.username || 'Unnamed User',
+                        title: profile.full_name || profile.username || 'Unnamed User',
                         description: profile.bio || '',
                         image_url: profile.avatar_url,
                         url_path: `/profile/${profile.id}`,
@@ -161,7 +191,7 @@ const SearchPage = () => {
                           result={resultItem} 
                           compatibilityScore={profile.compatibility_score} 
                           showCompatibility={filters.sortBy === 'compatible'} 
-                          matchingTags={matchingTags}
+                          matchingTags={allMatching}
                         />
                       );
                     })}

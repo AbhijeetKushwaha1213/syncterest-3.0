@@ -30,8 +30,17 @@ import DataManagementSettingsPage from "./pages/settings/DataManagementSettingsP
 import HelpSettingsPage from "./pages/settings/HelpSettingsPage";
 import LinkedAccountsSettingsPage from "./pages/settings/LinkedAccountsSettingsPage";
 import DiscoverySettingsPage from './pages/settings/DiscoverySettingsPage';
+import GroupsPage from './components/groups/GroupsPage';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 3,
+      retryDelay: 1000,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -47,6 +56,7 @@ const App = () => (
             <Route element={<LoggedInLayout />}>
               <Route path="/home" element={<HomePage />} />
               <Route path="/chat/:conversationId?" element={<ChatPage />} />
+              <Route path="/groups" element={<GroupsPage />} />
               
               <Route path="/channels" element={<ChannelsLayout />}>
                 <Route index element={<ChannelPlaceholder />} />

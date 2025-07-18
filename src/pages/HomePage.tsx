@@ -12,12 +12,21 @@ import { PanelRightClose, PanelRightOpen } from "lucide-react";
 
 const HomePage = () => {
   const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
-  const { profile: currentUserProfile } = useAuth();
+  const { profile: currentUserProfile, loading } = useAuth();
   const { rightSidebarCollapsed, toggleRightSidebar } = useSidebar();
 
   const handleInterestClick = (interest: string) => {
     setSelectedInterest(prev => prev === interest ? null : interest);
   };
+
+  // Show loading state while auth is being resolved
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className={`p-4 sm:p-6 grid gap-6 md:gap-8 transition-all duration-300 ${
