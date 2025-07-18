@@ -6,6 +6,22 @@ import GroupCard, { type Group } from "@/components/groups/GroupCard";
 import CreateGroupDialog from "@/components/groups/CreateGroupDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import TrendingChannels from "@/components/home/TrendingChannels";
+import SectionErrorBoundary from "@/components/SectionErrorBoundary";
+import LoadingBoundary from "@/components/LoadingBoundary";
+
+const GroupsPageSkeleton = () => (
+  <div className="space-y-6 p-4 sm:p-6 md:p-8">
+    <div className="flex justify-between items-center">
+      <Skeleton className="h-8 w-32" />
+      <Skeleton className="h-10 w-32" />
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {[...Array(6)].map((_, i) => (
+        <Skeleton key={i} className="h-40" />
+      ))}
+    </div>
+  </div>
+);
 
 const GroupsPage = () => {
   const { user, loading: authLoading } = useAuth();
@@ -64,71 +80,60 @@ const GroupsPage = () => {
   const isLoading = authLoading || isLoadingGroups || isLoadingMyGroups;
   const hasError = groupsError || membershipsError;
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="space-y-6 p-4 sm:p-6 md:p-8">
-        <div className="flex justify-between items-center">
-          <Skeleton className="h-8 w-32" />
-          <Skeleton className="h-10 w-32" />
+  return (
+    <LoadingBoundary
+      isLoading={isLoading}
+      error={hasError}
+      loadingComponent={<GroupsPageSkeleton />}
+      errorComponent={
+        <div className="space-y-6 p-4 sm:p-6 md:p-8">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold tracking-tight">Groups</h2>
+            <CreateGroupDialog />
+          </div>
+          <div className="text-center py-10 border-2 border-dashed rounded-lg">
+            <h3 className="text-xl font-semibold text-destructive">Unable to load groups</h3>
+            <p className="text-muted-foreground mt-2">
+              Please try refreshing the page or check your connection.
+            </p>
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <Skeleton key={i} className="h-40" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (hasError) {
-    console.error("Groups page error:", { groupsError, membershipsError });
-    return (
+      }
+    >
       <div className="space-y-6 p-4 sm:p-6 md:p-8">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold tracking-tight">Groups</h2>
           <CreateGroupDialog />
         </div>
-        <div className="text-center py-10 border-2 border-dashed rounded-lg">
-          <h3 className="text-xl font-semibold text-red-500">Unable to load groups</h3>
-          <p className="text-muted-foreground mt-2">
-            Please try refreshing the page or check your connection.
-          </p>
-        </div>
+
+        {groups && groups.length > 0 && (
+          <SectionErrorBoundary sectionName="Groups Grid">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {groups.map((group) => (
+                <GroupCard
+                  key={group.id}
+                  group={group}
+                  isMember={myMemberships?.includes(group.id) ?? false}
+                />
+              ))}
+            </div>
+          </SectionErrorBoundary>
+        )}
+
+        {!groups || groups.length === 0 ? (
+          <div className="text-center py-10 border-2 border-dashed rounded-lg">
+            <h3 className="text-xl font-semibold">No groups yet</h3>
+            <p className="text-muted-foreground mt-2">
+              Be the first to create one and start a new community!
+            </p>
+          </div>
+        ) : null}
+
+        <SectionErrorBoundary sectionName="Trending Channels">
+          <TrendingChannels />
+        </SectionErrorBoundary>
       </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6 p-4 sm:p-6 md:p-8">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold tracking-tight">Groups</h2>
-        <CreateGroupDialog />
-      </div>
-
-      {groups && groups.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {groups.map((group) => (
-            <GroupCard
-              key={group.id}
-              group={group}
-              isMember={myMemberships?.includes(group.id) ?? false}
-            />
-          ))}
-        </div>
-      )}
-
-      {!groups || groups.length === 0 ? (
-        <div className="text-center py-10 border-2 border-dashed rounded-lg">
-          <h3 className="text-xl font-semibold">No groups yet</h3>
-          <p className="text-muted-foreground mt-2">
-            Be the first to create one and start a new community!
-          </p>
-        </div>
-      ) : null}
-
-      <TrendingChannels />
-    </div>
+    </LoadingBoundary>
   );
 };
 

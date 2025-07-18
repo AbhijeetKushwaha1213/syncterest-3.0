@@ -7,6 +7,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import LoadingBoundary from "./LoadingBoundary";
 
 const statuses = [
   { label: "Looking to chat", color: "text-green-500" },
@@ -15,8 +17,21 @@ const statuses = [
   { label: "Exploring", color: "text-purple-500" },
 ];
 
+const UserStatusCardSkeleton = () => (
+  <Card>
+    <CardHeader>
+      <CardTitle>Your status</CardTitle>
+    </CardHeader>
+    <CardContent className="flex flex-wrap gap-2">
+      {[...Array(4)].map((_, i) => (
+        <Skeleton key={i} className="h-10 w-28 rounded-full" />
+      ))}
+    </CardContent>
+  </Card>
+);
+
 const UserStatusCard = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -66,29 +81,34 @@ const UserStatusCard = () => {
   const isLoading = isProfileLoading || isUpdatingStatus;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Your status</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-wrap gap-2">
-        {statuses.map((status) => (
-          <Button
-            key={status.label}
-            variant={currentStatus === status.label ? "secondary" : "ghost"}
-            className="rounded-full"
-            onClick={() => updateStatus(status.label)}
-            disabled={isLoading}
-          >
-            {isLoading && currentStatus === status.label ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Circle className={`mr-2 h-3 w-3 ${status.color} fill-current`} />
-            )}
-            {status.label}
-          </Button>
-        ))}
-      </CardContent>
-    </Card>
+    <LoadingBoundary
+      isLoading={authLoading}
+      loadingComponent={<UserStatusCardSkeleton />}
+    >
+      <Card>
+        <CardHeader>
+          <CardTitle>Your status</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-2">
+          {statuses.map((status) => (
+            <Button
+              key={status.label}
+              variant={currentStatus === status.label ? "secondary" : "ghost"}
+              className="rounded-full"
+              onClick={() => updateStatus(status.label)}
+              disabled={isLoading}
+            >
+              {isLoading && currentStatus === status.label ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Circle className={`mr-2 h-3 w-3 ${status.color} fill-current`} />
+              )}
+              {status.label}
+            </Button>
+          ))}
+        </CardContent>
+      </Card>
+    </LoadingBoundary>
   );
 };
 
