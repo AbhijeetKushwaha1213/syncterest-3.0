@@ -9,14 +9,14 @@ import ChannelVoice from '@/components/channels/voice/ChannelVoice';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MessageSquare, Mic, Settings, Users, AlertTriangle } from 'lucide-react';
-import EditChannelDialog from '@/components/channels/EditChannelDialog';
+import { EditChannelDialog } from '@/components/channels/EditChannelDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const ChannelDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const { data: channel, isLoading: isLoadingChannel, error: channelError } = useChannel(id);
   const { data: role, isLoading: isLoadingRole } = useChannelRole(id);
-  const { joinChannel, isJoining } = useJoinChannel();
+  const { mutate: joinChannel, isPending: isJoining } = useJoinChannel();
   const [activeTab, setActiveTab] = useState('chat');
 
   if (!id) {
@@ -74,7 +74,7 @@ const ChannelDetailPage = () => {
 
   const handleJoinChannel = async () => {
     if (id) {
-      await joinChannel(id);
+      joinChannel(id);
     }
   };
 
@@ -128,10 +128,10 @@ const ChannelDetailPage = () => {
 
         <div className="flex-1 overflow-hidden">
           <TabsContent value="chat" className="h-full m-0 p-0">
-            <ChannelChat channelId={id} />
+            <ChannelChat channel={channel} />
           </TabsContent>
           <TabsContent value="voice" className="h-full m-0 p-0">
-            <ChannelVoice channelId={id} />
+            <ChannelVoice channel={channel} />
           </TabsContent>
         </div>
       </Tabs>
