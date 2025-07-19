@@ -69,7 +69,7 @@ const PersonalityFormSection: React.FC<PersonalityFormSectionProps> = ({ control
             <FormLabel>What is your height?</FormLabel>
             <FormControl>
               <Input 
-                placeholder="e.g., 5'8\" or 173cm" 
+                placeholder="e.g., 5'8&quot; or 173cm" 
                 {...field} 
                 value={field.value ?? ""}
               />
