@@ -42,6 +42,7 @@ import LoggedInLayout from "./LoggedInLayout";
 const AppContent = () => {
   const { user, loading } = useAuth();
   const [isOnboarded, setIsOnboarded] = useState<boolean | null>(null);
+  const [checkingOnboarding, setCheckingOnboarding] = useState(false);
 
   // Check if user has completed onboarding
   useEffect(() => {
@@ -51,37 +52,62 @@ const AppContent = () => {
         return;
       }
 
+      setCheckingOnboarding(true);
+      
       try {
+        console.log("Checking onboarding status for user:", user.id);
+        
         // Check if user has completed basic profile setup
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('full_name, interests')
           .eq('id', user.id)
           .single();
 
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+          setIsOnboarded(false);
+          setCheckingOnboarding(false);
+          return;
+        }
+
         // Check if user has personality responses
-        const { data: personalityData } = await supabase
+        const { data: personalityData, error: personalityError } = await supabase
           .from('personality_responses')
           .select('id')
           .eq('user_id', user.id)
           .single();
+
+        if (personalityError && personalityError.code !== 'PGRST116') {
+          console.error('Error fetching personality data:', personalityError);
+        }
 
         // User is onboarded if they have a full name, interests, and personality data
         const userIsOnboarded = !!(profile?.full_name && 
                                   profile?.interests?.length && 
                                   personalityData);
 
+        console.log("Onboarding status:", {
+          hasFullName: !!profile?.full_name,
+          hasInterests: !!(profile?.interests?.length),
+          hasPersonalityData: !!personalityData,
+          isOnboarded: userIsOnboarded
+        });
+
         setIsOnboarded(userIsOnboarded);
       } catch (error) {
         console.error('Error checking onboarding status:', error);
-        setIsOnboarded(false); // Default to not onboarded if there's an error
+        setIsOnboarded(false);
+      } finally {
+        setCheckingOnboarding(false);
       }
     };
 
     checkOnboardingStatus();
   }, [user]);
 
-  if (loading || (user && isOnboarded === null)) {
+  // Show loading while checking auth or onboarding status
+  if (loading || (user && (isOnboarded === null || checkingOnboarding))) {
     return (
       <LoadingBoundary 
         isLoading={true}
@@ -94,28 +120,33 @@ const AppContent = () => {
     <BrowserRouter>
       <ErrorBoundary>
         <Routes>
-          {/* Public routes */}
+          {/* Public landing page - shown when not authenticated */}
+          <Route path="/" element={
+            user ? (
+              isOnboarded === false ? <Navigate to="/onboarding" replace /> : <Navigate to="/home" replace />
+            ) : <Index />
+          } />
+
+          {/* Auth routes - redirect if already logged in */}
           <Route path="/login" element={
-            user ? <Navigate to="/" replace /> : <LoginPage />
+            user ? (
+              isOnboarded === false ? <Navigate to="/onboarding" replace /> : <Navigate to="/home" replace />
+            ) : <LoginPage />
           } />
           <Route path="/signup" element={
-            user ? <Navigate to="/" replace /> : <SignUpPage />
+            user ? (
+              isOnboarded === false ? <Navigate to="/onboarding" replace /> : <Navigate to="/home" replace />
+            ) : <SignUpPage />
           } />
           
-          {/* Onboarding route */}
+          {/* Onboarding route - only for authenticated users who haven't completed onboarding */}
           <Route path="/onboarding" element={
             !user ? <Navigate to="/" replace /> :
             isOnboarded === true ? <Navigate to="/home" replace /> :
             <OnboardingPage />
           } />
 
-          {/* Protected routes with LoggedInLayout wrapper */}
-          <Route path="/" element={
-            !user ? <Index /> :
-            isOnboarded === false ? <Navigate to="/onboarding" replace /> :
-            <Navigate to="/home" replace />
-          } />
-
+          {/* Protected routes - require authentication and completed onboarding */}
           <Route path="/home" element={
             !user ? <Navigate to="/" replace /> :
             isOnboarded === false ? <Navigate to="/onboarding" replace /> :

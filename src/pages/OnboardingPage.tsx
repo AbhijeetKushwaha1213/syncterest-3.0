@@ -53,8 +53,26 @@ const OnboardingPage = () => {
     interests: [],
   });
 
+  // Save data to localStorage as backup
+  const saveToLocalStorage = (data: OnboardingData) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('onboarding_data', JSON.stringify(data));
+    }
+  };
+
+  // Load data from localStorage if available
+  const loadFromLocalStorage = (): OnboardingData | null => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('onboarding_data');
+      return saved ? JSON.parse(saved) : null;
+    }
+    return null;
+  };
+
   const updateData = (data: Partial<OnboardingData>) => {
-    setOnboardingData(prev => ({ ...prev, ...data }));
+    const newData = { ...onboardingData, ...data };
+    setOnboardingData(newData);
+    saveToLocalStorage(newData);
   };
 
   const nextStep = () => {
@@ -70,12 +88,27 @@ const OnboardingPage = () => {
   };
 
   const handleComplete = async () => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to complete onboarding.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsSubmitting(true);
     
     try {
-      // Update profile with basic info and mark as onboarded
+      console.log("Starting onboarding completion for user:", user.id);
+      console.log("Onboarding data:", onboardingData);
+
+      // Validate required fields
+      if (!onboardingData.full_name || !onboardingData.gender || onboardingData.interests.length === 0) {
+        throw new Error("Please complete all required fields");
+      }
+
+      // Update profile with basic info
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -85,7 +118,12 @@ const OnboardingPage = () => {
         })
         .eq('id', user.id);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Profile update error:", profileError);
+        throw profileError;
+      }
+
+      console.log("Profile updated successfully");
 
       // Save personality responses
       const personalityData = {
@@ -100,7 +138,14 @@ const OnboardingPage = () => {
         new_experiences: onboardingData.new_experiences,
       };
 
+      console.log("Saving personality data:", personalityData);
       await saveResponses(personalityData);
+      console.log("Personality data saved successfully");
+
+      // Clear localStorage backup
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('onboarding_data');
+      }
 
       // Show success toast
       toast({
@@ -108,15 +153,18 @@ const OnboardingPage = () => {
         description: "Your profile has been created successfully. Let's explore!",
       });
 
+      console.log("Onboarding completed, redirecting to /home");
+
       // Wait a moment for the toast to show, then redirect
       setTimeout(() => {
-        navigate('/home');
+        navigate('/home', { replace: true });
       }, 1500);
 
     } catch (error: any) {
+      console.error("Onboarding completion error:", error);
       toast({
         title: "Error completing setup",
-        description: error.message,
+        description: error.message || "Failed to save your profile. Please try again.",
         variant: "destructive",
       });
       setIsSubmitting(false);

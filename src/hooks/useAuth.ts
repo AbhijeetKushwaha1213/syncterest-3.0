@@ -12,6 +12,7 @@ export const useAuth = () => {
   const { data: profile, isLoading: profileLoading } = useProfile(user?.id);
 
   useEffect(() => {
+    console.log("Setting up auth listeners");
     setAuthLoading(true);
     
     // Get initial session
@@ -19,6 +20,7 @@ export const useAuth = () => {
       if (error) {
         console.error("Error getting session:", error);
       }
+      console.log("Initial session:", session?.user?.email || "No session");
       setSession(session);
       setUser(session?.user ?? null);
       setAuthLoading(false);
@@ -26,13 +28,14 @@ export const useAuth = () => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log("Auth state changed:", _event, session?.user?.email);
+      console.log("Auth state changed:", _event, session?.user?.email || "No session");
       setSession(session);
       setUser(session?.user ?? null);
       setAuthLoading(false);
     });
 
     return () => {
+      console.log("Cleaning up auth listeners");
       subscription?.unsubscribe();
     };
   }, []);

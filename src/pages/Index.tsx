@@ -27,6 +27,15 @@ const Index = () => {
   const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
   const [hoveredText, setHoveredText] = useState({ x: 0, y: 0, visible: false });
 
+  // Redirect authenticated users based on their onboarding status
+  useEffect(() => {
+    if (user) {
+      console.log("Authenticated user detected on landing page, checking onboarding status");
+      // Let AppContent handle the redirection logic
+      navigate('/home');
+    }
+  }, [user, navigate]);
+
   // Sample profiles query for demonstration
   const { data: sampleProfiles } = useQuery<Profile[]>({
     queryKey: ["sample_profiles", selectedInterest],
@@ -40,7 +49,7 @@ const Index = () => {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!selectedInterest,
+    enabled: !!selectedInterest && !user, // Only fetch if not authenticated
   });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -62,6 +71,11 @@ const Index = () => {
         <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
+  }
+
+  // Don't render the landing page for authenticated users
+  if (user) {
+    return null;
   }
 
   return (
