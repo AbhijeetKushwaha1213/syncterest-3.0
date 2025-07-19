@@ -41,13 +41,13 @@ import LoggedInLayout from "./LoggedInLayout";
 
 const AppContent = () => {
   const { user, loading } = useAuth();
-  const [needsOnboarding, setNeedsOnboarding] = useState<boolean | null>(null);
+  const [isOnboarded, setIsOnboarded] = useState<boolean | null>(null);
 
-  // Check if user needs onboarding
+  // Check if user has completed onboarding
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       if (!user) {
-        setNeedsOnboarding(null);
+        setIsOnboarded(null);
         return;
       }
 
@@ -66,22 +66,22 @@ const AppContent = () => {
           .eq('user_id', user.id)
           .single();
 
-        // User needs onboarding if they don't have a full name, interests, or personality data
-        const needsOnboarding = !profile?.full_name || 
-                               !profile?.interests?.length || 
-                               !personalityData;
+        // User is onboarded if they have a full name, interests, and personality data
+        const userIsOnboarded = !!(profile?.full_name && 
+                                  profile?.interests?.length && 
+                                  personalityData);
 
-        setNeedsOnboarding(needsOnboarding);
+        setIsOnboarded(userIsOnboarded);
       } catch (error) {
         console.error('Error checking onboarding status:', error);
-        setNeedsOnboarding(true); // Default to needing onboarding if there's an error
+        setIsOnboarded(false); // Default to not onboarded if there's an error
       }
     };
 
     checkOnboardingStatus();
   }, [user]);
 
-  if (loading || (user && needsOnboarding === null)) {
+  if (loading || (user && isOnboarded === null)) {
     return (
       <LoadingBoundary 
         isLoading={true}
@@ -104,25 +104,37 @@ const AppContent = () => {
           
           {/* Onboarding route */}
           <Route path="/onboarding" element={
-            !user ? <Navigate to="/login" replace /> :
-            needsOnboarding === false ? <Navigate to="/" replace /> :
+            !user ? <Navigate to="/" replace /> :
+            isOnboarded === true ? <Navigate to="/home" replace /> :
             <OnboardingPage />
           } />
 
           {/* Protected routes with LoggedInLayout wrapper */}
           <Route path="/" element={
-            !user ? <Navigate to="/login" replace /> :
-            needsOnboarding === true ? <Navigate to="/onboarding" replace /> :
+            !user ? <Index /> :
+            isOnboarded === false ? <Navigate to="/onboarding" replace /> :
+            <Navigate to="/home" replace />
+          } />
+
+          <Route path="/home" element={
+            !user ? <Navigate to="/" replace /> :
+            isOnboarded === false ? <Navigate to="/onboarding" replace /> :
             <LoggedInLayout />
           }>
             <Route index element={<HomePage />} />
-            <Route path="index" element={<Index />} />
+          </Route>
+
+          <Route element={
+            !user ? <Navigate to="/" replace /> :
+            isOnboarded === false ? <Navigate to="/onboarding" replace /> :
+            <LoggedInLayout />
+          }>
             <Route path="chat/:conversationId?" element={<ChatPage />} />
             <Route path="profile/:userId" element={<UserProfilePage />} />
             <Route path="search" element={<SearchPage />} />
             
             {/* Settings routes nested under LoggedInLayout */}
-            <Route path="settings" element={<SettingsLayout />}>
+            <Route path="settings/*" element={<SettingsLayout />}>
               <Route index element={<Navigate to="/settings/account" replace />} />
               <Route path="account" element={<AccountSettingsPage />} />
               <Route path="notifications" element={<NotificationsSettingsPage />} />
@@ -137,7 +149,7 @@ const AppContent = () => {
             </Route>
 
             {/* Channel routes nested under LoggedInLayout */}
-            <Route path="channels" element={<ChannelsLayout />}>
+            <Route path="channels/*" element={<ChannelsLayout />}>
               <Route index element={<ChannelPlaceholder />} />
               <Route path="discovery" element={<ChannelsDiscovery />} />
               <Route path=":channelId" element={<ChannelDetailPage />} />

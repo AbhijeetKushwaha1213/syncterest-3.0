@@ -60,24 +60,19 @@ export const usePersonalityResponses = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['personality-responses'] });
-      toast({
-        title: "Personality profile updated",
-        description: "Your responses have been saved successfully.",
-      });
     },
     onError: (error: any) => {
-      toast({
-        title: "Error saving responses",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error('Error saving personality responses:', error);
+      throw error; // Re-throw to be handled by the calling component
     },
   });
 
   return {
     personalityData,
     isLoading,
-    saveResponses: upsertMutation.mutate,
+    saveResponses: (responses: PersonalityResponses) => {
+      return upsertMutation.mutateAsync(responses);
+    },
     isSaving: upsertMutation.isPending,
   };
 };

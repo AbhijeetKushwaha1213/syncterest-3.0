@@ -75,7 +75,7 @@ const OnboardingPage = () => {
     setIsSubmitting(true);
     
     try {
-      // Update profile with basic info
+      // Update profile with basic info and mark as onboarded
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -100,21 +100,25 @@ const OnboardingPage = () => {
         new_experiences: onboardingData.new_experiences,
       };
 
-      saveResponses(personalityData);
+      await saveResponses(personalityData);
 
+      // Show success toast
       toast({
-        title: "Profile setup complete!",
-        description: "Welcome to Spark. Let's find your perfect matches!",
+        title: "🎉 Welcome! You're all set",
+        description: "Your profile has been created successfully. Let's explore!",
       });
 
-      navigate('/');
+      // Wait a moment for the toast to show, then redirect
+      setTimeout(() => {
+        navigate('/home');
+      }, 1500);
+
     } catch (error: any) {
       toast({
         title: "Error completing setup",
         description: error.message,
         variant: "destructive",
       });
-    } finally {
       setIsSubmitting(false);
     }
   };

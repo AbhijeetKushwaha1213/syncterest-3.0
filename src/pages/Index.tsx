@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,7 +22,7 @@ const interestTags = [
 ];
 
 const Index = () => {
-  const { session, user, profile, loading } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
   const [hoveredText, setHoveredText] = useState({ x: 0, y: 0, visible: false });
@@ -42,23 +43,6 @@ const Index = () => {
     enabled: !!selectedInterest,
   });
 
-  useEffect(() => {
-    if (loading) return;
-
-    if (session) {
-      if (profile?.username) {
-        navigate('/home');
-      } else {
-        navigate('/settings/account');
-      }
-    }
-  }, [loading, session, profile, navigate]);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
-
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     setHoveredText({
@@ -72,7 +56,7 @@ const Index = () => {
     setHoveredText(prev => ({ ...prev, visible: false }));
   };
 
-  if (loading || session) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
