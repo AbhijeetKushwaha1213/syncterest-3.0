@@ -11,7 +11,13 @@ import { Progress } from "@/components/ui/progress";
 
 const OnboardingPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [basicInfo, setBasicInfo] = useState({});
+  const [basicInfo, setBasicInfo] = useState({
+    full_name: '',
+    age: 18,
+    gender: '',
+    height: '',
+    ethnicity: ''
+  });
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [isCompleting, setIsCompleting] = useState(false);
   const navigate = useNavigate();
@@ -21,35 +27,92 @@ const OnboardingPage = () => {
   const totalSteps = 3;
   const progress = (currentStep / totalSteps) * 100;
 
-  const handleBasicInfoComplete = (data: any) => {
-    setBasicInfo(data);
-    setCurrentStep(2);
+  const updateBasicInfo = (updates: any) => {
+    setBasicInfo(prev => ({ ...prev, ...updates }));
   };
 
-  const handleInterestsComplete = (interests: string[]) => {
-    setSelectedInterests(interests);
-    setCurrentStep(3);
-  };
-
-  const handlePersonalityComplete = async () => {
+  const handleBasicInfoNext = async () => {
     if (!user) {
       toast({
         title: "Error",
-        description: "Authentication required to complete onboarding.",
+        description: "Authentication required to continue onboarding.",
         variant: "destructive",
       });
       return;
     }
 
-    setIsCompleting(true);
+    try {
+      // Save basic info to profile
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: basicInfo.full_name,
+          username: basicInfo.full_name.toLowerCase().replace(/\s+/g, ''),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error saving basic info:', error);
+        throw error;
+      }
+
+      setCurrentStep(2);
+    } catch (error) {
+      console.error('Error saving basic info:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save basic information. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleInterestsComplete = async (interests: string[]) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Authentication required to continue onboarding.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
-      // Update the user's profile with all onboarding data
+      // Save interests to profile
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          interests: interests,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error saving interests:', error);
+        throw error;
+      }
+
+      setSelectedInterests(interests);
+      setCurrentStep(3);
+    } catch (error) {
+      console.error('Error saving interests:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save interests. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePersonalityComplete = async () => {
+    setIsCompleting(true);
+    
+    try {
+      // Final profile update to mark onboarding as complete
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
-          ...basicInfo,
-          interests: selectedInterests,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user.id);
@@ -84,13 +147,25 @@ const OnboardingPage = () => {
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 1:
-        return <BasicInfoStep onComplete={handleBasicInfoComplete} />;
+        return (
+          <BasicInfoStep 
+            data={basicInfo}
+            updateData={updateBasicInfo}
+            onNext={handleBasicInfoNext}
+          />
+        );
       case 2:
         return <InterestsStep onComplete={handleInterestsComplete} />;
       case 3:
         return <PersonalityStep onComplete={handlePersonalityComplete} />;
       default:
-        return <BasicInfoStep onComplete={handleBasicInfoComplete} />;
+        return (
+          <BasicInfoStep 
+            data={basicInfo}
+            updateData={updateBasicInfo}
+            onNext={handleBasicInfoNext}
+          />
+        );
     }
   };
 

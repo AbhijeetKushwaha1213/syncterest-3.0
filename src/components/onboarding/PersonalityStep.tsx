@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,7 +71,7 @@ const PersonalityStep = ({ onComplete }: PersonalityStepProps) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { savePersonalityResponses } = usePersonalityResponses();
+  const { saveResponses } = usePersonalityResponses();
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -106,7 +107,7 @@ const PersonalityStep = ({ onComplete }: PersonalityStepProps) => {
     
     try {
       // Save personality responses
-      await savePersonalityResponses(responses);
+      await saveResponses(responses);
       
       // Mark onboarding as complete in the profiles table
       const { error: profileError } = await supabase
