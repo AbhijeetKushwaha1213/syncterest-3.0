@@ -3,7 +3,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Hash, Plus, Mic } from 'lucide-react';
+import { Hash, Plus, Mic, AlertTriangle } from 'lucide-react';
 import { useJoinedChannels } from '@/hooks/useJoinedChannels';
 import { Skeleton } from '../ui/skeleton';
 import { CreateChannelDialog } from './CreateChannelDialog';
@@ -26,7 +26,13 @@ const ChannelList = () => {
   }
 
   if (error) {
-    return <div className="p-4 text-sm text-destructive">Error loading channels.</div>;
+    return (
+      <div className="p-4 text-center">
+        <AlertTriangle className="h-8 w-8 text-destructive mb-2 mx-auto" />
+        <p className="text-sm text-destructive">Failed to load channels</p>
+        <p className="text-xs text-muted-foreground mt-1">Please try refreshing</p>
+      </div>
+    );
   }
 
   return (
@@ -67,6 +73,9 @@ const ChannelList = () => {
               )}
             </NavLink>
           ))}
+        {channels?.filter((channel) => channel.type === 'text').length === 0 && (
+          <p className="px-2 py-1 text-xs text-muted-foreground">No text channels joined</p>
+        )}
       </nav>
       <nav className="flex flex-col gap-1 p-2">
         <p className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -91,6 +100,9 @@ const ChannelList = () => {
               <span className="truncate flex-1">{channel.name}</span>
             </NavLink>
           ))}
+        {channels?.filter((channel) => channel.type === 'voice').length === 0 && (
+          <p className="px-2 py-1 text-xs text-muted-foreground">No voice channels joined</p>
+        )}
       </nav>
     </div>
   );

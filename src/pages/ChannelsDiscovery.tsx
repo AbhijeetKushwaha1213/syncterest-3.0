@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Globe, Lock, Bookmark, Plus, Search } from 'lucide-react';
+import { Globe, Lock, Bookmark, Plus, Search, AlertTriangle } from 'lucide-react';
 import ChannelCard from '@/components/home/ChannelCard';
 import { useChannels } from '@/hooks/useChannels';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,6 +10,38 @@ import { CreateChannelDialog } from '@/components/channels/CreateChannelDialog';
 
 const ChannelsDiscovery = () => {
   const { data: channels, isLoading, error } = useChannels();
+
+  if (error) {
+    return (
+      <div className="p-4 sm:p-6 md:p-8">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Channels</h1>
+            <p className="text-muted-foreground">Discover and join community channels</p>
+          </div>
+          <CreateChannelDialog>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Channel
+            </Button>
+          </CreateChannelDialog>
+        </div>
+        
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center max-w-md">
+            <AlertTriangle className="mx-auto h-12 w-12 text-destructive mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Unable to Load Channels</h3>
+            <p className="text-muted-foreground mb-4">
+              We're having trouble loading the channels. This might be a temporary issue.
+            </p>
+            <Button onClick={() => window.location.reload()} variant="outline">
+              Try Again
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
@@ -32,10 +64,10 @@ const ChannelsDiscovery = () => {
           <Input placeholder="Search channels..." className="pl-10" />
         </div>
         <div className="flex flex-wrap gap-2">
-            <Button variant="secondary"><Globe className="mr-2 h-4 w-4" /> All</Button>
-            <Button variant="ghost"><Bookmark className="mr-2 h-4 w-4" /> Joined</Button>
-            <Button variant="ghost"><Globe className="mr-2 h-4 w-4" /> Public</Button>
-            <Button variant="ghost"><Lock className="mr-2 h-4 w-4" /> Private</Button>
+          <Button variant="secondary"><Globe className="mr-2 h-4 w-4" /> All</Button>
+          <Button variant="ghost"><Bookmark className="mr-2 h-4 w-4" /> Joined</Button>
+          <Button variant="ghost"><Globe className="mr-2 h-4 w-4" /> Public</Button>
+          <Button variant="ghost"><Lock className="mr-2 h-4 w-4" /> Private</Button>
         </div>
       </div>
       
@@ -47,13 +79,7 @@ const ChannelsDiscovery = () => {
         </div>
       )}
 
-      {error && (
-        <div className="text-center py-10">
-            <p className="text-destructive">Failed to load channels. Please try refreshing the page.</p>
-        </div>
-      )}
-
-      {!isLoading && !error && channels && channels.length > 0 && (
+      {!isLoading && channels && channels.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {channels.map(channel => (
             <ChannelCard key={channel.id} channel={channel} />
@@ -61,10 +87,10 @@ const ChannelsDiscovery = () => {
         </div>
       )}
 
-      {!isLoading && !error && (!channels || channels.length === 0) && (
+      {!isLoading && (!channels || channels.length === 0) && (
         <div className="text-center py-10">
-            <h3 className="text-xl font-semibold">No channels found</h3>
-            <p className="text-muted-foreground">Be the first to create one!</p>
+          <h3 className="text-xl font-semibold">No channels found</h3>
+          <p className="text-muted-foreground">Be the first to create one!</p>
         </div>
       )}
     </div>

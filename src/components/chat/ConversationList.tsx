@@ -2,9 +2,10 @@
 import { ConversationWithOtherParticipant } from '@/api/chat';
 import ConversationListItem from './ConversationListItem';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search } from 'lucide-react';
+import { Search, MessageCircle, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 interface ConversationListProps {
   conversations: ConversationWithOtherParticipant[] | undefined;
@@ -17,7 +18,25 @@ const ConversationList = ({ conversations, error, selectedConversationId, onSele
   const [searchTerm, setSearchTerm] = useState('');
 
   if (error) {
-    return <p className="p-4 text-destructive">Error: {error.message}</p>;
+    return (
+      <div className="flex flex-col h-full">
+        <div className="p-4 border-b">
+          <h2 className="text-2xl font-bold">Chats</h2>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center max-w-sm px-4">
+            <AlertTriangle className="mx-auto h-12 w-12 text-destructive mb-4" />
+            <h3 className="font-semibold mb-2">Unable to Load Conversations</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              We're having trouble loading your conversations. Please try again.
+            </p>
+            <Button onClick={() => window.location.reload()} variant="outline" size="sm">
+              Try Again
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const filteredConversations = conversations?.filter(conversation =>
@@ -51,8 +70,18 @@ const ConversationList = ({ conversations, error, selectedConversationId, onSele
             ))
           ) : (
             <div className="text-center text-muted-foreground p-8">
-              <p>{searchTerm ? "No matching conversations found." : "No conversations yet."}</p>
-              {!searchTerm && <p className="text-sm">Start a chat from someone's profile.</p>}
+              {searchTerm ? (
+                <>
+                  <MessageCircle className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                  <p>No matching conversations found.</p>
+                </>
+              ) : (
+                <>
+                  <MessageCircle className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                  <p>No conversations yet.</p>
+                  <p className="text-sm mt-1">Start a chat from someone's profile.</p>
+                </>
+              )}
             </div>
           )}
         </div>

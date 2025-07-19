@@ -3,18 +3,26 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { ChannelWithUnread } from '@/types';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export const useJoinedChannels = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const queryKey = ['joined-channels', user?.id];
+  const channelRef = useRef<any>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) return;
 
-    const channelSubscription = supabase
-      .channel('joined-channels-realtime')
+    // Clean up existing subscription before creating a new one
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+
+    // Create new subscription
+    channelRef.current = supabase
+      .channel(`joined-channels-realtime-${user.id}`) // Use unique channel name
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
@@ -30,9 +38,12 @@ export const useJoinedChannels = () => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channelSubscription);
-    }
-  }, [user, queryClient, queryKey]);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [user?.id, queryClient, queryKey]);
 
   return useQuery({
     queryKey,
@@ -56,7 +67,7 @@ export const useJoinedChannels = () => {
       }
     },
     enabled: !!user?.id,
-    retry: 1,
-    retryDelay: 1000,
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 };
