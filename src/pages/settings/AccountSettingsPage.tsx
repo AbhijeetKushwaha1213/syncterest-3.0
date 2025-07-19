@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -23,6 +24,8 @@ import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import AvatarUploader from "@/components/settings/AvatarUploader";
 import { InterestsFormSection } from "@/components/settings/InterestsFormSection";
+import PersonalityFormSection from "@/components/settings/PersonalityFormSection";
+import { usePersonalityResponses } from "@/hooks/usePersonalityResponses";
 
 const accountFormSchema = z.object({
   username: z
@@ -36,6 +39,19 @@ const accountFormSchema = z.object({
     .or(z.literal('')),
   bio: z.string().max(160, { message: "Bio must not be longer than 160 characters." }).optional().or(z.literal('')),
   interests: z.array(z.string()).optional(),
+  // Personality fields
+  gender: z.string().optional(),
+  height: z.string().optional(),
+  ethnicity: z.string().optional(),
+  conversation_style: z.string().optional(),
+  values_in_partner: z.string().optional(),
+  sports_excitement: z.string().optional(),
+  trip_handling: z.string().optional(),
+  group_behavior: z.string().optional(),
+  social_energy: z.string().optional(),
+  day_planning: z.string().optional(),
+  weekend_recharge: z.string().optional(),
+  new_experiences: z.string().optional(),
 });
 
 type AccountFormValues = z.infer<typeof accountFormSchema>;
@@ -44,6 +60,7 @@ const AccountSettingsPage = () => {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const [formLoading, setFormLoading] = useState(false);
+  const { personalityData, isLoading: personalityLoading, saveResponses, isSaving } = usePersonalityResponses();
 
   const form = useForm<AccountFormValues>({
     resolver: zodResolver(accountFormSchema),
@@ -52,6 +69,18 @@ const AccountSettingsPage = () => {
       full_name: "",
       bio: "",
       interests: [],
+      gender: "",
+      height: "",
+      ethnicity: "",
+      conversation_style: "",
+      values_in_partner: "",
+      sports_excitement: "",
+      trip_handling: "",
+      group_behavior: "",
+      social_energy: "",
+      day_planning: "",
+      weekend_recharge: "",
+      new_experiences: "",
     },
   });
 
@@ -62,9 +91,21 @@ const AccountSettingsPage = () => {
         full_name: profile.full_name || "",
         bio: profile.bio || "",
         interests: profile.interests || [],
+        gender: personalityData?.gender || "",
+        height: personalityData?.height || "",
+        ethnicity: personalityData?.ethnicity || "",
+        conversation_style: personalityData?.conversation_style || "",
+        values_in_partner: personalityData?.values_in_partner || "",
+        sports_excitement: personalityData?.sports_excitement || "",
+        trip_handling: personalityData?.trip_handling || "",
+        group_behavior: personalityData?.group_behavior || "",
+        social_energy: personalityData?.social_energy || "",
+        day_planning: personalityData?.day_planning || "",
+        weekend_recharge: personalityData?.weekend_recharge || "",
+        new_experiences: personalityData?.new_experiences || "",
       });
     }
-  }, [profile, form]);
+  }, [profile, personalityData, form]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -101,22 +142,42 @@ const AccountSettingsPage = () => {
   async function onSubmit(data: AccountFormValues) {
     if (!user) return;
     setFormLoading(true);
-    const { error } = await supabase.from("profiles").update({
+    
+    // Update profile
+    const { error: profileError } = await supabase.from("profiles").update({
       username: data.username,
       full_name: data.full_name,
       bio: data.bio,
       interests: data.interests,
       updated_at: new Date().toISOString(),
     }).eq("id", user.id);
+
+    // Update personality responses
+    const personalityData = {
+      gender: data.gender,
+      height: data.height,
+      ethnicity: data.ethnicity,
+      conversation_style: data.conversation_style,
+      values_in_partner: data.values_in_partner,
+      sports_excitement: data.sports_excitement,
+      trip_handling: data.trip_handling,
+      group_behavior: data.group_behavior,
+      social_energy: data.social_energy,
+      day_planning: data.day_planning,
+      weekend_recharge: data.weekend_recharge,
+      new_experiences: data.new_experiences,
+    };
+
+    saveResponses(personalityData);
     setFormLoading(false);
 
-    if (error) {
-      if (error.code === '23505') { // unique constraint violation
+    if (profileError) {
+      if (profileError.code === '23505') {
         form.setError('username', { type: 'manual', message: 'This username is already taken.' });
       } else {
         toast({
           title: "Error updating profile",
-          description: error.message,
+          description: profileError.message,
           variant: "destructive",
         });
       }
@@ -125,8 +186,6 @@ const AccountSettingsPage = () => {
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
       });
-      // This will trigger a re-fetch in useAuth and show the updated profile
-      // Forcing a reload to ensure profile updates are reflected everywhere.
       window.location.reload();
     }
   }
@@ -146,6 +205,7 @@ const AccountSettingsPage = () => {
                 <FormLabel>Profile Picture</FormLabel>
                 <AvatarUploader initialAvatarUrl={profile?.avatar_url} username={profile?.username} />
               </FormItem>
+              
               <FormField
                 control={form.control}
                 name="username"
@@ -162,6 +222,7 @@ const AccountSettingsPage = () => {
                   </FormItem>
                 )}
               />
+              
               <FormField
                 control={form.control}
                 name="full_name"
@@ -178,6 +239,7 @@ const AccountSettingsPage = () => {
                   </FormItem>
                 )}
               />
+              
               <FormField
                 control={form.control}
                 name="bio"
@@ -199,9 +261,15 @@ const AccountSettingsPage = () => {
                   </FormItem>
                 )}
               />
+              
               <InterestsFormSection control={form.control} />
-              <Button type="submit" disabled={formLoading || !profile}>
-                {formLoading ? 'Saving...' : 'Update profile'}
+              
+              <Separator />
+              
+              <PersonalityFormSection control={form.control} />
+              
+              <Button type="submit" disabled={formLoading || isSaving || !profile}>
+                {formLoading || isSaving ? 'Saving...' : 'Update profile'}
               </Button>
             </form>
           </Form>

@@ -619,6 +619,63 @@ export type Database = {
         }
         Relationships: []
       }
+      personality_responses: {
+        Row: {
+          conversation_style: string | null
+          created_at: string
+          day_planning: string | null
+          ethnicity: string | null
+          gender: string | null
+          group_behavior: string | null
+          height: string | null
+          id: string
+          new_experiences: string | null
+          social_energy: string | null
+          sports_excitement: string | null
+          trip_handling: string | null
+          updated_at: string
+          user_id: string
+          values_in_partner: string | null
+          weekend_recharge: string | null
+        }
+        Insert: {
+          conversation_style?: string | null
+          created_at?: string
+          day_planning?: string | null
+          ethnicity?: string | null
+          gender?: string | null
+          group_behavior?: string | null
+          height?: string | null
+          id?: string
+          new_experiences?: string | null
+          social_energy?: string | null
+          sports_excitement?: string | null
+          trip_handling?: string | null
+          updated_at?: string
+          user_id: string
+          values_in_partner?: string | null
+          weekend_recharge?: string | null
+        }
+        Update: {
+          conversation_style?: string | null
+          created_at?: string
+          day_planning?: string | null
+          ethnicity?: string | null
+          gender?: string | null
+          group_behavior?: string | null
+          height?: string | null
+          id?: string
+          new_experiences?: string | null
+          social_energy?: string | null
+          sports_excitement?: string | null
+          trip_handling?: string | null
+          updated_at?: string
+          user_id?: string
+          values_in_partner?: string | null
+          weekend_recharge?: string | null
+        }
+        Relationships: []
+      }
       personality_tags_options: {
         Row: {
           description: string | null

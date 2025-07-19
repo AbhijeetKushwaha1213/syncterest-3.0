@@ -29,3 +29,5 @@ export type ChannelWithUnread = {
     unread_count: number;
     type: 'text' | 'voice';
 };
+
+export type PersonalityResponse = Database['public']['Tables']['personality_responses']['Row'];
