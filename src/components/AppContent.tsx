@@ -141,42 +141,118 @@ const AppContent = () => {
             
             {/* Main app routes - require completed onboarding */}
             {onboardingComplete && (
-              <Route path="/*" element={
-                <LoggedInLayout>
-                  <Routes>
-                    <Route path="/home" element={<HomePage />} />
-                    <Route path="/chat" element={<ChatPage />} />
-                    <Route path="/chat/:conversationId" element={<ChatPage />} />
-                    <Route path="/search" element={<SearchPage />} />
-                    <Route path="/profile/:userId" element={<UserProfilePage />} />
-                    <Route path="/groups" element={<GroupsPage />} />
-                    <Route path="/groups/:groupId" element={<GroupDetailPage />} />
-                    <Route path="/events/:eventId" element={<EventDetailPage />} />
-                    
-                    {/* Channels */}
-                    <Route path="/channels" element={<ChannelsLayout />}>
-                      <Route index element={<ChannelsDiscovery />} />
-                      <Route path="discover" element={<ChannelsDiscovery />} />
-                      <Route path=":channelId" element={<ChannelDetailPage />} />
-                      <Route path="placeholder" element={<ChannelPlaceholder />} />
-                    </Route>
-                    
-                    {/* Settings */}
-                    <Route path="/settings/account" element={<AccountSettingsPage />} />
-                    <Route path="/settings/privacy" element={<PrivacySettingsPage />} />
-                    <Route path="/settings/notifications" element={<NotificationsSettingsPage />} />
-                    <Route path="/settings/appearance" element={<AppearanceSettingsPage />} />
-                    <Route path="/settings/language" element={<LanguageSettingsPage />} />
-                    <Route path="/settings/help" element={<HelpSettingsPage />} />
-                    <Route path="/settings/data-management" element={<DataManagementSettingsPage />} />
-                    <Route path="/settings/linked-accounts" element={<LinkedAccountsSettingsPage />} />
-                    <Route path="/settings/discovery" element={<DiscoverySettingsPage />} />
-                    <Route path="/settings/blocked-users" element={<BlockedUsersSettingsPage />} />
-                    
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </LoggedInLayout>
-              } />
+              <>
+                <Route path="/home" element={
+                  <LoggedInLayout>
+                    <HomePage />
+                  </LoggedInLayout>
+                } />
+                <Route path="/chat" element={
+                  <LoggedInLayout>
+                    <ChatPage />
+                  </LoggedInLayout>
+                } />
+                <Route path="/chat/:conversationId" element={
+                  <LoggedInLayout>
+                    <ChatPage />
+                  </LoggedInLayout>
+                } />
+                <Route path="/search" element={
+                  <LoggedInLayout>
+                    <SearchPage />
+                  </LoggedInLayout>
+                } />
+                <Route path="/profile/:userId" element={
+                  <LoggedInLayout>
+                    <UserProfilePage />
+                  </LoggedInLayout>
+                } />
+                <Route path="/groups" element={
+                  <LoggedInLayout>
+                    <GroupsPage />
+                  </LoggedInLayout>
+                } />
+                <Route path="/groups/:groupId" element={
+                  <LoggedInLayout>
+                    <GroupDetailPage />
+                  </LoggedInLayout>
+                } />
+                <Route path="/events/:eventId" element={
+                  <LoggedInLayout>
+                    <EventDetailPage />
+                  </LoggedInLayout>
+                } />
+                
+                {/* Channels */}
+                <Route path="/channels" element={
+                  <LoggedInLayout>
+                    <ChannelsLayout />
+                  </LoggedInLayout>
+                }>
+                  <Route index element={<ChannelsDiscovery />} />
+                  <Route path="discover" element={<ChannelsDiscovery />} />
+                  <Route path=":channelId" element={<ChannelDetailPage />} />
+                  <Route path="placeholder" element={<ChannelPlaceholder />} />
+                </Route>
+                
+                {/* Settings */}
+                <Route path="/settings/account" element={
+                  <LoggedInLayout>
+                    <AccountSettingsPage />
+                  </LoggedInLayout>
+                } />
+                <Route path="/settings/privacy" element={
+                  <LoggedInLayout>
+                    <PrivacySettingsPage />
+                  </LoggedInLayout>
+                } />
+                <Route path="/settings/notifications" element={
+                  <LoggedInLayout>
+                    <NotificationsSettingsPage />
+                  </LoggedInLayout>
+                } />
+                <Route path="/settings/appearance" element={
+                  <LoggedInLayout>
+                    <AppearanceSettingsPage />
+                  </LoggedInLayout>
+                } />
+                <Route path="/settings/language" element={
+                  <LoggedInLayout>
+                    <LanguageSettingsPage />
+                  </LoggedInLayout>
+                } />
+                <Route path="/settings/help" element={
+                  <LoggedInLayout>
+                    <HelpSettingsPage />
+                  </LoggedInLayout>
+                } />
+                <Route path="/settings/data-management" element={
+                  <LoggedInLayout>
+                    <DataManagementSettingsPage />
+                  </LoggedInLayout>
+                } />
+                <Route path="/settings/linked-accounts" element={
+                  <LoggedInLayout>
+                    <LinkedAccountsSettingsPage />
+                  </LoggedInLayout>
+                } />
+                <Route path="/settings/discovery" element={
+                  <LoggedInLayout>
+                    <DiscoverySettingsPage />
+                  </LoggedInLayout>
+                } />
+                <Route path="/settings/blocked-users" element={
+                  <LoggedInLayout>
+                    <BlockedUsersSettingsPage />
+                  </LoggedInLayout>
+                } />
+                
+                <Route path="*" element={
+                  <LoggedInLayout>
+                    <NotFound />
+                  </LoggedInLayout>
+                } />
+              </>
             )}
           </>
         ) : (
