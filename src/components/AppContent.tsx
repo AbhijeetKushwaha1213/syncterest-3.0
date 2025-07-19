@@ -1,204 +1,190 @@
 
-import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster";
+import { SidebarProvider } from "@/contexts/SidebarContext";
+import { useAuth } from "@/hooks/useAuth";
+import LoggedInLayout from "@/components/LoggedInLayout";
+import HomePage from "@/pages/HomePage";
+import ChatPage from "@/pages/ChatPage";
+import SearchPage from "@/pages/SearchPage";
+import UserProfilePage from "@/pages/UserProfilePage";
+import OnboardingPage from "@/pages/OnboardingPage";
+import GroupsPage from "@/pages/GroupsPage";
+import GroupDetailPage from "@/pages/GroupDetailPage";
+import EventDetailPage from "@/pages/EventDetailPage";
+import ChannelsLayout from "@/pages/ChannelsLayout";
+import ChannelDetailPage from "@/pages/ChannelDetailPage";
+import ChannelsDiscovery from "@/pages/ChannelsDiscovery";
+import ChannelPlaceholder from "@/pages/ChannelPlaceholder";
+import Index from "@/pages/Index";
+import Login from "@/pages/Login";
+import SignUp from "@/pages/SignUp";
+import NotFound from "@/pages/NotFound";
+import AccountSettingsPage from "@/pages/settings/AccountSettingsPage";
+import PrivacySettingsPage from "@/pages/settings/PrivacySettingsPage";
+import NotificationsSettingsPage from "@/pages/settings/NotificationsSettingsPage";
+import AppearanceSettingsPage from "@/pages/settings/AppearanceSettingsPage";
+import LanguageSettingsPage from "@/pages/settings/LanguageSettingsPage";
+import HelpSettingsPage from "@/pages/settings/HelpSettingsPage";
+import DataManagementSettingsPage from "@/pages/settings/DataManagementSettingsPage";
+import LinkedAccountsSettingsPage from "@/pages/settings/LinkedAccountsSettingsPage";
+import DiscoverySettingsPage from "@/pages/settings/DiscoverySettingsPage";
+import BlockedUsersSettingsPage from "@/pages/settings/BlockedUsersSettingsPage";
 import { supabase } from "@/integrations/supabase/client";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import ErrorBoundary from "@/components/ErrorBoundary";
-import LoadingBoundary from "@/components/LoadingBoundary";
-
-// Pages
-import Index from "../pages/Index";
-import HomePage from "../pages/HomePage";
-import LoginPage from "../pages/Login";
-import SignUpPage from "../pages/SignUp";
-import OnboardingPage from "../pages/OnboardingPage";
-import ChatPage from "../pages/ChatPage";
-import UserProfilePage from "../pages/UserProfilePage";
-import SearchPage from "../pages/SearchPage";
-import NotFound from "../pages/NotFound";
-import ChannelsLayout from "../pages/ChannelsLayout";
-import ChannelDetailPage from "../pages/ChannelDetailPage";
-import ChannelPlaceholder from "../pages/ChannelPlaceholder";
-import ChannelsDiscovery from "../pages/ChannelsDiscovery";
-import GroupsPage from "../pages/GroupsPage";
-import GroupDetailPage from "../pages/GroupDetailPage";
-import EventDetailPage from "../pages/EventDetailPage";
-
-// Settings Pages
-import AccountSettingsPage from "../pages/settings/AccountSettingsPage";
-import NotificationsSettingsPage from "../pages/settings/NotificationsSettingsPage";
-import PrivacySettingsPage from "../pages/settings/PrivacySettingsPage";
-import AppearanceSettingsPage from "../pages/settings/AppearanceSettingsPage";
-import BlockedUsersSettingsPage from "../pages/settings/BlockedUsersSettingsPage";
-import LinkedAccountsSettingsPage from "../pages/settings/LinkedAccountsSettingsPage";
-import DataManagementSettingsPage from "../pages/settings/DataManagementSettingsPage";
-import LanguageSettingsPage from "../pages/settings/LanguageSettingsPage";
-import HelpSettingsPage from "../pages/settings/HelpSettingsPage";
-import DiscoverySettingsPage from "../pages/settings/DiscoverySettingsPage";
-
-import SettingsLayout from "./settings/SettingsLayout";
-import LoggedInLayout from "./LoggedInLayout";
 
 const AppContent = () => {
-  const { user, loading } = useAuth();
-  const [isOnboarded, setIsOnboarded] = useState<boolean | null>(null);
-  const [checkingOnboarding, setCheckingOnboarding] = useState(false);
+  const { user, loading, profile } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
 
-  // Check if user has completed onboarding
+  // Check onboarding status when user changes
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       if (!user) {
-        setIsOnboarded(null);
+        setOnboardingComplete(null);
+        setCheckingOnboarding(false);
         return;
       }
 
-      setCheckingOnboarding(true);
-      
       try {
-        console.log("Checking onboarding status for user:", user.id);
+        // Check if profile has basic info and interests
+        const hasBasicInfo = profile?.full_name && profile?.username;
+        const hasInterests = profile?.interests && profile.interests.length > 0;
         
-        // Check if user has completed basic profile setup
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('full_name, interests')
-          .eq('id', user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-          setIsOnboarded(false);
-          setCheckingOnboarding(false);
-          return;
-        }
-
-        // Check if user has personality responses
-        const { data: personalityData, error: personalityError } = await supabase
+        // Check if personality responses exist
+        const { data: personalityData, error } = await supabase
           .from('personality_responses')
-          .select('id')
+          .select('*')
           .eq('user_id', user.id)
           .single();
 
-        if (personalityError && personalityError.code !== 'PGRST116') {
-          console.error('Error fetching personality data:', personalityError);
-        }
-
-        // User is onboarded if they have a full name, interests, and personality data
-        const userIsOnboarded = !!(profile?.full_name && 
-                                  profile?.interests?.length && 
-                                  personalityData);
-
-        console.log("Onboarding status:", {
-          hasFullName: !!profile?.full_name,
-          hasInterests: !!(profile?.interests?.length),
-          hasPersonalityData: !!personalityData,
-          isOnboarded: userIsOnboarded
+        const hasPersonalityData = !error && personalityData;
+        
+        const isComplete = hasBasicInfo && hasInterests && hasPersonalityData;
+        setOnboardingComplete(isComplete);
+        
+        console.log('Onboarding status:', {
+          hasBasicInfo,
+          hasInterests,
+          hasPersonalityData,
+          isComplete
         });
-
-        setIsOnboarded(userIsOnboarded);
+        
       } catch (error) {
         console.error('Error checking onboarding status:', error);
-        setIsOnboarded(false);
+        setOnboardingComplete(false);
       } finally {
         setCheckingOnboarding(false);
       }
     };
 
     checkOnboardingStatus();
-  }, [user]);
+  }, [user, profile]);
 
-  // Show loading while checking auth or onboarding status
-  if (loading || (user && (isOnboarded === null || checkingOnboarding))) {
+  // Handle redirects after login/onboarding
+  useEffect(() => {
+    if (loading || checkingOnboarding) return;
+
+    const currentPath = location.pathname;
+    
+    // If user is authenticated
+    if (user) {
+      // Skip redirects if already on onboarding page
+      if (currentPath === '/onboarding') return;
+      
+      // If onboarding is not complete, redirect to onboarding
+      if (onboardingComplete === false) {
+        navigate('/onboarding', { replace: true });
+        return;
+      }
+      
+      // If onboarding is complete and user is on auth pages, redirect to home
+      if (onboardingComplete === true && ['/login', '/signup', '/'].includes(currentPath)) {
+        navigate('/home', { replace: true });
+        return;
+      }
+    } else {
+      // If user is not authenticated and trying to access protected routes
+      const protectedRoutes = ['/home', '/chat', '/profile', '/onboarding', '/settings'];
+      const isProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route));
+      
+      if (isProtectedRoute) {
+        navigate('/', { replace: true });
+        return;
+      }
+    }
+  }, [user, loading, checkingOnboarding, onboardingComplete, navigate, location]);
+
+  if (loading || checkingOnboarding) {
     return (
-      <LoadingBoundary 
-        isLoading={true}
-        children={<div>Loading...</div>}
-      />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     );
   }
 
   return (
-    <BrowserRouter>
-      <ErrorBoundary>
-        <Routes>
-          {/* Public landing page - shown when not authenticated */}
-          <Route path="/" element={
-            user ? (
-              isOnboarded === false ? <Navigate to="/onboarding" replace /> : <Navigate to="/home" replace />
-            ) : <Index />
-          } />
-
-          {/* Auth routes - redirect if already logged in */}
-          <Route path="/login" element={
-            user ? (
-              isOnboarded === false ? <Navigate to="/onboarding" replace /> : <Navigate to="/home" replace />
-            ) : <LoginPage />
-          } />
-          <Route path="/signup" element={
-            user ? (
-              isOnboarded === false ? <Navigate to="/onboarding" replace /> : <Navigate to="/home" replace />
-            ) : <SignUpPage />
-          } />
-          
-          {/* Onboarding route - only for authenticated users who haven't completed onboarding */}
-          <Route path="/onboarding" element={
-            !user ? <Navigate to="/" replace /> :
-            isOnboarded === true ? <Navigate to="/home" replace /> :
-            <OnboardingPage />
-          } />
-
-          {/* Protected routes - require authentication and completed onboarding */}
-          <Route path="/home" element={
-            !user ? <Navigate to="/" replace /> :
-            isOnboarded === false ? <Navigate to="/onboarding" replace /> :
-            <LoggedInLayout />
-          }>
-            <Route index element={<HomePage />} />
-          </Route>
-
-          <Route element={
-            !user ? <Navigate to="/" replace /> :
-            isOnboarded === false ? <Navigate to="/onboarding" replace /> :
-            <LoggedInLayout />
-          }>
-            <Route path="chat/:conversationId?" element={<ChatPage />} />
-            <Route path="profile/:userId" element={<UserProfilePage />} />
-            <Route path="search" element={<SearchPage />} />
+    <SidebarProvider>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<Index />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
+        
+        {/* Protected routes - require authentication */}
+        {user ? (
+          <>
+            <Route path="/onboarding" element={<OnboardingPage />} />
             
-            {/* Settings routes nested under LoggedInLayout */}
-            <Route path="settings/*" element={<SettingsLayout />}>
-              <Route index element={<Navigate to="/settings/account" replace />} />
-              <Route path="account" element={<AccountSettingsPage />} />
-              <Route path="notifications" element={<NotificationsSettingsPage />} />
-              <Route path="privacy" element={<PrivacySettingsPage />} />
-              <Route path="appearance" element={<AppearanceSettingsPage />} />
-              <Route path="blocked-users" element={<BlockedUsersSettingsPage />} />
-              <Route path="linked-accounts" element={<LinkedAccountsSettingsPage />} />
-              <Route path="data-management" element={<DataManagementSettingsPage />} />
-              <Route path="language" element={<LanguageSettingsPage />} />
-              <Route path="help" element={<HelpSettingsPage />} />
-              <Route path="discovery" element={<DiscoverySettingsPage />} />
-            </Route>
-
-            {/* Channel routes nested under LoggedInLayout */}
-            <Route path="channels/*" element={<ChannelsLayout />}>
-              <Route index element={<ChannelPlaceholder />} />
-              <Route path="discovery" element={<ChannelsDiscovery />} />
-              <Route path=":channelId" element={<ChannelDetailPage />} />
-            </Route>
-
-            {/* Groups routes nested under LoggedInLayout */}
-            <Route path="groups" element={<GroupsPage />} />
-            <Route path="groups/:groupId" element={<GroupDetailPage />} />
-
-            {/* Events routes nested under LoggedInLayout */}
-            <Route path="events/:eventId" element={<EventDetailPage />} />
-          </Route>
-
-          {/* 404 route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </ErrorBoundary>
-    </BrowserRouter>
+            {/* Main app routes - require completed onboarding */}
+            {onboardingComplete && (
+              <Route path="/*" element={
+                <LoggedInLayout>
+                  <Routes>
+                    <Route path="/home" element={<HomePage />} />
+                    <Route path="/chat" element={<ChatPage />} />
+                    <Route path="/chat/:conversationId" element={<ChatPage />} />
+                    <Route path="/search" element={<SearchPage />} />
+                    <Route path="/profile/:userId" element={<UserProfilePage />} />
+                    <Route path="/groups" element={<GroupsPage />} />
+                    <Route path="/groups/:groupId" element={<GroupDetailPage />} />
+                    <Route path="/events/:eventId" element={<EventDetailPage />} />
+                    
+                    {/* Channels */}
+                    <Route path="/channels" element={<ChannelsLayout />}>
+                      <Route index element={<ChannelsDiscovery />} />
+                      <Route path="discover" element={<ChannelsDiscovery />} />
+                      <Route path=":channelId" element={<ChannelDetailPage />} />
+                      <Route path="placeholder" element={<ChannelPlaceholder />} />
+                    </Route>
+                    
+                    {/* Settings */}
+                    <Route path="/settings/account" element={<AccountSettingsPage />} />
+                    <Route path="/settings/privacy" element={<PrivacySettingsPage />} />
+                    <Route path="/settings/notifications" element={<NotificationsSettingsPage />} />
+                    <Route path="/settings/appearance" element={<AppearanceSettingsPage />} />
+                    <Route path="/settings/language" element={<LanguageSettingsPage />} />
+                    <Route path="/settings/help" element={<HelpSettingsPage />} />
+                    <Route path="/settings/data-management" element={<DataManagementSettingsPage />} />
+                    <Route path="/settings/linked-accounts" element={<LinkedAccountsSettingsPage />} />
+                    <Route path="/settings/discovery" element={<DiscoverySettingsPage />} />
+                    <Route path="/settings/blocked-users" element={<BlockedUsersSettingsPage />} />
+                    
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </LoggedInLayout>
+              } />
+            )}
+          </>
+        ) : (
+          <Route path="*" element={<Navigate to="/" replace />} />
+        )}
+      </Routes>
+      <Toaster />
+    </SidebarProvider>
   );
 };
 
