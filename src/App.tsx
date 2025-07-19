@@ -88,7 +88,12 @@ const App = () => {
   }, [user]);
 
   if (loading || (user && needsOnboarding === null)) {
-    return <LoadingBoundary />;
+    return (
+      <LoadingBoundary 
+        isLoading={true}
+        children={<div>Loading...</div>}
+      />
+    );
   }
 
   return (
