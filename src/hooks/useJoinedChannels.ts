@@ -1,3 +1,4 @@
+
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -38,18 +39,24 @@ export const useJoinedChannels = () => {
     queryFn: async (): Promise<ChannelWithUnread[]> => {
       if (!user?.id) return [];
       
-      const { data, error } = await supabase.rpc('get_joined_channels_with_unread' as any, {
-        p_user_id: user.id
-      });
+      try {
+        const { data, error } = await supabase.rpc('get_joined_channels_with_unread' as any, {
+          p_user_id: user.id
+        });
 
-      if (error) {
-        console.error('Error fetching joined channels:', error);
+        if (error) {
+          console.error('Error fetching joined channels:', error);
+          throw error;
+        }
+        
+        return data as unknown as ChannelWithUnread[];
+      } catch (error) {
+        console.error('Failed to fetch joined channels:', error);
         throw error;
       }
-      // Because the auto-generated Supabase types are out of sync,
-      // we use a more forceful type assertion here to satisfy TypeScript.
-      return data as unknown as ChannelWithUnread[];
     },
     enabled: !!user?.id,
+    retry: 1,
+    retryDelay: 1000,
   });
 };

@@ -49,11 +49,11 @@ const ChannelsDiscovery = () => {
 
       {error && (
         <div className="text-center py-10">
-            <p className="text-destructive">Failed to load channels.</p>
+            <p className="text-destructive">Failed to load channels. Please try refreshing the page.</p>
         </div>
       )}
 
-      {!isLoading && !error && channels && (
+      {!isLoading && !error && channels && channels.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {channels.map(channel => (
             <ChannelCard key={channel.id} channel={channel} />
@@ -61,7 +61,7 @@ const ChannelsDiscovery = () => {
         </div>
       )}
 
-      {!isLoading && !error && channels?.length === 0 && (
+      {!isLoading && !error && (!channels || channels.length === 0) && (
         <div className="text-center py-10">
             <h3 className="text-xl font-semibold">No channels found</h3>
             <p className="text-muted-foreground">Be the first to create one!</p>

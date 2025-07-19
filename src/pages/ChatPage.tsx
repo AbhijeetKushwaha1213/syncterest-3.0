@@ -47,7 +47,7 @@ const ChatPage = () => {
       return getConversations(user.id);
     },
     enabled: !!user?.id,
-    retry: 3,
+    retry: 1,
     retryDelay: 1000,
   });
 
@@ -75,57 +75,60 @@ const ChatPage = () => {
     setSelectedConversation(null);
   };
 
-  return (
-    <LoadingBoundary
-      isLoading={authLoading || conversationsLoading}
-      error={error}
-      loadingComponent={<ChatPageSkeleton />}
-      errorComponent={
-        <div className="flex h-full">
-          <div className="w-full md:w-1/3 lg:w-1/4 border-r p-4">
-            <h2 className="text-lg font-semibold mb-4">Messages</h2>
-            <div className="text-center py-10">
-              <MessageCircle className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
-              <p className="text-muted-foreground">Unable to load conversations</p>
-            </div>
-          </div>
-          <div className="hidden md:flex flex-1 items-center justify-center">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Unable to load conversations</h3>
-              <p className="text-muted-foreground">Please try refreshing the page.</p>
-            </div>
+  // Show loading state
+  if (authLoading) {
+    return <ChatPageSkeleton />;
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex h-full">
+        <div className="w-full md:w-1/3 lg:w-1/4 border-r p-4">
+          <h2 className="text-lg font-semibold mb-4">Messages</h2>
+          <div className="text-center py-10">
+            <MessageCircle className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
+            <p className="text-muted-foreground">Unable to load conversations</p>
           </div>
         </div>
-      }
-    >
-      <div className="flex h-full bg-background">
-        <div className={cn(
-          "w-full md:w-1/3 lg:w-1/4 border-r bg-background overflow-y-auto",
-          { "hidden md:flex flex-col": !!conversationId }
-        )}>
-          <SectionErrorBoundary sectionName="Conversation List">
-            <ConversationList 
-              conversations={conversations || []}
-              error={error}
-              selectedConversationId={selectedConversation?.id}
-              onSelectConversation={handleSelectConversation}
-            />
-          </SectionErrorBoundary>
-        </div>
-        <div className={cn(
-          "flex-1",
-          { "hidden md:flex": !conversationId },
-          { "flex": !!conversationId }
-        )}>
-          <SectionErrorBoundary sectionName="Chat Window">
-            <ChatWindow 
-              conversation={selectedConversation} 
-              onBack={handleBack} 
-            />
-          </SectionErrorBoundary>
+        <div className="hidden md:flex flex-1 items-center justify-center">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold mb-2">Unable to load conversations</h3>
+            <p className="text-muted-foreground">Please try refreshing the page.</p>
+          </div>
         </div>
       </div>
-    </LoadingBoundary>
+    );
+  }
+
+  return (
+    <div className="flex h-full bg-background">
+      <div className={cn(
+        "w-full md:w-1/3 lg:w-1/4 border-r bg-background overflow-y-auto",
+        { "hidden md:flex flex-col": !!conversationId }
+      )}>
+        <SectionErrorBoundary sectionName="Conversation List">
+          <ConversationList 
+            conversations={conversations || []}
+            error={error}
+            selectedConversationId={selectedConversation?.id}
+            onSelectConversation={handleSelectConversation}
+          />
+        </SectionErrorBoundary>
+      </div>
+      <div className={cn(
+        "flex-1",
+        { "hidden md:flex": !conversationId },
+        { "flex": !!conversationId }
+      )}>
+        <SectionErrorBoundary sectionName="Chat Window">
+          <ChatWindow 
+            conversation={selectedConversation} 
+            onBack={handleBack} 
+          />
+        </SectionErrorBoundary>
+      </div>
+    </div>
   );
 };
 

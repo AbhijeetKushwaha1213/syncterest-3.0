@@ -32,32 +32,35 @@ const ChannelsLayout = () => {
   const { id } = useParams<{ id: string }>();
   const { loading } = useAuth();
 
+  if (loading) {
+    return <ChannelsLayoutSkeleton />;
+  }
+
+  // If no channel ID, show discovery page
+  if (!id) {
+    return (
+      <SectionErrorBoundary sectionName="Channels Discovery">
+        <ChannelsDiscovery />
+      </SectionErrorBoundary>
+    );
+  }
+
+  // If there's a channel ID, show the channel layout with sidebar
   return (
-    <LoadingBoundary
-      isLoading={loading}
-      loadingComponent={<ChannelsLayoutSkeleton />}
-    >
-      {!id ? (
-        <SectionErrorBoundary sectionName="Channels Discovery">
-          <ChannelsDiscovery />
+    <div className="grid grid-cols-[260px_1fr] h-full">
+      <aside className="border-r bg-muted/30">
+        <ScrollArea className="h-full">
+          <SectionErrorBoundary sectionName="Channel List">
+            <ChannelList />
+          </SectionErrorBoundary>
+        </ScrollArea>
+      </aside>
+      <main className="overflow-y-auto">
+        <SectionErrorBoundary sectionName="Channel Content">
+          <Outlet />
         </SectionErrorBoundary>
-      ) : (
-        <div className="grid grid-cols-[260px_1fr] h-full">
-          <aside className="border-r bg-muted/30">
-            <ScrollArea className="h-full">
-              <SectionErrorBoundary sectionName="Channel List">
-                <ChannelList />
-              </SectionErrorBoundary>
-            </ScrollArea>
-          </aside>
-          <main className="overflow-y-auto">
-            <SectionErrorBoundary sectionName="Channel Content">
-              <Outlet />
-            </SectionErrorBoundary>
-          </main>
-        </div>
-      )}
-    </LoadingBoundary>
+      </main>
+    </div>
   );
 };
 

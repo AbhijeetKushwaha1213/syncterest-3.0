@@ -20,7 +20,17 @@ const SectionErrorFallback = ({ sectionName, onReset }: { sectionName: string; o
       <p className="text-muted-foreground text-sm text-center mb-4">
         There was an error loading this section. This might be temporary.
       </p>
-      <Button onClick={onReset} variant="outline" size="sm">
+      <Button 
+        onClick={() => {
+          if (onReset) {
+            onReset();
+          } else {
+            window.location.reload();
+          }
+        }} 
+        variant="outline" 
+        size="sm"
+      >
         <RefreshCw className="h-4 w-4 mr-2" />
         Retry
       </Button>
