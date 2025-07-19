@@ -142,36 +142,74 @@ const AppContent = () => {
             {/* Main app routes - require completed onboarding */}
             {onboardingComplete && (
               <>
-                <Route path="/home" element={<LoggedInLayout><HomePage /></LoggedInLayout>} />
-                <Route path="/chat" element={<LoggedInLayout><ChatPage /></LoggedInLayout>} />
-                <Route path="/chat/:conversationId" element={<LoggedInLayout><ChatPage /></LoggedInLayout>} />
-                <Route path="/search" element={<LoggedInLayout><SearchPage /></LoggedInLayout>} />
-                <Route path="/profile/:userId" element={<LoggedInLayout><UserProfilePage /></LoggedInLayout>} />
-                <Route path="/groups" element={<LoggedInLayout><GroupsPage /></LoggedInLayout>} />
-                <Route path="/groups/:groupId" element={<LoggedInLayout><GroupDetailPage /></LoggedInLayout>} />
-                <Route path="/events/:eventId" element={<LoggedInLayout><EventDetailPage /></LoggedInLayout>} />
+                <Route path="/home" element={<LoggedInLayout />}>
+                  <Route index element={<HomePage />} />
+                </Route>
+                <Route path="/chat" element={<LoggedInLayout />}>
+                  <Route index element={<ChatPage />} />
+                  <Route path=":conversationId" element={<ChatPage />} />
+                </Route>
+                <Route path="/search" element={<LoggedInLayout />}>
+                  <Route index element={<SearchPage />} />
+                </Route>
+                <Route path="/profile/:userId" element={<LoggedInLayout />}>
+                  <Route index element={<UserProfilePage />} />
+                </Route>
+                <Route path="/groups" element={<LoggedInLayout />}>
+                  <Route index element={<GroupsPage />} />
+                </Route>
+                <Route path="/groups/:groupId" element={<LoggedInLayout />}>
+                  <Route index element={<GroupDetailPage />} />
+                </Route>
+                <Route path="/events/:eventId" element={<LoggedInLayout />}>
+                  <Route index element={<EventDetailPage />} />
+                </Route>
                 
                 {/* Channels */}
-                <Route path="/channels" element={<LoggedInLayout><ChannelsLayout /></LoggedInLayout>}>
-                  <Route index element={<ChannelsDiscovery />} />
-                  <Route path="discover" element={<ChannelsDiscovery />} />
-                  <Route path=":channelId" element={<ChannelDetailPage />} />
-                  <Route path="placeholder" element={<ChannelPlaceholder />} />
+                <Route path="/channels" element={<LoggedInLayout />}>
+                  <Route index element={<ChannelsLayout />}>
+                    <Route index element={<ChannelsDiscovery />} />
+                    <Route path="discover" element={<ChannelsDiscovery />} />
+                    <Route path=":channelId" element={<ChannelDetailPage />} />
+                    <Route path="placeholder" element={<ChannelPlaceholder />} />
+                  </Route>
                 </Route>
                 
                 {/* Settings */}
-                <Route path="/settings/account" element={<LoggedInLayout><AccountSettingsPage /></LoggedInLayout>} />
-                <Route path="/settings/privacy" element={<LoggedInLayout><PrivacySettingsPage /></LoggedInLayout>} />
-                <Route path="/settings/notifications" element={<LoggedInLayout><NotificationsSettingsPage /></LoggedInLayout>} />
-                <Route path="/settings/appearance" element={<LoggedInLayout><AppearanceSettingsPage /></LoggedInLayout>} />
-                <Route path="/settings/language" element={<LoggedInLayout><LanguageSettingsPage /></LoggedInLayout>} />
-                <Route path="/settings/help" element={<LoggedInLayout><HelpSettingsPage /></LoggedInLayout>} />
-                <Route path="/settings/data-management" element={<LoggedInLayout><DataManagementSettingsPage /></LoggedInLayout>} />
-                <Route path="/settings/linked-accounts" element={<LoggedInLayout><LinkedAccountsSettingsPage /></LoggedInLayout>} />
-                <Route path="/settings/discovery" element={<LoggedInLayout><DiscoverySettingsPage /></LoggedInLayout>} />
-                <Route path="/settings/blocked-users" element={<LoggedInLayout><BlockedUsersSettingsPage /></LoggedInLayout>} />
+                <Route path="/settings/account" element={<LoggedInLayout />}>
+                  <Route index element={<AccountSettingsPage />} />
+                </Route>
+                <Route path="/settings/privacy" element={<LoggedInLayout />}>
+                  <Route index element={<PrivacySettingsPage />} />
+                </Route>
+                <Route path="/settings/notifications" element={<LoggedInLayout />}>
+                  <Route index element={<NotificationsSettingsPage />} />
+                </Route>
+                <Route path="/settings/appearance" element={<LoggedInLayout />}>
+                  <Route index element={<AppearanceSettingsPage />} />
+                </Route>
+                <Route path="/settings/language" element={<LoggedInLayout />}>
+                  <Route index element={<LanguageSettingsPage />} />
+                </Route>
+                <Route path="/settings/help" element={<LoggedInLayout />}>
+                  <Route index element={<HelpSettingsPage />} />
+                </Route>
+                <Route path="/settings/data-management" element={<LoggedInLayout />}>
+                  <Route index element={<DataManagementSettingsPage />} />
+                </Route>
+                <Route path="/settings/linked-accounts" element={<LoggedInLayout />}>
+                  <Route index element={<LinkedAccountsSettingsPage />} />
+                </Route>
+                <Route path="/settings/discovery" element={<LoggedInLayout />}>
+                  <Route index element={<DiscoverySettingsPage />} />
+                </Route>
+                <Route path="/settings/blocked-users" element={<LoggedInLayout />}>
+                  <Route index element={<BlockedUsersSettingsPage />} />
+                </Route>
                 
-                <Route path="*" element={<LoggedInLayout><NotFound /></LoggedInLayout>} />
+                <Route path="*" element={<LoggedInLayout />}>
+                  <Route index element={<NotFound />} />
+                </Route>
               </>
             )}
           </>
