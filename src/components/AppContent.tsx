@@ -50,8 +50,8 @@ const AppContent = () => {
 
       try {
         // Check if profile has basic info and interests
-        const hasBasicInfo = profile?.full_name && profile?.username;
-        const hasInterests = profile?.interests && profile.interests.length > 0;
+        const hasBasicInfo = !!(profile?.full_name && profile?.username);
+        const hasInterests = !!(profile?.interests && profile.interests.length > 0);
         
         // Check if personality responses exist
         const { data: personalityData, error } = await supabase
