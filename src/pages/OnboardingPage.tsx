@@ -16,9 +16,9 @@ const OnboardingPage = () => {
     age: 18,
     gender: '',
     height: '',
-    ethnicity: ''
+    ethnicity: '',
+    interests: [] as string[]
   });
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [isCompleting, setIsCompleting] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -68,7 +68,7 @@ const OnboardingPage = () => {
     }
   };
 
-  const handleInterestsComplete = async (interests: string[]) => {
+  const handleInterestsComplete = async () => {
     if (!user) {
       toast({
         title: "Error",
@@ -83,7 +83,7 @@ const OnboardingPage = () => {
       const { error } = await supabase
         .from('profiles')
         .update({
-          interests: interests,
+          interests: basicInfo.interests,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -93,7 +93,6 @@ const OnboardingPage = () => {
         throw error;
       }
 
-      setSelectedInterests(interests);
       setCurrentStep(3);
     } catch (error) {
       console.error('Error saving interests:', error);
@@ -155,7 +154,15 @@ const OnboardingPage = () => {
           />
         );
       case 2:
-        return <InterestsStep onComplete={handleInterestsComplete} />;
+        return (
+          <InterestsStep 
+            data={basicInfo}
+            updateData={updateBasicInfo}
+            onPrev={() => setCurrentStep(1)}
+            onComplete={handleInterestsComplete}
+            isSubmitting={false}
+          />
+        );
       case 3:
         return <PersonalityStep onComplete={handlePersonalityComplete} />;
       default:
