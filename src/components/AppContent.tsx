@@ -115,7 +115,7 @@ const AppContent = () => {
         return;
       }
     }
-  }, [user, loading, checkingOnboarding, onboardingComplete, navigate, location]);
+  }, [user, loading, checkingOnboarding, onboardingComplete, navigate, location.pathname]);
 
   if (loading || checkingOnboarding) {
     return (
