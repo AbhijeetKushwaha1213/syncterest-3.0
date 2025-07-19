@@ -127,9 +127,10 @@ const OnboardingPage = () => {
         description: "You're all set! Welcome to your new social experience.",
       });
 
-      // Small delay to show the toast, then redirect
+      // Force a window reload to refresh auth state and trigger proper routing
+      console.log('Onboarding completed, reloading to refresh auth state');
       setTimeout(() => {
-        navigate('/home', { replace: true });
+        window.location.href = '/home';
       }, 1500);
 
     } catch (error) {

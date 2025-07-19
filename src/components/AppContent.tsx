@@ -49,9 +49,9 @@ const AppContent = () => {
       }
 
       try {
-        // Check if profile has basic info and interests
+        // Check if profile has basic info and interests with better validation
         const hasBasicInfo = !!(profile?.full_name && profile?.username);
-        const hasInterests = !!(profile?.interests && profile.interests.length > 0);
+        const hasInterests = !!(profile?.interests && Array.isArray(profile.interests) && profile.interests.length > 0);
         
         // Check if personality responses exist
         const { data: personalityData, error } = await supabase
@@ -62,6 +62,7 @@ const AppContent = () => {
 
         const hasPersonalityData = !error && !!personalityData;
         
+        // Only mark as complete if ALL requirements are met
         const isComplete = hasBasicInfo && hasInterests && hasPersonalityData;
         setOnboardingComplete(isComplete);
         
@@ -69,7 +70,8 @@ const AppContent = () => {
           hasBasicInfo,
           hasInterests,
           hasPersonalityData,
-          isComplete
+          isComplete,
+          profile: profile ? 'loaded' : 'not loaded'
         });
         
       } catch (error) {
@@ -80,8 +82,14 @@ const AppContent = () => {
       }
     };
 
-    checkOnboardingStatus();
-  }, [user, profile]);
+    // Only check if we have user and profile data
+    if (user && (profile !== undefined || !loading)) {
+      checkOnboardingStatus();
+    } else if (!user) {
+      setOnboardingComplete(null);
+      setCheckingOnboarding(false);
+    }
+  }, [user, profile, loading]);
 
   // Handle redirects after login/onboarding
   useEffect(() => {

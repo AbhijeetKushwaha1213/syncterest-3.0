@@ -27,14 +27,11 @@ const Index = () => {
   const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
   const [hoveredText, setHoveredText] = useState({ x: 0, y: 0, visible: false });
 
-  // Redirect authenticated users based on their onboarding status
+  // Only redirect authenticated users with completed onboarding
   useEffect(() => {
-    if (user) {
-      console.log("Authenticated user detected on landing page, checking onboarding status");
-      // Let AppContent handle the redirection logic
-      navigate('/home');
-    }
-  }, [user, navigate]);
+    // Don't redirect immediately - let the user see the landing page first
+    // AppContent will handle proper routing based on onboarding status
+  }, []);
 
   // Sample profiles query for demonstration
   const { data: sampleProfiles } = useQuery<Profile[]>({
