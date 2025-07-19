@@ -86,89 +86,109 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
   }, [conversation?.id, doMarkAsRead]);
 
   useEffect(() => {
-    if (!conversation) return;
+    if (!conversation?.id || !user?.id) return;
+    
     const conversationId = conversation.id;
+    let messageChannel: any = null;
+    let reactionChannel: any = null;
 
-    const channel = supabase
-      .channel(`chat:${conversationId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        async (payload) => {
-          const { data: newMessage, error } = await supabase
-            .from('messages')
-            .select('*, sender:profiles (id, username, avatar_url), reactions(*)')
-            .eq('id', payload.new.id)
-            .single();
-          
-          if (error) {
-            console.error("Error fetching new message:", error);
-            return;
-          }
-
-          if (newMessage) {
-            setMessages(currentMessages => {
-              if (currentMessages.some(m => m.id === newMessage.id)) {
-                return currentMessages;
+    try {
+      messageChannel = supabase
+        .channel(`chat-messages-${conversationId}-${Date.now()}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'messages',
+            filter: `conversation_id=eq.${conversationId}`,
+          },
+          async (payload) => {
+            try {
+              const { data: newMessage, error } = await supabase
+                .from('messages')
+                .select('*, sender:profiles (id, username, avatar_url), reactions(*)')
+                .eq('id', payload.new.id)
+                .single();
+              
+              if (error) {
+                console.error("Error fetching new message:", error);
+                return;
               }
-              return [...currentMessages, newMessage as MessageWithSender];
-            });
-            
-            // Mark as read if it's an incoming message
-            if (newMessage.sender_id !== user?.id) {
-                doMarkAsRead(conversationId);
-            } else {
-                // If we sent the message, just invalidate conversations to update list
-                queryClient.invalidateQueries({ queryKey: ['conversations', user?.id] });
+
+              if (newMessage) {
+                setMessages(currentMessages => {
+                  if (currentMessages.some(m => m.id === newMessage.id)) {
+                    return currentMessages;
+                  }
+                  return [...currentMessages, newMessage as MessageWithSender];
+                });
+                
+                // Mark as read if it's an incoming message
+                if (newMessage.sender_id !== user.id) {
+                    doMarkAsRead(conversationId);
+                } else {
+                    // If we sent the message, just invalidate conversations to update list
+                    queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
+                }
+              }
+            } catch (error) {
+              console.error("Error processing new message:", error);
             }
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
 
-    const reactionChannel = supabase.channel('public:reactions')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'reactions' },
-        (payload) => {
-          setMessages(currentMessages => {
-            const messageInState = currentMessages.some(m => m.conversation_id === conversationId);
-            if (!messageInState) return currentMessages;
+      reactionChannel = supabase
+        .channel(`chat-reactions-${conversationId}-${Date.now()}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'reactions' },
+          (payload) => {
+            try {
+              setMessages(currentMessages => {
+                const messageInState = currentMessages.some(m => m.conversation_id === conversationId);
+                if (!messageInState) return currentMessages;
 
-            if (payload.eventType === 'INSERT') {
-              const newReaction = payload.new as Reaction;
-              return currentMessages.map(m => {
-                if (m.id === newReaction.message_id) {
-                  // Avoid duplicates
-                  if (m.reactions.some(r => r.id === newReaction.id)) return m;
-                  return { ...m, reactions: [...m.reactions, newReaction] };
+                if (payload.eventType === 'INSERT') {
+                  const newReaction = payload.new as Reaction;
+                  return currentMessages.map(m => {
+                    if (m.id === newReaction.message_id) {
+                      // Avoid duplicates
+                      if (m.reactions.some(r => r.id === newReaction.id)) return m;
+                      return { ...m, reactions: [...m.reactions, newReaction] };
+                    }
+                    return m;
+                  });
                 }
-                return m;
-              });
-            }
 
-            if (payload.eventType === 'DELETE') {
-              const oldReaction = payload.old as Partial<Reaction>;
-              return currentMessages.map(m => {
-                if (m.id === oldReaction.message_id) {
-                  return { ...m, reactions: m.reactions.filter(r => r.id !== oldReaction.id) };
+                if (payload.eventType === 'DELETE') {
+                  const oldReaction = payload.old as Partial<Reaction>;
+                  return currentMessages.map(m => {
+                    if (m.id === oldReaction.message_id) {
+                      return { ...m, reactions: m.reactions.filter(r => r.id !== oldReaction.id) };
+                    }
+                    return m;
+                  });
                 }
-                return m;
+                return currentMessages;
               });
+            } catch (error) {
+              console.error("Error processing reaction:", error);
             }
-            return currentMessages;
-          });
-        }
-      ).subscribe();
+          }
+        ).subscribe();
+    } catch (error) {
+      console.error("Error setting up chat subscriptions:", error);
+    }
 
     return () => {
-      supabase.removeChannel(channel);
-      supabase.removeChannel(reactionChannel);
+      try {
+        if (messageChannel) supabase.removeChannel(messageChannel);
+        if (reactionChannel) supabase.removeChannel(reactionChannel);
+      } catch (error) {
+        console.warn("Error cleaning up chat subscriptions:", error);
+      }
     };
-  }, [conversation?.id, queryClient, user?.id, doMarkAsRead]);
+  }, [conversation?.id, user?.id, queryClient, doMarkAsRead]);
   
   // Typing indicator logic
   useEffect(() => {
@@ -177,20 +197,30 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
       return;
     }
 
-    const typingChannel = supabase.channel(`typing:${conversation.id}`);
-
-    const onTypingEvent = (payload: { event: string, type: string, payload: { userId: string, isTyping: boolean }}) => {
-      if (payload.payload.userId !== user.id) {
-        setIsOtherUserTyping(payload.payload.isTyping);
-      }
-    };
+    let typingChannel: any = null;
     
-    typingChannel
-      .on('broadcast', { event: 'typing' }, onTypingEvent)
-      .subscribe();
+    try {
+      typingChannel = supabase.channel(`typing-${conversation.id}-${Date.now()}`);
+
+      const onTypingEvent = (payload: { event: string, type: string, payload: { userId: string, isTyping: boolean }}) => {
+        if (payload.payload.userId !== user.id) {
+          setIsOtherUserTyping(payload.payload.isTyping);
+        }
+      };
+      
+      typingChannel
+        .on('broadcast', { event: 'typing' }, onTypingEvent)
+        .subscribe();
+    } catch (error) {
+      console.error("Error setting up typing channel:", error);
+    }
       
     return () => {
-      supabase.removeChannel(typingChannel);
+      try {
+        if (typingChannel) supabase.removeChannel(typingChannel);
+      } catch (error) {
+        console.warn("Error cleaning up typing channel:", error);
+      }
       setIsOtherUserTyping(false);
     };
   }, [conversation?.id, user?.id]);

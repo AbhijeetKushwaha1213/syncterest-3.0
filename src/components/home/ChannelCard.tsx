@@ -9,6 +9,7 @@ import { useJoinChannel } from '@/hooks/useJoinChannel';
 import { useAuth } from '@/hooks/useAuth';
 import { useMemo } from 'react';
 import { useJoinedChannels } from '@/hooks/useJoinedChannels';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ChannelCardProps {
   channel: Channel & { channel_members: { count: number }[] };
@@ -17,7 +18,8 @@ interface ChannelCardProps {
 const ChannelCard = ({ channel }: ChannelCardProps) => {
   const { user } = useAuth();
   const joinChannelMutation = useJoinChannel();
-  const { data: joinedChannels } = useJoinedChannels();
+  const queryClient = useQueryClient();
+  const { data: joinedChannels, error: joinedChannelsError } = useJoinedChannels();
 
   const memberCount = channel.channel_members[0]?.count ?? 0;
 
@@ -31,7 +33,12 @@ const ChannelCard = ({ channel }: ChannelCardProps) => {
       // Maybe prompt to login
       return;
     }
-    joinChannelMutation.mutate(channel.id);
+    joinChannelMutation.mutate(channel.id, {
+      onSuccess: () => {
+        // Invalidate joined channels to refresh the list
+        queryClient.invalidateQueries({ queryKey: ['joined-channels', user.id] });
+      }
+    });
   };
 
   return (

@@ -3,47 +3,68 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { ChannelWithUnread } from '@/types';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
 export const useJoinedChannels = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const queryKey = ['joined-channels', user?.id];
   const channelRef = useRef<any>(null);
+  const subscriptionInitialized = useRef(false);
 
-  useEffect(() => {
-    if (!user?.id) return;
-
-    // Clean up existing subscription before creating a new one
+  const cleanup = useCallback(() => {
     if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
+      try {
+        supabase.removeChannel(channelRef.current);
+      } catch (error) {
+        console.warn('Error removing channel subscription:', error);
+      }
       channelRef.current = null;
     }
+    subscriptionInitialized.current = false;
+  }, []);
 
-    // Create new subscription
-    channelRef.current = supabase
-      .channel(`joined-channels-realtime-${user.id}`) // Use unique channel name
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'channel_messages'
-      }, (payload) => {
-        const joinedChannels = queryClient.getQueryData<ChannelWithUnread[]>(queryKey);
-        const isMember = joinedChannels?.some(c => c.id === payload.new.channel_id);
+  useEffect(() => {
+    if (!user?.id || subscriptionInitialized.current) return;
 
-        if (isMember && payload.new.user_id !== user.id) {
-          queryClient.invalidateQueries({ queryKey });
-        }
-      })
-      .subscribe();
+    // Clean up any existing subscription
+    cleanup();
 
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-    };
-  }, [user?.id, queryClient, queryKey]);
+    try {
+      // Create new subscription with unique channel name
+      const channelName = `joined-channels-${user.id}-${Date.now()}`;
+      channelRef.current = supabase
+        .channel(channelName)
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'channel_messages'
+        }, (payload) => {
+          try {
+            const joinedChannels = queryClient.getQueryData<ChannelWithUnread[]>(queryKey);
+            const isMember = joinedChannels?.some(c => c.id === payload.new.channel_id);
+
+            if (isMember && payload.new.user_id !== user.id) {
+              queryClient.invalidateQueries({ queryKey });
+            }
+          } catch (error) {
+            console.error('Error handling channel message:', error);
+          }
+        })
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            subscriptionInitialized.current = true;
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error('Channel subscription error');
+            cleanup();
+          }
+        });
+    } catch (error) {
+      console.error('Error setting up channel subscription:', error);
+    }
+
+    return cleanup;
+  }, [user?.id, queryClient, queryKey, cleanup]);
 
   return useQuery({
     queryKey,
