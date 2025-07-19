@@ -119,86 +119,47 @@ const App = () => {
                 <OnboardingPage />
               } />
 
-              {/* Protected routes */}
+              {/* Protected routes with LoggedInLayout wrapper */}
               <Route path="/" element={
                 !user ? <Navigate to="/login" replace /> :
                 needsOnboarding === true ? <Navigate to="/onboarding" replace /> :
-                <LoggedInLayout><HomePage /></LoggedInLayout>
-              } />
-              
-              <Route path="/index" element={
-                !user ? <Navigate to="/login" replace /> :
-                needsOnboarding === true ? <Navigate to="/onboarding" replace /> :
-                <LoggedInLayout><Index /></LoggedInLayout>
-              } />
-              
-              <Route path="/chat/:conversationId?" element={
-                !user ? <Navigate to="/login" replace /> :
-                needsOnboarding === true ? <Navigate to="/onboarding" replace /> :
-                <LoggedInLayout><ChatPage /></LoggedInLayout>
-              } />
-              
-              <Route path="/profile/:userId" element={
-                !user ? <Navigate to="/login" replace /> :
-                needsOnboarding === true ? <Navigate to="/onboarding" replace /> :
-                <LoggedInLayout><UserProfilePage /></LoggedInLayout>
-              } />
-              
-              <Route path="/search" element={
-                !user ? <Navigate to="/login" replace /> :
-                needsOnboarding === true ? <Navigate to="/onboarding" replace /> :
-                <LoggedInLayout><SearchPage /></LoggedInLayout>
-              } />
-
-              {/* Settings routes */}
-              <Route path="/settings" element={
-                !user ? <Navigate to="/login" replace /> :
-                needsOnboarding === true ? <Navigate to="/onboarding" replace /> :
-                <LoggedInLayout><SettingsLayout /></LoggedInLayout>
+                <LoggedInLayout />
               }>
-                <Route index element={<Navigate to="/settings/account" replace />} />
-                <Route path="account" element={<AccountSettingsPage />} />
-                <Route path="notifications" element={<NotificationsSettingsPage />} />
-                <Route path="privacy" element={<PrivacySettingsPage />} />
-                <Route path="appearance" element={<AppearanceSettingsPage />} />
-                <Route path="blocked-users" element={<BlockedUsersSettingsPage />} />
-                <Route path="linked-accounts" element={<LinkedAccountsSettingsPage />} />
-                <Route path="data-management" element={<DataManagementSettingsPage />} />
-                <Route path="language" element={<LanguageSettingsPage />} />
-                <Route path="help" element={<HelpSettingsPage />} />
-                <Route path="discovery" element={<DiscoverySettingsPage />} />
+                <Route index element={<HomePage />} />
+                <Route path="index" element={<Index />} />
+                <Route path="chat/:conversationId?" element={<ChatPage />} />
+                <Route path="profile/:userId" element={<UserProfilePage />} />
+                <Route path="search" element={<SearchPage />} />
+                
+                {/* Settings routes nested under LoggedInLayout */}
+                <Route path="settings" element={<SettingsLayout />}>
+                  <Route index element={<Navigate to="/settings/account" replace />} />
+                  <Route path="account" element={<AccountSettingsPage />} />
+                  <Route path="notifications" element={<NotificationsSettingsPage />} />
+                  <Route path="privacy" element={<PrivacySettingsPage />} />
+                  <Route path="appearance" element={<AppearanceSettingsPage />} />
+                  <Route path="blocked-users" element={<BlockedUsersSettingsPage />} />
+                  <Route path="linked-accounts" element={<LinkedAccountsSettingsPage />} />
+                  <Route path="data-management" element={<DataManagementSettingsPage />} />
+                  <Route path="language" element={<LanguageSettingsPage />} />
+                  <Route path="help" element={<HelpSettingsPage />} />
+                  <Route path="discovery" element={<DiscoverySettingsPage />} />
+                </Route>
+
+                {/* Channel routes nested under LoggedInLayout */}
+                <Route path="channels" element={<ChannelsLayout />}>
+                  <Route index element={<ChannelPlaceholder />} />
+                  <Route path="discovery" element={<ChannelsDiscovery />} />
+                  <Route path=":channelId" element={<ChannelDetailPage />} />
+                </Route>
+
+                {/* Groups routes nested under LoggedInLayout */}
+                <Route path="groups" element={<GroupsPage />} />
+                <Route path="groups/:groupId" element={<GroupDetailPage />} />
+
+                {/* Events routes nested under LoggedInLayout */}
+                <Route path="events/:eventId" element={<EventDetailPage />} />
               </Route>
-
-              {/* Channel routes */}
-              <Route path="/channels" element={
-                !user ? <Navigate to="/login" replace /> :
-                needsOnboarding === true ? <Navigate to="/onboarding" replace /> :
-                <LoggedInLayout><ChannelsLayout /></LoggedInLayout>
-              }>
-                <Route index element={<ChannelPlaceholder />} />
-                <Route path="discovery" element={<ChannelsDiscovery />} />
-                <Route path=":channelId" element={<ChannelDetailPage />} />
-              </Route>
-
-              {/* Groups routes */}
-              <Route path="/groups" element={
-                !user ? <Navigate to="/login" replace /> :
-                needsOnboarding === true ? <Navigate to="/onboarding" replace /> :
-                <LoggedInLayout><GroupsPage /></LoggedInLayout>
-              } />
-              
-              <Route path="/groups/:groupId" element={
-                !user ? <Navigate to="/login" replace /> :
-                needsOnboarding === true ? <Navigate to="/onboarding" replace /> :
-                <LoggedInLayout><GroupDetailPage /></LoggedInLayout>
-              } />
-
-              {/* Events routes */}
-              <Route path="/events/:eventId" element={
-                !user ? <Navigate to="/login" replace /> :
-                needsOnboarding === true ? <Navigate to="/onboarding" replace /> :
-                <LoggedInLayout><EventDetailPage /></LoggedInLayout>
-              } />
 
               {/* 404 route */}
               <Route path="*" element={<NotFound />} />
