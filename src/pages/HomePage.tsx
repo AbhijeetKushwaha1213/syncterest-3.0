@@ -1,7 +1,7 @@
 
-import { HomeTabs } from "@/components/home/HomeTabs";
-import { WelcomeBanner } from "@/components/home/WelcomeBanner";
-import { TrendingChannels } from "@/components/home/TrendingChannels";
+import HomeTabs from "@/components/home/HomeTabs";
+import WelcomeBanner from "@/components/home/WelcomeBanner";
+import TrendingChannels from "@/components/home/TrendingChannels";
 import { MatchesList } from "@/components/matches/MatchesList";
 
 const HomePage = () => {
@@ -22,7 +22,7 @@ const HomePage = () => {
         </div>
         
         <TrendingChannels />
-        <HomeTabs />
+        <HomeTabs selectedInterest={null} />
       </div>
     </div>
   );

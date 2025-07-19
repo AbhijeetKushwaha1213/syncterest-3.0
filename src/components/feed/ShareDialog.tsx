@@ -57,7 +57,17 @@ export const ShareDialog = ({
         return [];
       }
 
-      return data as Contact[];
+      // Transform the data to match our Contact interface
+      return (data || []).map((item: any) => ({
+        id: item.id,
+        other_participant: {
+          id: item.other_participant?.id || '',
+          username: item.other_participant?.username || '',
+          full_name: item.other_participant?.full_name || '',
+          avatar_url: item.other_participant?.avatar_url || '',
+          last_active_at: item.other_participant?.last_active_at || ''
+        }
+      })) as Contact[];
     },
     enabled: !!user && isOpen,
   });
