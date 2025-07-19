@@ -167,7 +167,7 @@ const AppContent = () => {
                 
                 {/* Channels */}
                 <Route path="/channels" element={<LoggedInLayout />}>
-                  <Route index element={<ChannelsLayout />}>
+                  <Route element={<ChannelsLayout />}>
                     <Route index element={<ChannelsDiscovery />} />
                     <Route path="discover" element={<ChannelsDiscovery />} />
                     <Route path=":channelId" element={<ChannelDetailPage />} />
