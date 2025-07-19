@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
@@ -61,7 +60,7 @@ const AppContent = () => {
           .eq('user_id', user.id)
           .single();
 
-        const hasPersonalityData = !error && personalityData;
+        const hasPersonalityData = !error && !!personalityData;
         
         const isComplete = hasBasicInfo && hasInterests && hasPersonalityData;
         setOnboardingComplete(isComplete);
