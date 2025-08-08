@@ -42,7 +42,7 @@ const questions = [
     ]
   },
   {
-    id: 'communication_style',
+    id: 'conversation_style',
     question: 'When communicating, I prefer to:',
     options: [
       { value: 'direct', label: 'Be direct and straightforward' },
@@ -52,13 +52,13 @@ const questions = [
     ]
   },
   {
-    id: 'problem_solving',
-    question: 'When facing a problem, I:',
+    id: 'new_experiences',
+    question: 'When facing new experiences, I:',
     options: [
-      { value: 'analytical', label: 'Analyze all options systematically' },
-      { value: 'intuitive', label: 'Trust my gut feeling' },
-      { value: 'collaborative', label: 'Seek input from others' },
-      { value: 'creative', label: 'Look for creative solutions' }
+      { value: 'embrace', label: 'Embrace them with enthusiasm' },
+      { value: 'cautious', label: 'Approach them cautiously but positively' },
+      { value: 'research', label: 'Research and prepare thoroughly first' },
+      { value: 'gradual', label: 'Prefer gradual introduction to new things' }
     ]
   }
 ];
@@ -106,8 +106,18 @@ const PersonalityStep = ({ onComplete }: PersonalityStepProps) => {
     setIsSubmitting(true);
     
     try {
-      // Save personality responses
-      await saveResponses(responses);
+      console.log('Saving personality responses:', responses);
+      
+      // Save personality responses with only the fields that exist in the database
+      await saveResponses({
+        group_behavior: responses.group_behavior,
+        social_energy: responses.social_energy,
+        day_planning: responses.day_planning,
+        conversation_style: responses.conversation_style,
+        new_experiences: responses.new_experiences
+      });
+      
+      console.log('Personality responses saved successfully');
       
       // Mark onboarding as complete in the profiles table
       const { error: profileError } = await supabase
@@ -121,6 +131,8 @@ const PersonalityStep = ({ onComplete }: PersonalityStepProps) => {
         console.error('Error updating profile:', profileError);
         throw profileError;
       }
+
+      console.log('Profile updated successfully');
 
       toast({
         title: "🎉 Welcome!",

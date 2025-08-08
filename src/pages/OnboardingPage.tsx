@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BasicInfoStep from "@/components/onboarding/BasicInfoStep";
@@ -118,19 +119,6 @@ const OnboardingPage = () => {
     try {
       console.log('Starting onboarding completion process');
       
-      // Final profile update to mark onboarding as complete
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id);
-
-      if (updateError) {
-        console.error('Error updating profile:', updateError);
-        throw updateError;
-      }
-
       // Show success message
       toast({
         title: "🎉 Welcome!",
@@ -139,10 +127,11 @@ const OnboardingPage = () => {
 
       console.log('Onboarding completed successfully, redirecting to home');
       
-      // Use navigate instead of window.location for better React Router integration
+      // Small delay to show the success message, then redirect
       setTimeout(() => {
-        navigate('/home', { replace: true });
-      }, 1000);
+        // Force a full page reload to ensure proper auth state refresh
+        window.location.href = '/home';
+      }, 1500);
 
     } catch (error) {
       console.error('Error completing onboarding:', error);
