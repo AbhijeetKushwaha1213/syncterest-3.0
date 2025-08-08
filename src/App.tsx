@@ -3,7 +3,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import AppContent from "@/components/AppContent";
@@ -18,11 +17,9 @@ function App() {
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <TooltipProvider>
           <SidebarProvider>
-            <BrowserRouter>
-              <AppContent />
-              <Toaster />
-              <Sonner />
-            </BrowserRouter>
+            <AppContent />
+            <Toaster />
+            <Sonner />
           </SidebarProvider>
         </TooltipProvider>
       </ThemeProvider>
