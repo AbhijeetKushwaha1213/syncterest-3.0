@@ -15,7 +15,7 @@ import { InterestsFormSection } from "@/components/settings/InterestsFormSection
 import PersonalityFormSection from "@/components/settings/PersonalityFormSection";
 import BasicAccountFields from "@/components/settings/BasicAccountFields";
 import { usePersonalityResponses } from "@/hooks/usePersonalityResponses";
-import { useAccountFormSubmit } from "@/hooks/useAccountFormSubmit";
+import { useAccountFormSubmit, AccountFormValues } from "@/hooks/useAccountFormSubmit";
 
 const accountFormSchema = z.object({
   username: z
@@ -44,14 +44,14 @@ const accountFormSchema = z.object({
   new_experiences: z.string().optional(),
 });
 
-type AccountFormValues = z.infer<typeof accountFormSchema>;
+type FormValues = z.infer<typeof accountFormSchema>;
 
 const AccountSettingsPage = () => {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const { personalityData, isLoading: personalityLoading } = usePersonalityResponses();
 
-  const form = useForm<AccountFormValues>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(accountFormSchema),
     defaultValues: {
       username: "",

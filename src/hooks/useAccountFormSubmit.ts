@@ -27,7 +27,7 @@ interface AccountFormValues {
 
 export const useAccountFormSubmit = (
   user: any,
-  form: UseFormReturn<AccountFormValues>
+  form: UseFormReturn<any> // Using any to match the form type exactly
 ) => {
   const [formLoading, setFormLoading] = useState(false);
   const { saveResponses, isSaving } = usePersonalityResponses();
@@ -98,3 +98,6 @@ export const useAccountFormSubmit = (
     isSaving
   };
 };
+
+// Export the type for use in other files
+export type { AccountFormValues };
