@@ -7,9 +7,10 @@ import { usePersonalityResponses } from '@/hooks/usePersonalityResponses';
 
 interface AccountFormValues {
   username: string;
-  full_name?: string;
-  bio?: string;
+  full_name?: string | '';
+  bio?: string | '';
   interests?: string[];
+  // Personality fields
   gender?: string;
   height?: string;
   ethnicity?: string;
