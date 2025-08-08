@@ -82,43 +82,51 @@ const AppContent = () => {
       }
     };
 
-    // Only check if we have user and profile data
-    if (user && (profile !== undefined || !loading)) {
+    // Only check if we have user and profile is loaded or we're not loading auth
+    if (user && !loading) {
       checkOnboardingStatus();
-    } else if (!user) {
+    } else if (!user && !loading) {
       setOnboardingComplete(null);
       setCheckingOnboarding(false);
     }
   }, [user, profile, loading]);
 
-  // Handle redirects after login/onboarding
+  // Handle redirects after auth state is determined
   useEffect(() => {
+    // Don't do anything while still loading or checking
     if (loading || checkingOnboarding) return;
 
     const currentPath = location.pathname;
+    console.log('Routing logic:', { 
+      user: !!user, 
+      onboardingComplete, 
+      currentPath,
+      loading,
+      checkingOnboarding 
+    });
     
     // If user is authenticated
     if (user) {
-      // Skip redirects if already on onboarding page
-      if (currentPath === '/onboarding') return;
-      
-      // If onboarding is not complete, redirect to onboarding
-      if (onboardingComplete === false) {
+      // If onboarding is not complete and not already on onboarding page
+      if (onboardingComplete === false && currentPath !== '/onboarding') {
+        console.log('Redirecting to onboarding - incomplete setup');
         navigate('/onboarding', { replace: true });
         return;
       }
       
-      // If onboarding is complete and user is on auth pages, redirect to home
-      if (onboardingComplete === true && ['/login', '/signup', '/'].includes(currentPath)) {
+      // If onboarding is complete and user is on auth/landing pages, redirect to home
+      if (onboardingComplete === true && ['/login', '/signup', '/', '/onboarding'].includes(currentPath)) {
+        console.log('Redirecting to home - onboarding complete');
         navigate('/home', { replace: true });
         return;
       }
     } else {
       // If user is not authenticated and trying to access protected routes
-      const protectedRoutes = ['/home', '/chat', '/profile', '/onboarding', '/settings'];
+      const protectedRoutes = ['/home', '/chat', '/profile', '/onboarding', '/settings', '/groups', '/channels', '/events'];
       const isProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route));
       
       if (isProtectedRoute) {
+        console.log('Redirecting to landing page - accessing protected route without auth');
         navigate('/', { replace: true });
         return;
       }

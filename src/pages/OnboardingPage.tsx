@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BasicInfoStep from "@/components/onboarding/BasicInfoStep";
@@ -105,9 +104,20 @@ const OnboardingPage = () => {
   };
 
   const handlePersonalityComplete = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Authentication required to complete onboarding.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsCompleting(true);
     
     try {
+      console.log('Starting onboarding completion process');
+      
       // Final profile update to mark onboarding as complete
       const { error: updateError } = await supabase
         .from('profiles')
@@ -124,14 +134,15 @@ const OnboardingPage = () => {
       // Show success message
       toast({
         title: "🎉 Welcome!",
-        description: "You're all set! Welcome to your new social experience.",
+        description: "You're all set! Redirecting to your dashboard...",
       });
 
-      // Force a window reload to refresh auth state and trigger proper routing
-      console.log('Onboarding completed, reloading to refresh auth state');
+      console.log('Onboarding completed successfully, redirecting to home');
+      
+      // Use navigate instead of window.location for better React Router integration
       setTimeout(() => {
-        window.location.href = '/home';
-      }, 1500);
+        navigate('/home', { replace: true });
+      }, 1000);
 
     } catch (error) {
       console.error('Error completing onboarding:', error);
