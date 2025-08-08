@@ -28,10 +28,18 @@ const OnboardingPage = () => {
   const progress = (currentStep / totalSteps) * 100;
 
   const updateBasicInfo = (updates: any) => {
-    setBasicInfo(prev => ({ ...prev, ...updates }));
+    console.log('OnboardingPage: Updating basic info with:', updates);
+    setBasicInfo(prev => {
+      const newInfo = { ...prev, ...updates };
+      console.log('OnboardingPage: New basic info state:', newInfo);
+      return newInfo;
+    });
   };
 
   const handleBasicInfoNext = async () => {
+    console.log('OnboardingPage: handleBasicInfoNext called with user:', user?.id);
+    console.log('OnboardingPage: Current basic info:', basicInfo);
+    
     if (!user) {
       toast({
         title: "Error",
@@ -42,27 +50,49 @@ const OnboardingPage = () => {
     }
 
     try {
+      console.log('OnboardingPage: Attempting to save basic info to profile');
+      
+      // First, let's check if the profile exists
+      const { data: existingProfile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('id, full_name, username')
+        .eq('id', user.id)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('OnboardingPage: Error fetching existing profile:', fetchError);
+        throw fetchError;
+      }
+
+      console.log('OnboardingPage: Existing profile:', existingProfile);
+
+      // Create a username from full_name if it doesn't exist
+      const username = existingProfile?.username || basicInfo.full_name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '') || 'user' + Date.now();
+      
+      console.log('OnboardingPage: Generated username:', username);
+
       // Save basic info to profile
       const { error } = await supabase
         .from('profiles')
         .update({
           full_name: basicInfo.full_name,
-          username: basicInfo.full_name.toLowerCase().replace(/\s+/g, ''),
+          username: username,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
 
       if (error) {
-        console.error('Error saving basic info:', error);
+        console.error('OnboardingPage: Error saving basic info:', error);
         throw error;
       }
 
+      console.log('OnboardingPage: Basic info saved successfully, moving to step 2');
       setCurrentStep(2);
-    } catch (error) {
-      console.error('Error saving basic info:', error);
+    } catch (error: any) {
+      console.error('OnboardingPage: Error in handleBasicInfoNext:', error);
       toast({
         title: "Error",
-        description: "Failed to save basic information. Please try again.",
+        description: `Failed to save basic information: ${error.message}`,
         variant: "destructive",
       });
     }
@@ -79,6 +109,8 @@ const OnboardingPage = () => {
     }
 
     try {
+      console.log('OnboardingPage: Saving interests:', basicInfo.interests);
+      
       // Save interests to profile
       const { error } = await supabase
         .from('profiles')
@@ -89,16 +121,17 @@ const OnboardingPage = () => {
         .eq('id', user.id);
 
       if (error) {
-        console.error('Error saving interests:', error);
+        console.error('OnboardingPage: Error saving interests:', error);
         throw error;
       }
 
+      console.log('OnboardingPage: Interests saved successfully, moving to step 3');
       setCurrentStep(3);
-    } catch (error) {
-      console.error('Error saving interests:', error);
+    } catch (error: any) {
+      console.error('OnboardingPage: Error saving interests:', error);
       toast({
         title: "Error",
-        description: "Failed to save interests. Please try again.",
+        description: `Failed to save interests: ${error.message}`,
         variant: "destructive",
       });
     }
@@ -117,7 +150,7 @@ const OnboardingPage = () => {
     setIsCompleting(true);
     
     try {
-      console.log('Starting onboarding completion process');
+      console.log('OnboardingPage: Starting onboarding completion process');
       
       // Show success message
       toast({
@@ -125,7 +158,7 @@ const OnboardingPage = () => {
         description: "You're all set! Redirecting to your dashboard...",
       });
 
-      console.log('Onboarding completed successfully, redirecting to home');
+      console.log('OnboardingPage: Onboarding completed successfully, redirecting to home');
       
       // Small delay to show the success message, then redirect
       setTimeout(() => {
@@ -133,11 +166,11 @@ const OnboardingPage = () => {
         window.location.href = '/home';
       }, 1500);
 
-    } catch (error) {
-      console.error('Error completing onboarding:', error);
+    } catch (error: any) {
+      console.error('OnboardingPage: Error completing onboarding:', error);
       toast({
         title: "Setup Error",
-        description: "Failed to complete setup. Please try again.",
+        description: `Failed to complete setup: ${error.message}`,
         variant: "destructive",
       });
       setIsCompleting(false);
@@ -202,7 +235,9 @@ const OnboardingPage = () => {
           </div>
         </div>
         
-        {renderCurrentStep()}
+        <div className="max-w-2xl mx-auto px-6">
+          {renderCurrentStep()}
+        </div>
       </div>
     </div>
   );

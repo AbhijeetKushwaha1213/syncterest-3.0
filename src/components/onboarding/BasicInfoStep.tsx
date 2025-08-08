@@ -21,6 +21,7 @@ const BasicInfoStep = ({ data, updateData, onNext }: BasicInfoStepProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validateAndNext = () => {
+    console.log('BasicInfoStep: Validating data:', data);
     const newErrors: Record<string, string> = {};
     
     if (!data.full_name.trim()) {
@@ -35,9 +36,11 @@ const BasicInfoStep = ({ data, updateData, onNext }: BasicInfoStepProps) => {
       newErrors.gender = "Please select your gender";
     }
 
+    console.log('BasicInfoStep: Validation errors:', newErrors);
     setErrors(newErrors);
     
     if (Object.keys(newErrors).length === 0) {
+      console.log('BasicInfoStep: Validation passed, calling onNext');
       onNext();
     }
   };
@@ -55,7 +58,10 @@ const BasicInfoStep = ({ data, updateData, onNext }: BasicInfoStepProps) => {
           <Input
             id="full_name"
             value={data.full_name}
-            onChange={(e) => updateData({ full_name: e.target.value })}
+            onChange={(e) => {
+              console.log('BasicInfoStep: Updating full_name:', e.target.value);
+              updateData({ full_name: e.target.value });
+            }}
             placeholder="Enter your full name"
           />
           {errors.full_name && (
@@ -71,7 +77,11 @@ const BasicInfoStep = ({ data, updateData, onNext }: BasicInfoStepProps) => {
             min="18"
             max="100"
             value={data.age}
-            onChange={(e) => updateData({ age: parseInt(e.target.value) || 18 })}
+            onChange={(e) => {
+              const newAge = parseInt(e.target.value) || 18;
+              console.log('BasicInfoStep: Updating age:', newAge);
+              updateData({ age: newAge });
+            }}
           />
           {errors.age && (
             <p className="text-sm text-destructive mt-1">{errors.age}</p>
@@ -82,7 +92,10 @@ const BasicInfoStep = ({ data, updateData, onNext }: BasicInfoStepProps) => {
           <Label>Gender</Label>
           <RadioGroup
             value={data.gender}
-            onValueChange={(value) => updateData({ gender: value })}
+            onValueChange={(value) => {
+              console.log('BasicInfoStep: Updating gender:', value);
+              updateData({ gender: value });
+            }}
             className="grid grid-cols-2 gap-4 mt-2"
           >
             <div className="flex items-center space-x-2">
@@ -112,7 +125,10 @@ const BasicInfoStep = ({ data, updateData, onNext }: BasicInfoStepProps) => {
           <Input
             id="height"
             value={data.height}
-            onChange={(e) => updateData({ height: e.target.value })}
+            onChange={(e) => {
+              console.log('BasicInfoStep: Updating height:', e.target.value);
+              updateData({ height: e.target.value });
+            }}
             placeholder="e.g., 5'8&quot; or 173cm"
           />
         </div>
@@ -122,7 +138,10 @@ const BasicInfoStep = ({ data, updateData, onNext }: BasicInfoStepProps) => {
           <Input
             id="ethnicity"
             value={data.ethnicity}
-            onChange={(e) => updateData({ ethnicity: e.target.value })}
+            onChange={(e) => {
+              console.log('BasicInfoStep: Updating ethnicity:', e.target.value);
+              updateData({ ethnicity: e.target.value });
+            }}
             placeholder="Your ethnic background"
           />
         </div>
