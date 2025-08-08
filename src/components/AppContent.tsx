@@ -1,239 +1,100 @@
-import { useEffect, useState } from "react";
-import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
-import { Toaster } from "@/components/ui/toaster";
-import { SidebarProvider } from "@/contexts/SidebarContext";
+
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import LoggedInLayout from "@/components/LoggedInLayout";
-import HomePage from "@/pages/HomePage";
-import ChatPage from "@/pages/ChatPage";
-import SearchPage from "@/pages/SearchPage";
-import UserProfilePage from "@/pages/UserProfilePage";
-import OnboardingPage from "@/pages/OnboardingPage";
-import GroupsPage from "@/pages/GroupsPage";
-import GroupDetailPage from "@/pages/GroupDetailPage";
-import EventDetailPage from "@/pages/EventDetailPage";
-import ChannelsLayout from "@/pages/ChannelsLayout";
-import ChannelDetailPage from "@/pages/ChannelDetailPage";
-import ChannelsDiscovery from "@/pages/ChannelsDiscovery";
-import ChannelPlaceholder from "@/pages/ChannelPlaceholder";
+import { Skeleton } from "@/components/ui/skeleton";
 import Index from "@/pages/Index";
 import Login from "@/pages/Login";
 import SignUp from "@/pages/SignUp";
+import OnboardingPage from "@/pages/OnboardingPage";
+import LoggedInLayout from "@/components/LoggedInLayout";
+import HomePage from "@/pages/HomePage";
+import ChatPage from "@/pages/ChatPage";
+import UserProfilePage from "@/pages/UserProfilePage";
+import SearchPage from "@/pages/SearchPage";
+import ChannelsLayout from "@/pages/ChannelsLayout";
+import ChannelsDiscovery from "@/pages/ChannelsDiscovery";
+import ChannelDetailPage from "@/pages/ChannelDetailPage";
+import ChannelPlaceholder from "@/pages/ChannelPlaceholder";
+import GroupsPage from "@/pages/GroupsPage";
+import GroupDetailPage from "@/pages/GroupDetailPage";
+import EventDetailPage from "@/pages/EventDetailPage";
 import NotFound from "@/pages/NotFound";
+import SettingsIndexPage from "@/pages/settings/SettingsIndexPage";
 import AccountSettingsPage from "@/pages/settings/AccountSettingsPage";
 import PrivacySettingsPage from "@/pages/settings/PrivacySettingsPage";
 import NotificationsSettingsPage from "@/pages/settings/NotificationsSettingsPage";
 import AppearanceSettingsPage from "@/pages/settings/AppearanceSettingsPage";
 import LanguageSettingsPage from "@/pages/settings/LanguageSettingsPage";
-import HelpSettingsPage from "@/pages/settings/HelpSettingsPage";
-import DataManagementSettingsPage from "@/pages/settings/DataManagementSettingsPage";
-import LinkedAccountsSettingsPage from "@/pages/settings/LinkedAccountsSettingsPage";
-import DiscoverySettingsPage from "@/pages/settings/DiscoverySettingsPage";
 import BlockedUsersSettingsPage from "@/pages/settings/BlockedUsersSettingsPage";
-import { supabase } from "@/integrations/supabase/client";
+import LinkedAccountsSettingsPage from "@/pages/settings/LinkedAccountsSettingsPage";
+import DataManagementSettingsPage from "@/pages/settings/DataManagementSettingsPage";
+import DiscoverySettingsPage from "@/pages/settings/DiscoverySettingsPage";
+import HelpSettingsPage from "@/pages/settings/HelpSettingsPage";
 
 const AppContent = () => {
-  const { user, loading, profile } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
-  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
+  const { user, loading } = useAuth();
 
-  // Check onboarding status when user changes
-  useEffect(() => {
-    const checkOnboardingStatus = async () => {
-      if (!user) {
-        setOnboardingComplete(null);
-        setCheckingOnboarding(false);
-        return;
-      }
-
-      try {
-        // Check if profile has basic info and interests with better validation
-        const hasBasicInfo = !!(profile?.full_name && profile?.username);
-        const hasInterests = !!(profile?.interests && Array.isArray(profile.interests) && profile.interests.length > 0);
-        
-        // Check if personality responses exist
-        const { data: personalityData, error } = await supabase
-          .from('personality_responses')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-
-        const hasPersonalityData = !error && !!personalityData;
-        
-        // Only mark as complete if ALL requirements are met
-        const isComplete = hasBasicInfo && hasInterests && hasPersonalityData;
-        setOnboardingComplete(isComplete);
-        
-        console.log('Onboarding status:', {
-          hasBasicInfo,
-          hasInterests,
-          hasPersonalityData,
-          isComplete,
-          profile: profile ? 'loaded' : 'not loaded'
-        });
-        
-      } catch (error) {
-        console.error('Error checking onboarding status:', error);
-        setOnboardingComplete(false);
-      } finally {
-        setCheckingOnboarding(false);
-      }
-    };
-
-    // Only check if we have user and profile is loaded or we're not loading auth
-    if (user && !loading) {
-      checkOnboardingStatus();
-    } else if (!user && !loading) {
-      setOnboardingComplete(null);
-      setCheckingOnboarding(false);
-    }
-  }, [user, profile, loading]);
-
-  // Handle redirects after auth state is determined
-  useEffect(() => {
-    // Don't do anything while still loading or checking
-    if (loading || checkingOnboarding) return;
-
-    const currentPath = location.pathname;
-    console.log('Routing logic:', { 
-      user: !!user, 
-      onboardingComplete, 
-      currentPath,
-      loading,
-      checkingOnboarding 
-    });
-    
-    // If user is authenticated
-    if (user) {
-      // If onboarding is not complete and not already on onboarding page
-      if (onboardingComplete === false && currentPath !== '/onboarding') {
-        console.log('Redirecting to onboarding - incomplete setup');
-        navigate('/onboarding', { replace: true });
-        return;
-      }
-      
-      // If onboarding is complete and user is on auth/landing pages, redirect to home
-      if (onboardingComplete === true && ['/login', '/signup', '/', '/onboarding'].includes(currentPath)) {
-        console.log('Redirecting to home - onboarding complete');
-        navigate('/home', { replace: true });
-        return;
-      }
-    } else {
-      // If user is not authenticated and trying to access protected routes
-      const protectedRoutes = ['/home', '/chat', '/profile', '/onboarding', '/settings', '/groups', '/channels', '/events'];
-      const isProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route));
-      
-      if (isProtectedRoute) {
-        console.log('Redirecting to landing page - accessing protected route without auth');
-        navigate('/', { replace: true });
-        return;
-      }
-    }
-  }, [user, loading, checkingOnboarding, onboardingComplete, navigate, location.pathname]);
-
-  if (loading || checkingOnboarding) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <Skeleton className="h-4 w-48 mx-auto" />
+        </div>
       </div>
     );
   }
 
   return (
-    <SidebarProvider>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<Index />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
+    <Routes>
+      <Route 
+        path="/" 
+        element={user ? <Navigate to="/home" replace /> : <Index />} 
+      />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<SignUp />} />
+      
+      {/* Protected routes */}
+      <Route 
+        path="/onboarding" 
+        element={user ? <OnboardingPage /> : <Navigate to="/login" replace />} 
+      />
+      
+      <Route 
+        path="/*" 
+        element={user ? <LoggedInLayout /> : <Navigate to="/login" replace />}
+      >
+        <Route path="home" element={<HomePage />} />
+        <Route path="chat/:conversationId?" element={<ChatPage />} />
+        <Route path="profile/:profileId" element={<UserProfilePage />} />
+        <Route path="search" element={<SearchPage />} />
+        <Route path="groups" element={<GroupsPage />} />
+        <Route path="groups/:groupId" element={<GroupDetailPage />} />
+        <Route path="events/:eventId" element={<EventDetailPage />} />
         
-        {/* Protected routes - require authentication */}
-        {user ? (
-          <>
-            <Route path="/onboarding" element={<OnboardingPage />} />
-            
-            {/* Main app routes - require completed onboarding */}
-            {onboardingComplete && (
-              <>
-                <Route path="/home" element={<LoggedInLayout />}>
-                  <Route index element={<HomePage />} />
-                </Route>
-                <Route path="/chat" element={<LoggedInLayout />}>
-                  <Route index element={<ChatPage />} />
-                  <Route path=":conversationId" element={<ChatPage />} />
-                </Route>
-                <Route path="/search" element={<LoggedInLayout />}>
-                  <Route index element={<SearchPage />} />
-                </Route>
-                <Route path="/profile/:userId" element={<LoggedInLayout />}>
-                  <Route index element={<UserProfilePage />} />
-                </Route>
-                <Route path="/groups" element={<LoggedInLayout />}>
-                  <Route index element={<GroupsPage />} />
-                </Route>
-                <Route path="/groups/:groupId" element={<LoggedInLayout />}>
-                  <Route index element={<GroupDetailPage />} />
-                </Route>
-                <Route path="/events/:eventId" element={<LoggedInLayout />}>
-                  <Route index element={<EventDetailPage />} />
-                </Route>
-                
-                {/* Channels */}
-                <Route path="/channels" element={<LoggedInLayout />}>
-                  <Route element={<ChannelsLayout />}>
-                    <Route index element={<ChannelsDiscovery />} />
-                    <Route path="discover" element={<ChannelsDiscovery />} />
-                    <Route path=":channelId" element={<ChannelDetailPage />} />
-                    <Route path="placeholder" element={<ChannelPlaceholder />} />
-                  </Route>
-                </Route>
-                
-                {/* Settings */}
-                <Route path="/settings/account" element={<LoggedInLayout />}>
-                  <Route index element={<AccountSettingsPage />} />
-                </Route>
-                <Route path="/settings/privacy" element={<LoggedInLayout />}>
-                  <Route index element={<PrivacySettingsPage />} />
-                </Route>
-                <Route path="/settings/notifications" element={<LoggedInLayout />}>
-                  <Route index element={<NotificationsSettingsPage />} />
-                </Route>
-                <Route path="/settings/appearance" element={<LoggedInLayout />}>
-                  <Route index element={<AppearanceSettingsPage />} />
-                </Route>
-                <Route path="/settings/language" element={<LoggedInLayout />}>
-                  <Route index element={<LanguageSettingsPage />} />
-                </Route>
-                <Route path="/settings/help" element={<LoggedInLayout />}>
-                  <Route index element={<HelpSettingsPage />} />
-                </Route>
-                <Route path="/settings/data-management" element={<LoggedInLayout />}>
-                  <Route index element={<DataManagementSettingsPage />} />
-                </Route>
-                <Route path="/settings/linked-accounts" element={<LoggedInLayout />}>
-                  <Route index element={<LinkedAccountsSettingsPage />} />
-                </Route>
-                <Route path="/settings/discovery" element={<LoggedInLayout />}>
-                  <Route index element={<DiscoverySettingsPage />} />
-                </Route>
-                <Route path="/settings/blocked-users" element={<LoggedInLayout />}>
-                  <Route index element={<BlockedUsersSettingsPage />} />
-                </Route>
-                
-                <Route path="*" element={<LoggedInLayout />}>
-                  <Route index element={<NotFound />} />
-                </Route>
-              </>
-            )}
-          </>
-        ) : (
-          <Route path="*" element={<Navigate to="/" replace />} />
-        )}
-      </Routes>
-      <Toaster />
-    </SidebarProvider>
+        <Route path="channels" element={<ChannelsLayout />}>
+          <Route index element={<ChannelsDiscovery />} />
+          <Route path=":channelId" element={<ChannelDetailPage />} />
+        </Route>
+        
+        <Route path="channel" element={<ChannelPlaceholder />} />
+        
+        {/* Settings routes */}
+        <Route path="settings" element={<SettingsIndexPage />} />
+        <Route path="settings/account" element={<AccountSettingsPage />} />
+        <Route path="settings/privacy" element={<PrivacySettingsPage />} />
+        <Route path="settings/notifications" element={<NotificationsSettingsPage />} />
+        <Route path="settings/appearance" element={<AppearanceSettingsPage />} />
+        <Route path="settings/language" element={<LanguageSettingsPage />} />
+        <Route path="settings/blocked-users" element={<BlockedUsersSettingsPage />} />
+        <Route path="settings/linked-accounts" element={<LinkedAccountsSettingsPage />} />
+        <Route path="settings/data-management" element={<DataManagementSettingsPage />} />
+        <Route path="settings/discovery" element={<DiscoverySettingsPage />} />
+        <Route path="settings/help" element={<HelpSettingsPage />} />
+      </Route>
+
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };
 
