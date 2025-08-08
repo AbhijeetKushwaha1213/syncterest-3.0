@@ -142,51 +142,60 @@ const AccountSettingsPage = () => {
   async function onSubmit(data: AccountFormValues) {
     if (!user) return;
     setFormLoading(true);
-    
-    // Update profile
-    const { error: profileError } = await supabase.from("profiles").update({
-      username: data.username,
-      full_name: data.full_name,
-      bio: data.bio,
-      interests: data.interests,
-      updated_at: new Date().toISOString(),
-    }).eq("id", user.id);
 
-    // Update personality responses
-    const personalityData = {
-      gender: data.gender,
-      height: data.height,
-      ethnicity: data.ethnicity,
-      conversation_style: data.conversation_style,
-      values_in_partner: data.values_in_partner,
-      sports_excitement: data.sports_excitement,
-      trip_handling: data.trip_handling,
-      group_behavior: data.group_behavior,
-      social_energy: data.social_energy,
-      day_planning: data.day_planning,
-      weekend_recharge: data.weekend_recharge,
-      new_experiences: data.new_experiences,
-    };
+    try {
+      // Update profile
+      const { error: profileError } = await supabase.from("profiles").update({
+        username: data.username,
+        full_name: data.full_name,
+        bio: data.bio,
+        interests: data.interests,
+        updated_at: new Date().toISOString(),
+      }).eq("id", user.id);
 
-    saveResponses(personalityData);
-    setFormLoading(false);
+      // Update personality responses (await to ensure save completes)
+      const personalityPayload = {
+        gender: data.gender,
+        height: data.height,
+        ethnicity: data.ethnicity,
+        conversation_style: data.conversation_style,
+        values_in_partner: data.values_in_partner,
+        sports_excitement: data.sports_excitement,
+        trip_handling: data.trip_handling,
+        group_behavior: data.group_behavior,
+        social_energy: data.social_energy,
+        day_planning: data.day_planning,
+        weekend_recharge: data.weekend_recharge,
+        new_experiences: data.new_experiences,
+      };
+      await saveResponses(personalityPayload);
 
-    if (profileError) {
-      if (profileError.code === '23505') {
-        form.setError('username', { type: 'manual', message: 'This username is already taken.' });
+      if (profileError) {
+        if (profileError.code === '23505') {
+          form.setError('username', { type: 'manual', message: 'This username is already taken.' });
+        } else {
+          toast({
+            title: "Error updating profile",
+            description: profileError.message,
+            variant: "destructive",
+          });
+        }
       } else {
         toast({
-          title: "Error updating profile",
-          description: profileError.message,
-          variant: "destructive",
+          title: "Profile updated",
+          description: "Your profile has been updated successfully.",
         });
+        window.location.reload();
       }
-    } else {
+    } catch (e: any) {
+      console.error("AccountSettingsPage: Error during save:", e);
       toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully.",
+        title: "Error updating profile",
+        description: e?.message ?? "Something went wrong while saving your changes.",
+        variant: "destructive",
       });
-      window.location.reload();
+    } finally {
+      setFormLoading(false);
     }
   }
 

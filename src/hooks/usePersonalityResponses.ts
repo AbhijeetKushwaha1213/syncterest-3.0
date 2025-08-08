@@ -28,10 +28,15 @@ export const usePersonalityResponses = () => {
   const { data: personalityData, isLoading } = useQuery({
     queryKey: ['personality-responses'],
     queryFn: async () => {
+      // Always scope to the authenticated user to avoid multi-row .single errors
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
       const { data, error } = await supabase
         .from('personality_responses')
         .select('*')
-        .single();
+        .eq('user_id', user.id)
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         throw error;
@@ -45,25 +50,50 @@ export const usePersonalityResponses = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase
+      // Select existing row for this user (avoid requiring a unique constraint)
+      const { data: existing, error: selectError } = await supabase
         .from('personality_responses')
-        .upsert({
-          user_id: user.id,
-          ...responses,
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (error) throw error;
-      return data;
+      if (selectError) throw selectError;
+
+      if (existing?.id) {
+        const { data, error } = await supabase
+          .from('personality_responses')
+          .update({
+            ...responses,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existing.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      } else {
+        const { data, error } = await supabase
+          .from('personality_responses')
+          .insert({
+            user_id: user.id,
+            ...responses,
+            updated_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['personality-responses'] });
     },
     onError: (error: any) => {
       console.error('Error saving personality responses:', error);
-      throw error; // Re-throw to be handled by the calling component
+      // Re-throw so callers can handle it (e.g., forms)
+      throw error;
     },
   });
 

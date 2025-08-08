@@ -52,12 +52,12 @@ const OnboardingPage = () => {
     try {
       console.log('OnboardingPage: Attempting to save basic info to profile');
       
-      // First, let's check if the profile exists
+      // First, check if the profile exists to preserve username if already set
       const { data: existingProfile, error: fetchError } = await supabase
         .from('profiles')
         .select('id, full_name, username')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (fetchError && fetchError.code !== 'PGRST116') {
         console.error('OnboardingPage: Error fetching existing profile:', fetchError);
@@ -67,19 +67,22 @@ const OnboardingPage = () => {
       console.log('OnboardingPage: Existing profile:', existingProfile);
 
       // Create a username from full_name if it doesn't exist
-      const username = existingProfile?.username || basicInfo.full_name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '') || 'user' + Date.now();
+      const username =
+        existingProfile?.username ||
+        basicInfo.full_name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '') ||
+        'user' + Date.now();
       
       console.log('OnboardingPage: Generated username:', username);
 
-      // Save basic info to profile
+      // Use upsert to create-or-update the profile row (works even if none exists)
       const { error } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          id: user.id,
           full_name: basicInfo.full_name,
           username: username,
           updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
+        }, { onConflict: 'id' });
 
       if (error) {
         console.error('OnboardingPage: Error saving basic info:', error);
