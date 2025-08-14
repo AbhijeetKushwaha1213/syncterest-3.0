@@ -508,6 +508,7 @@ export type Database = {
           expires_at: string
           id: string
           latitude: number | null
+          location_sharing_level: string | null
           longitude: number | null
           search_vector: unknown | null
           user_id: string
@@ -519,6 +520,7 @@ export type Database = {
           expires_at: string
           id?: string
           latitude?: number | null
+          location_sharing_level?: string | null
           longitude?: number | null
           search_vector?: unknown | null
           user_id: string
@@ -530,6 +532,7 @@ export type Database = {
           expires_at?: string
           id?: string
           latitude?: number | null
+          location_sharing_level?: string | null
           longitude?: number | null
           search_vector?: unknown | null
           user_id?: string
@@ -543,6 +546,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      location_sharing_permissions: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          grantee_id: string
+          grantor_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          grantee_id: string
+          grantor_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          grantee_id?: string
+          grantor_id?: string
+          id?: string
+        }
+        Relationships: []
       }
       messages: {
         Row: {
