@@ -1098,6 +1098,10 @@ export type Database = {
         Args: { p_channel_id: string; p_user_id: string }
         Returns: boolean
       }
+      is_group_member: {
+        Args: { p_group_id: string; p_user_id: string }
+        Returns: boolean
+      }
       mark_channel_as_read: {
         Args: { p_channel_id: string }
         Returns: undefined
