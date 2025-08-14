@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -933,46 +933,50 @@ export type Database = {
     Functions: {
       advanced_search_users: {
         Args: {
-          p_search_term: string
           p_intent: string
-          p_personality_tags: string[]
           p_latitude: number
           p_longitude: number
+          p_personality_tags: string[]
           p_radius_km: number
+          p_search_term: string
           p_sort_by: string
         }
         Returns: {
-          id: string
-          updated_at: string
-          username: string
-          full_name: string
           avatar_url: string
           bio: string
+          compatibility_score: number
+          created_at: string
+          cultural_preferences: Json
+          email_notifications_enabled: boolean
+          event_reminder_notifications: boolean
+          full_name: string
+          group_activity_notifications: boolean
+          id: string
+          intent: string
           interests: string[]
-          status: string
+          language: string
           last_active_at: string
           latitude: number
-          longitude: number
-          search_vector: unknown
-          email_notifications_enabled: boolean
-          push_notifications_enabled: boolean
-          new_message_notifications: boolean
-          new_follower_notifications: boolean
-          group_activity_notifications: boolean
-          event_reminder_notifications: boolean
-          language: string
-          intent: string
-          personality_tags: string[]
-          cultural_preferences: Json
           location_city: string
           location_postal_code: string
-          created_at: string
-          profile_visibility: string
           location_sharing_enabled: boolean
-          show_location_on_profile: boolean
+          longitude: number
+          new_follower_notifications: boolean
+          new_message_notifications: boolean
+          personality_tags: string[]
+          profile_visibility: string
+          push_notifications_enabled: boolean
+          search_vector: unknown
           show_activity_status: boolean
-          compatibility_score: number
+          show_location_on_profile: boolean
+          status: string
+          updated_at: string
+          username: string
         }[]
+      }
+      are_users_friends: {
+        Args: { user1_id: string; user2_id: string }
+        Returns: boolean
       }
       calculate_compatibility_score: {
         Args: { user1_id: string; user2_id: string }
@@ -989,25 +993,25 @@ export type Database = {
       get_joined_channels_with_unread: {
         Args: { p_user_id: string }
         Returns: {
-          id: string
+          color: string
           created_at: string
-          name: string
+          creator_id: string
           description: string
           genre: Database["public"]["Enums"]["channel_genre"]
-          visibility: Database["public"]["Enums"]["channel_visibility"]
-          creator_id: string
+          id: string
           image_url: string
-          color: string
           logo_letter: string
+          name: string
           type: Database["public"]["Enums"]["channel_type"]
           unread_count: number
+          visibility: Database["public"]["Enums"]["channel_visibility"]
         }[]
       }
       get_matches: {
         Args: Record<PropertyKey, never>
         Returns: {
-          profile_id: string
           compatibility_score: number
+          profile_id: string
         }[]
       }
       get_my_conversation_ids: {
