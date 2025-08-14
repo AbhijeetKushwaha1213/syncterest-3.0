@@ -508,7 +508,6 @@ export type Database = {
           expires_at: string
           id: string
           latitude: number | null
-          location_sharing_level: string | null
           longitude: number | null
           search_vector: unknown | null
           user_id: string
@@ -520,7 +519,6 @@ export type Database = {
           expires_at: string
           id?: string
           latitude?: number | null
-          location_sharing_level?: string | null
           longitude?: number | null
           search_vector?: unknown | null
           user_id: string
@@ -532,7 +530,6 @@ export type Database = {
           expires_at?: string
           id?: string
           latitude?: number | null
-          location_sharing_level?: string | null
           longitude?: number | null
           search_vector?: unknown | null
           user_id?: string
@@ -1117,6 +1114,10 @@ export type Database = {
         Args: { search_term: string }
         Returns: Database["public"]["CompositeTypes"]["global_search_result"][]
       }
+      grant_location_access: {
+        Args: { duration_hours?: number; to_user_id: string }
+        Returns: undefined
+      }
       is_channel_admin: {
         Args: { p_channel_id: string; p_user_id: string }
         Returns: boolean
@@ -1135,6 +1136,10 @@ export type Database = {
       }
       mark_messages_as_read: {
         Args: { p_conversation_id: string }
+        Returns: undefined
+      }
+      revoke_location_access: {
+        Args: { from_user_id: string }
         Returns: undefined
       }
     }
