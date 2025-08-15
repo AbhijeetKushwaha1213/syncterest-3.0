@@ -1,4 +1,3 @@
-
 import { Outlet } from "react-router-dom";
 import { useState } from "react";
 import AppHeader from "./AppHeader";
@@ -19,10 +18,7 @@ const LoggedInLayoutContent = () => {
   return (
     <div className="flex min-h-screen w-full bg-background">
       <SectionErrorBoundary sectionName="Navigation Sidebar">
-        <DesktopSidebar 
-          isCollapsed={isSidebarCollapsed}
-          onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-        />
+        <DesktopSidebar />
       </SectionErrorBoundary>
       
       <div className={`flex flex-col flex-1 min-w-0 transition-all duration-300 ${
