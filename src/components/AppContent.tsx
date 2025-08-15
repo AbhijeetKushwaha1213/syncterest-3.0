@@ -13,7 +13,7 @@ import UserProfilePage from "@/pages/UserProfilePage";
 import SearchPage from "@/pages/SearchPage";
 import EventDetailPage from "@/pages/EventDetailPage";
 import NotFound from "@/pages/NotFound";
-import SettingsIndexPage from "@/pages/settings/SettingsIndexPage";
+import SettingsLayout from "@/components/settings/SettingsLayout";
 import AccountSettingsPage from "@/pages/settings/AccountSettingsPage";
 import PrivacySettingsPage from "@/pages/settings/PrivacySettingsPage";
 import NotificationsSettingsPage from "@/pages/settings/NotificationsSettingsPage";
@@ -64,18 +64,20 @@ const AppContent = () => {
         <Route path="search" element={<SearchPage />} />
         <Route path="events/:eventId" element={<EventDetailPage />} />
         
-        {/* Settings routes */}
-        <Route path="settings" element={<SettingsIndexPage />} />
-        <Route path="settings/account" element={<AccountSettingsPage />} />
-        <Route path="settings/privacy" element={<PrivacySettingsPage />} />
-        <Route path="settings/notifications" element={<NotificationsSettingsPage />} />
-        <Route path="settings/appearance" element={<AppearanceSettingsPage />} />
-        <Route path="settings/language" element={<LanguageSettingsPage />} />
-        <Route path="settings/blocked-users" element={<BlockedUsersSettingsPage />} />
-        <Route path="settings/linked-accounts" element={<LinkedAccountsSettingsPage />} />
-        <Route path="settings/data-management" element={<DataManagementSettingsPage />} />
-        <Route path="settings/discovery" element={<DiscoverySettingsPage />} />
-        <Route path="settings/help" element={<HelpSettingsPage />} />
+        {/* Settings routes with nested layout */}
+        <Route path="settings" element={<SettingsLayout />}>
+          <Route index element={<Navigate to="/settings/account" replace />} />
+          <Route path="account" element={<AccountSettingsPage />} />
+          <Route path="privacy" element={<PrivacySettingsPage />} />
+          <Route path="notifications" element={<NotificationsSettingsPage />} />
+          <Route path="appearance" element={<AppearanceSettingsPage />} />
+          <Route path="language" element={<LanguageSettingsPage />} />
+          <Route path="discovery" element={<DiscoverySettingsPage />} />
+          <Route path="linked-accounts" element={<LinkedAccountsSettingsPage />} />
+          <Route path="data-management" element={<DataManagementSettingsPage />} />
+          <Route path="blocked-users" element={<BlockedUsersSettingsPage />} />
+          <Route path="help" element={<HelpSettingsPage />} />
+        </Route>
       </Route>
 
       <Route path="*" element={<NotFound />} />
