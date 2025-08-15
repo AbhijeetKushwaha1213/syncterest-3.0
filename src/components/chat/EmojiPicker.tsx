@@ -1,26 +1,24 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
+
+const EMOJIS = ['👍', '❤️', '😂', '😯', '😢', '🙏'];
 
 interface EmojiPickerProps {
   onEmojiSelect: (emoji: string) => void;
 }
 
-const EmojiPicker: React.FC<EmojiPickerProps> = ({ onEmojiSelect }) => {
-  const emojis = ['😀', '😍', '🥳', '😎', '🤔', '👍', '❤️', '🎉'];
-
+const EmojiPicker = ({ onEmojiSelect }: EmojiPickerProps) => {
   return (
-    <div className="flex gap-1 p-2">
-      {emojis.map((emoji) => (
-        <Button
+    <div className="flex gap-1">
+      {EMOJIS.map((emoji) => (
+        <button
           key={emoji}
-          variant="ghost"
-          size="sm"
           onClick={() => onEmojiSelect(emoji)}
-          className="text-lg hover:bg-muted"
+          className="p-1.5 text-xl rounded-md hover:bg-accent transition-colors"
+          aria-label={`React with ${emoji}`}
         >
           {emoji}
-        </Button>
+        </button>
       ))}
     </div>
   );

@@ -1,45 +1,52 @@
 
-import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Toggle } from "@/components/ui/toggle";
+import {
+  Flame, Dumbbell, Utensils, Palette, Music, CalendarDays, Gamepad2, Bike,
+} from "lucide-react";
+
+const interests = [
+  { name: "Tech", icon: Flame },
+  { name: "Fitness", icon: Dumbbell },
+  { name: "Food", icon: Utensils },
+  { name: "Art", icon: Palette },
+  { name: "Music", icon: Music },
+  { name: "Events", icon: CalendarDays },
+  { name: "Games", icon: Gamepad2 },
+  { name: "Sports", icon: Bike },
+];
 
 interface InterestsFilterProps {
-  selectedInterest: string;
-  onInterestChange: (interest: string) => void;
+  selectedInterest: string | null;
+  onInterestClick: (interest: string) => void;
 }
 
-const InterestsFilter: React.FC<InterestsFilterProps> = ({ 
-  selectedInterest, 
-  onInterestChange 
-}) => {
-  const interests = [
-    'All',
-    'Sports',
-    'Music',
-    'Art',
-    'Technology',
-    'Food',
-    'Travel',
-    'Books',
-    'Movies',
-    'Fitness'
-  ];
-
+const InterestsFilter = ({ selectedInterest, onInterestClick }: InterestsFilterProps) => {
   return (
-    <ScrollArea className="w-full whitespace-nowrap">
-      <div className="flex space-x-2 p-4">
-        {interests.map((interest) => (
-          <Badge
-            key={interest}
-            variant={selectedInterest === interest ? 'default' : 'outline'}
-            className="cursor-pointer"
-            onClick={() => onInterestChange(interest)}
+    <div className="space-y-3 px-4 md:px-0">
+      <h2 className="text-lg font-semibold">Interests</h2>
+      <div className="flex flex-wrap gap-2">
+        {interests.map(interest => (
+          <Toggle
+            key={interest.name}
+            pressed={selectedInterest === interest.name}
+            onPressedChange={() => onInterestClick(interest.name)}
+            variant="outline"
+            className={`
+              gap-2 rounded-full transition-all duration-300 hover:scale-105
+              data-[state=on]:bg-primary data-[state=on]:text-primary-foreground 
+              hover:bg-muted/80 data-[state=on]:border-primary
+              ${selectedInterest === interest.name 
+                ? 'shadow-lg shadow-primary/25 ring-2 ring-primary/20' 
+                : 'hover:shadow-md'
+              }
+            `}
           >
-            {interest}
-          </Badge>
+            <interest.icon className="h-4 w-4" />
+            {interest.name}
+          </Toggle>
         ))}
       </div>
-    </ScrollArea>
+    </div>
   );
 };
 
