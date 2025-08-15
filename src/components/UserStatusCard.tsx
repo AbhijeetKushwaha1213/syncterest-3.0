@@ -30,6 +30,17 @@ const UserStatusCardSkeleton = () => (
   </Card>
 );
 
+const ErrorComponent = () => (
+  <Card>
+    <CardHeader>
+      <CardTitle>Your status</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className="text-muted-foreground">Failed to load status</p>
+    </CardContent>
+  </Card>
+);
+
 const UserStatusCard = () => {
   const { user, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
@@ -84,6 +95,7 @@ const UserStatusCard = () => {
     <LoadingBoundary
       isLoading={authLoading}
       loadingComponent={<UserStatusCardSkeleton />}
+      errorComponent={<ErrorComponent />}
     >
       <Card>
         <CardHeader>
