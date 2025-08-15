@@ -12,7 +12,7 @@ const MobileBottomNav = () => {
     { name: "Home", href: "/home", icon: Home },
     { name: "Search", href: "/search", icon: Search },
     { name: "Messages", href: "/chat", icon: MessageCircle },
-    { name: "Profile", href: `/profile/${user?.id}`, icon: User },
+    { name: "Profile", href: user?.id ? `/profile/${user.id}` : "/settings/account", icon: User },
   ];
 
   return (

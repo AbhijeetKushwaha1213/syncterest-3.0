@@ -1,71 +1,44 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useBlockedUsers } from '@/hooks/useBlockedUsers';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const BlockedUsersSettingsPage = () => {
-  const { blockedUsers, isLoading, unblockUser, isUnblocking } = useBlockedUsers();
+  // Mock data - in real app this would come from a hook
+  const blockedUsers = [
+    { id: '1', username: 'user1', avatar_url: null },
+    { id: '2', username: 'user2', avatar_url: null },
+  ];
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Blocked Users</CardTitle>
         <CardDescription>
-          Manage users you have blocked. Once you unblock someone, you will be able to see their content and they will be able to interact with you again.
+          Manage users you have blocked. Blocked users cannot contact you or see your profile.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className="space-y-4">
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-16 w-full" />
-          </div>
-        ) : !blockedUsers || blockedUsers.length === 0 ? (
-          <div className="text-center text-muted-foreground py-8">
-            <p>You haven't blocked any users.</p>
-          </div>
+        {blockedUsers.length === 0 ? (
+          <p className="text-muted-foreground text-center py-4">No blocked users</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {blockedUsers.map((blockedUser) => (
-                <TableRow key={blockedUser.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-4">
-                      <Avatar>
-                        <AvatarImage src={blockedUser.avatar_url || undefined} alt={blockedUser.username || 'avatar'} />
-                        <AvatarFallback>{(blockedUser.username || 'U').charAt(0).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{blockedUser.full_name || blockedUser.username}</p>
-                        <p className="text-sm text-muted-foreground">@{blockedUser.username}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => unblockUser(blockedUser.id)}
-                      disabled={isUnblocking}
-                    >
-                      Unblock
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="space-y-4">
+            {blockedUsers.map((user) => (
+              <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.avatar_url ?? ""} alt={user.username} />
+                    <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <span className="font-medium">@{user.username}</span>
+                </div>
+                <Button variant="outline" size="sm">
+                  Unblock
+                </Button>
+              </div>
+            ))}
+          </div>
         )}
       </CardContent>
     </Card>
