@@ -1,104 +1,75 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { 
-  Home, 
-  MessageCircle, 
-  Users, 
-  Hash, 
-  Settings, 
-  PanelLeftClose,
-  PanelLeftOpen
-} from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/useAuth";
+import { Home, Search, MessageCircle, User, Settings } from "lucide-react";
 
-interface DesktopSidebarProps {
-  isCollapsed: boolean;
-  onToggle: () => void;
-}
-
-const DesktopSidebar = ({ isCollapsed, onToggle }: DesktopSidebarProps) => {
+const DesktopSidebar = () => {
   const location = useLocation();
+  const { user, profile } = useAuth();
 
-  const navItems = [
-    { icon: Home, label: "Home", path: "/home" },
-    { icon: MessageCircle, label: "Chat", path: "/chat" },
-    { icon: Hash, label: "Channels", path: "/channels" },
-    { icon: Users, label: "Groups", path: "/groups" },
-    { icon: Settings, label: "Settings", path: "/settings" },
+  const navigation = [
+    { name: "Home", href: "/home", icon: Home },
+    { name: "Search", href: "/search", icon: Search },
+    { name: "Messages", href: "/chat", icon: MessageCircle },
+    { name: "Profile", href: `/profile/${user?.id}`, icon: User },
+    { name: "Settings", href: "/settings", icon: Settings },
   ];
 
   return (
-    <TooltipProvider>
-      <aside 
-        className={cn(
-          "fixed left-0 top-0 z-40 h-screen bg-background border-r transition-all duration-300 hidden md:flex flex-col",
-          isCollapsed ? "w-20" : "w-64"
-        )}
-      >
-        <div className="p-4 border-b">
-          <div className="flex items-center justify-between">
-            {!isCollapsed && (
-              <Link to="/home" className="flex items-center space-x-2">
-                <span className="text-xl font-bold">syncterest</span>
-              </Link>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onToggle}
-              className="h-8 w-8"
+    <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
+      <div className="flex flex-col flex-grow bg-card border-r pt-5 overflow-y-auto">
+        <div className="flex items-center flex-shrink-0 px-4">
+          <h1 className="text-xl font-bold text-primary">Lovable</h1>
+        </div>
+        <div className="mt-8 flex-grow flex flex-col">
+          <nav className="flex-1 px-2 space-y-1">
+            {navigation.map((item) => {
+              const isActive = location.pathname === item.href || 
+                (item.href.startsWith('/profile/') && location.pathname.startsWith('/profile/'));
+              
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={cn(
+                    "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors",
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </nav>
+          
+          {/* User Profile Section */}
+          <div className="flex-shrink-0 p-4 border-t">
+            <Link 
+              to={`/profile/${user?.id}`}
+              className="flex items-center space-x-3 hover:bg-muted p-2 rounded-md transition-colors"
             >
-              {isCollapsed ? (
-                <PanelLeftOpen className="h-4 w-4" />
-              ) : (
-                <PanelLeftClose className="h-4 w-4" />
-              )}
-            </Button>
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={profile?.avatar_url ?? ""} alt={profile?.username ?? "avatar"} />
+                <AvatarFallback>{profile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">
+                  {profile?.full_name || profile?.username || "User"}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  @{profile?.username || "username"}
+                </p>
+              </div>
+            </Link>
           </div>
         </div>
-
-        <nav className="flex-1 p-4 space-y-2">
-          {navItems.map((item) => {
-            const isActive = location.pathname.startsWith(item.path);
-            const Icon = item.icon;
-
-            const linkContent = (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  "flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors hover:bg-accent hover:text-accent-foreground",
-                  isActive && "bg-accent text-accent-foreground",
-                  isCollapsed && "justify-center"
-                )}
-              >
-                <Icon className="h-5 w-5 flex-shrink-0" />
-                {!isCollapsed && (
-                  <span className="font-medium">{item.label}</span>
-                )}
-              </Link>
-            );
-
-            if (isCollapsed) {
-              return (
-                <Tooltip key={item.path}>
-                  <TooltipTrigger asChild>
-                    {linkContent}
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    {item.label}
-                  </TooltipContent>
-                </Tooltip>
-              );
-            }
-
-            return linkContent;
-          })}
-        </nav>
-      </aside>
-    </TooltipProvider>
+      </div>
+    </div>
   );
 };
 

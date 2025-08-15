@@ -11,12 +11,6 @@ import HomePage from "@/pages/HomePage";
 import ChatPage from "@/pages/ChatPage";
 import UserProfilePage from "@/pages/UserProfilePage";
 import SearchPage from "@/pages/SearchPage";
-import ChannelsLayout from "@/pages/ChannelsLayout";
-import ChannelsDiscovery from "@/pages/ChannelsDiscovery";
-import ChannelDetailPage from "@/pages/ChannelDetailPage";
-import ChannelPlaceholder from "@/pages/ChannelPlaceholder";
-import GroupsPage from "@/pages/GroupsPage";
-import GroupDetailPage from "@/pages/GroupDetailPage";
 import EventDetailPage from "@/pages/EventDetailPage";
 import NotFound from "@/pages/NotFound";
 import SettingsIndexPage from "@/pages/settings/SettingsIndexPage";
@@ -66,18 +60,9 @@ const AppContent = () => {
       >
         <Route path="home" element={<HomePage />} />
         <Route path="chat/:conversationId?" element={<ChatPage />} />
-        <Route path="profile/:profileId" element={<UserProfilePage />} />
+        <Route path="profile/:id" element={<UserProfilePage />} />
         <Route path="search" element={<SearchPage />} />
-        <Route path="groups" element={<GroupsPage />} />
-        <Route path="groups/:groupId" element={<GroupDetailPage />} />
         <Route path="events/:eventId" element={<EventDetailPage />} />
-        
-        <Route path="channels" element={<ChannelsLayout />}>
-          <Route index element={<ChannelsDiscovery />} />
-          <Route path=":channelId" element={<ChannelDetailPage />} />
-        </Route>
-        
-        <Route path="channel" element={<ChannelPlaceholder />} />
         
         {/* Settings routes */}
         <Route path="settings" element={<SettingsIndexPage />} />
