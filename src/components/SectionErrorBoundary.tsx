@@ -1,62 +1,48 @@
 
 import React from 'react';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import ErrorBoundary from './ErrorBoundary';
+import { AlertTriangle } from 'lucide-react';
 
 interface SectionErrorBoundaryProps {
   children: React.ReactNode;
   sectionName: string;
-  onReset?: () => void;
-  resetKeys?: Array<string | number>;
 }
 
-const SectionErrorFallback = ({ sectionName, onReset }: { sectionName: string; onReset?: () => void }) => (
-  <Card className="w-full">
-    <CardContent className="flex flex-col items-center justify-center py-8">
-      <AlertTriangle className="h-8 w-8 text-destructive mb-3" />
-      <h3 className="font-semibold mb-2">Failed to load {sectionName}</h3>
-      <p className="text-muted-foreground text-sm text-center mb-4">
-        There was an error loading this section. This might be temporary.
-      </p>
-      <Button 
-        onClick={() => {
-          if (onReset) {
-            onReset();
-          } else {
-            window.location.reload();
-          }
-        }} 
-        variant="outline" 
-        size="sm"
-      >
-        <RefreshCw className="h-4 w-4 mr-2" />
-        Retry
-      </Button>
-    </CardContent>
-  </Card>
-);
+interface SectionErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+}
 
-const SectionErrorBoundary: React.FC<SectionErrorBoundaryProps> = ({ 
-  children, 
-  sectionName, 
-  onReset, 
-  resetKeys 
-}) => {
-  const handleReset = () => {
-    onReset?.();
-  };
+class SectionErrorBoundary extends React.Component<SectionErrorBoundaryProps, SectionErrorBoundaryState> {
+  constructor(props: SectionErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
-  return (
-    <ErrorBoundary
-      fallback={<SectionErrorFallback sectionName={sectionName} onReset={handleReset} />}
-      onReset={handleReset}
-      resetKeys={resetKeys}
-    >
-      {children}
-    </ErrorBoundary>
-  );
-};
+  static getDerivedStateFromError(error: Error): SectionErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error(`Error in ${this.props.sectionName}:`, error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex items-center justify-center p-4 border border-destructive/20 rounded-lg bg-destructive/5">
+          <div className="text-center">
+            <AlertTriangle className="mx-auto h-8 w-8 text-destructive mb-2" />
+            <h3 className="font-semibold text-destructive">Something went wrong</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              There was an error loading {this.props.sectionName}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 export default SectionErrorBoundary;
