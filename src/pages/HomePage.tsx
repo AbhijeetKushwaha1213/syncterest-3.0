@@ -1,106 +1,89 @@
-
-import { useState } from "react";
-import PeopleNearYou from "@/components/PeopleNearYou";
-import StoriesList from "@/components/stories/StoriesList";
-import { useAuth } from "@/hooks/useAuth";
-import { useSidebar } from "@/contexts/SidebarContext";
-import WelcomeBanner from "@/components/home/WelcomeBanner";
-import InterestsFilter from "@/components/home/InterestsFilter";
-import HomeTabs from "@/components/home/HomeTabs";
-import { Button } from "@/components/ui/button";
-import { PanelRightClose, PanelRightOpen } from "lucide-react";
-import SectionErrorBoundary from "@/components/SectionErrorBoundary";
-import LoadingBoundary from "@/components/LoadingBoundary";
+import React, { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/hooks/useAuth";
+import { useLiveUsers } from "@/hooks/useLiveUsers";
+import { useNearbyUsers } from "@/hooks/useNearbyUsers";
+import { InterestsFilter } from "@/components/home/InterestsFilter";
+import { LiveUsersTab } from "@/components/live/LiveUsersTab";
+import { NearbyTab } from "@/components/home/NearbyTab";
+import LoadingBoundary from "@/components/LoadingBoundary";
+
+interface HomePageProps {}
 
 const HomePageSkeleton = () => (
-  <div className="p-4 sm:p-6 space-y-6">
-    <Skeleton className="h-20 w-full" />
-    <div className="flex gap-4 overflow-x-auto">
-      {[...Array(8)].map((_, i) => (
-        <Skeleton key={i} className="h-16 w-16 rounded-full flex-shrink-0" />
-      ))}
-    </div>
+  <div className="flex flex-col gap-4 p-4">
+    <Skeleton className="h-8 w-32" />
+    <Skeleton className="h-12 w-full" />
     <div className="flex gap-2">
-      {[...Array(5)].map((_, i) => (
-        <Skeleton key={i} className="h-8 w-20 rounded-full" />
-      ))}
+      <Skeleton className="h-10 w-24" />
+      <Skeleton className="h-10 w-24" />
+      <Skeleton className="h-10 w-24" />
     </div>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {[...Array(6)].map((_, i) => (
-        <Skeleton key={i} className="h-40 w-full" />
-      ))}
-    </div>
+    <Skeleton className="h-64 w-full" />
   </div>
 );
 
 const HomePage = () => {
-  const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
-  const { profile: currentUserProfile, loading } = useAuth();
-  const { rightSidebarCollapsed, toggleRightSidebar } = useSidebar();
-
-  const handleInterestClick = (interest: string) => {
-    setSelectedInterest(prev => prev === interest ? null : interest);
-  };
+  const { user } = useAuth();
+  const { 
+    users: liveUsers, 
+    isLoading, 
+    error, 
+    myStatus, 
+    setMyStatus 
+  } = useLiveUsers();
+  const { 
+    users: nearbyUsers, 
+    isLoading: nearbyUsersLoading, 
+    error: nearbyUsersError 
+  } = useNearbyUsers();
+  const [activeTab, setActiveTab] = useState("live");
+  const [selectedInterest, setSelectedInterest] = useState("All");
 
   return (
-    <LoadingBoundary
-      isLoading={loading}
-      loadingComponent={<HomePageSkeleton />}
-    >
-      <div className={`p-4 sm:p-6 grid gap-6 md:gap-8 transition-all duration-300 ${
-        rightSidebarCollapsed ? 'lg:grid-cols-1' : 'lg:grid-cols-[1fr_350px]'
-      }`}>
-        <div className="flex flex-col gap-6">
-          {currentUserProfile && (
-            <SectionErrorBoundary sectionName="Welcome Banner">
-              <WelcomeBanner currentUserProfile={currentUserProfile} />
-            </SectionErrorBoundary>
-          )}
-          
-          <SectionErrorBoundary sectionName="Stories">
-            <StoriesList />
-          </SectionErrorBoundary>
-          
-          <SectionErrorBoundary sectionName="Interests Filter">
-            <InterestsFilter 
-              selectedInterest={selectedInterest} 
-              onInterestClick={handleInterestClick} 
-            />
-          </SectionErrorBoundary>
-          
-          <SectionErrorBoundary sectionName="Content Tabs">
-            <HomeTabs selectedInterest={selectedInterest} />
-          </SectionErrorBoundary>
-        </div>
-        
-        {!rightSidebarCollapsed && (
-          <div className="space-y-6 hidden lg:block">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Sidebar</h2>
-              <Button variant="ghost" size="sm" onClick={toggleRightSidebar}>
-                <PanelRightClose className="h-4 w-4" />
-              </Button>
-            </div>
-            <SectionErrorBoundary sectionName="People Nearby">
-              <PeopleNearYou />
-            </SectionErrorBoundary>
-          </div>
-        )}
-        
-        {rightSidebarCollapsed && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleRightSidebar}
-            className="fixed top-20 right-4 z-10 lg:block hidden"
-          >
-            <PanelRightOpen className="h-4 w-4" />
-          </Button>
-        )}
+    <div className="flex flex-col min-h-screen">
+      <header className="p-4 border-b">
+        <h1 className="text-2xl font-bold">Welcome, {user?.email}!</h1>
+      </header>
+
+      <div className="bg-muted/50 p-4">
+        <InterestsFilter 
+          selectedInterest={selectedInterest}
+          onInterestChange={setSelectedInterest}
+        />
       </div>
-    </LoadingBoundary>
+      
+      <main className="flex-1 overflow-hidden">
+        <LoadingBoundary
+          isLoading={isLoading}
+          loadingComponent={<HomePageSkeleton />}
+          errorComponent={<div className="text-center text-muted-foreground p-8">Error loading content</div>}
+        >
+          <div className="h-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+              <TabsList className="flex">
+                <TabsTrigger value="live" className="flex-1">Live Users</TabsTrigger>
+                <TabsTrigger value="nearby" className="flex-1">Nearby</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="live" className="flex-1 mt-0">
+                <LiveUsersTab 
+                  myStatus={myStatus} 
+                  onStatusChange={setMyStatus}
+                />
+              </TabsContent>
+
+              <TabsContent value="nearby" className="flex-1 mt-0 p-4">
+                <NearbyTab />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </LoadingBoundary>
+      </main>
+    </div>
   );
 };
 
 export default HomePage;
+
