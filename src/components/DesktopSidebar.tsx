@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,7 +18,7 @@ const DesktopSidebar = () => {
   ];
 
   return (
-    <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
+    <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:z-40">
       <div className="flex flex-col flex-grow bg-card border-r pt-5 overflow-y-auto">
         <div className="flex items-center flex-shrink-0 px-4">
           <h1 className="text-xl font-bold text-primary">Syncterest</h1>
@@ -26,7 +27,8 @@ const DesktopSidebar = () => {
           <nav className="flex-1 px-2 space-y-1">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href || 
-                (item.href.startsWith('/profile/') && location.pathname.startsWith('/profile/'));
+                (item.href.startsWith('/profile/') && location.pathname.startsWith('/profile/')) ||
+                (item.href === '/settings' && location.pathname.startsWith('/settings'));
               
               return (
                 <Link

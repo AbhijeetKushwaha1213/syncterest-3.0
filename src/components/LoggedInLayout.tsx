@@ -21,9 +21,7 @@ const LoggedInLayoutContent = () => {
         <DesktopSidebar />
       </SectionErrorBoundary>
       
-      <div className={`flex flex-col flex-1 min-w-0 transition-all duration-300 ${
-        isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64'
-      }`}>
+      <div className="flex flex-col flex-1 min-w-0 lg:ml-64">
         <SectionErrorBoundary sectionName="Header">
           <AppHeader 
             isSidebarCollapsed={isSidebarCollapsed}
@@ -31,7 +29,7 @@ const LoggedInLayoutContent = () => {
           />
         </SectionErrorBoundary>
         
-        <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
+        <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">
           <ErrorBoundary>
             <Outlet />
           </ErrorBoundary>
@@ -47,13 +45,13 @@ const LoggedInLayoutContent = () => {
 
 const LoadingLayout = () => (
   <div className="flex min-h-screen w-full bg-background">
-    <div className="w-64 border-r bg-muted/30 p-4">
+    <div className="w-64 border-r bg-muted/30 p-4 hidden lg:block">
       <Skeleton className="h-8 w-full mb-4" />
       {[...Array(6)].map((_, i) => (
         <Skeleton key={i} className="h-12 w-full mb-2" />
       ))}
     </div>
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col lg:ml-64">
       <div className="border-b p-4">
         <Skeleton className="h-10 w-1/3" />
       </div>
