@@ -6,7 +6,11 @@ import LiveUsersTab from "@/components/live/LiveUsersTab";
 import NearbyTab from "@/components/nearby/NearbyTab";
 import MatchesList from "@/components/matches/MatchesList";
 
-const HomeTabs = () => {
+interface HomeTabsProps {
+  selectedInterest: string | null;
+}
+
+const HomeTabs = ({ selectedInterest }: HomeTabsProps) => {
   return (
     <Tabs defaultValue="feed" className="w-full">
       <TabsList className="grid w-full grid-cols-5">
@@ -18,7 +22,7 @@ const HomeTabs = () => {
       </TabsList>
       
       <TabsContent value="feed" className="space-y-4">
-        <FeedList />
+        <FeedList selectedInterest={selectedInterest} />
       </TabsContent>
       
       <TabsContent value="groups" className="space-y-4">
