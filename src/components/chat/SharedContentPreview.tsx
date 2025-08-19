@@ -97,12 +97,19 @@ const SharedContentPreview = ({ contentType, contentId }: SharedContentPreviewPr
   };
 
   const handleViewContent = () => {
-    // Navigate within the same app instead of opening new tabs
+    // Navigate to home feed with a query parameter to highlight the specific content
     if (contentType === 'event') {
       navigate(`/events/${contentId}`);
     } else {
-      // For posts and reels, navigate to the home feed where they can be viewed
-      navigate('/home');
+      // Navigate to home feed and pass the content info as state
+      navigate('/home', { 
+        state: { 
+          highlightContent: { 
+            type: contentType, 
+            id: contentId 
+          } 
+        } 
+      });
     }
   };
 
