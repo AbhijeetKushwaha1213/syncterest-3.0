@@ -1,5 +1,5 @@
-
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,6 +38,7 @@ type ContentData = PostData | EventData | ReelData;
 const SharedContentPreview = ({ contentType, contentId }: SharedContentPreviewProps) => {
   const [contentData, setContentData] = useState<ContentData | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchContentData();
@@ -96,13 +97,13 @@ const SharedContentPreview = ({ contentType, contentId }: SharedContentPreviewPr
   };
 
   const handleViewContent = () => {
-    const routes = {
-      post: `/feed`,
-      event: `/event/${contentId}`,
-      reel: `/feed`
-    };
-    
-    window.open(routes[contentType], '_blank');
+    // Navigate within the same app instead of opening new tabs
+    if (contentType === 'event') {
+      navigate(`/events/${contentId}`);
+    } else {
+      // For posts and reels, navigate to the home feed where they can be viewed
+      navigate('/home');
+    }
   };
 
   if (loading) {
