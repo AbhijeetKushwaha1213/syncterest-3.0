@@ -1,34 +1,44 @@
 
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, Users } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 const GroupsPage = () => {
-  const { toast } = useToast();
-
   const handleCreateGroup = () => {
     toast({
       title: "Feature Under Development",
-      description: "Group creation feature is coming soon! Stay tuned for updates.",
+      description: "Groups functionality is coming soon! We're working hard to bring you this feature.",
     });
   };
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 md:p-8">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold tracking-tight">Groups</h2>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Groups</h2>
         <Button onClick={handleCreateGroup}>
-          <PlusCircle className="mr-2 h-4 w-4" />
+          <Plus className="h-4 w-4 mr-2" />
           Create Group
         </Button>
       </div>
 
-      <div className="text-center py-20 border-2 border-dashed rounded-lg">
-        <h3 className="text-xl font-semibold">Groups Feature Coming Soon</h3>
-        <p className="text-muted-foreground mt-2">
-          We're working hard to bring you an amazing groups experience. Check back soon!
-        </p>
-      </div>
+      <Card className="text-center py-12">
+        <CardHeader>
+          <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+            <Users className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <CardTitle>Groups Feature Coming Soon</CardTitle>
+          <CardDescription>
+            We're working on bringing you amazing group functionality. Stay tuned for updates!
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={handleCreateGroup} variant="outline">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Group
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };
