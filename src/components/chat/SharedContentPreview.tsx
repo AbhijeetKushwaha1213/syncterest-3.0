@@ -11,16 +11,29 @@ interface SharedContentPreviewProps {
   contentId: string;
 }
 
-interface ContentData {
+interface PostData {
   id: string;
-  title?: string;
-  content?: string;
-  name?: string;
+  caption?: string;
+  image_url?: string;
+  created_at: string;
+}
+
+interface EventData {
+  id: string;
+  title: string;
   description?: string;
   image_url?: string;
+  created_at: string;
+}
+
+interface ReelData {
+  id: string;
+  caption?: string;
   video_url?: string;
   created_at: string;
 }
+
+type ContentData = PostData | EventData | ReelData;
 
 const SharedContentPreview = ({ contentType, contentId }: SharedContentPreviewProps) => {
   const [contentData, setContentData] = useState<ContentData | null>(null);
@@ -32,33 +45,49 @@ const SharedContentPreview = ({ contentType, contentId }: SharedContentPreviewPr
 
   const fetchContentData = async () => {
     try {
-      let tableName = '';
+      let data = null;
+      let error = null;
+
       switch (contentType) {
         case 'post':
-          tableName = 'posts';
+          const postResult = await supabase
+            .from('posts')
+            .select('id, caption, image_url, created_at')
+            .eq('id', contentId)
+            .single();
+          data = postResult.data;
+          error = postResult.error;
           break;
         case 'event':
-          tableName = 'events';
+          const eventResult = await supabase
+            .from('events')
+            .select('id, title, description, image_url, created_at')
+            .eq('id', contentId)
+            .single();
+          data = eventResult.data;
+          error = eventResult.error;
           break;
         case 'reel':
-          tableName = 'reels';
+          const reelResult = await supabase
+            .from('reels')
+            .select('id, caption, video_url, created_at')
+            .eq('id', contentId)
+            .single();
+          data = reelResult.data;
+          error = reelResult.error;
           break;
         default:
           return;
       }
-
-      const { data, error } = await supabase
-        .from(tableName)
-        .select('*')
-        .eq('id', contentId)
-        .single();
 
       if (error) {
         console.error('Error fetching shared content:', error);
         return;
       }
 
-      setContentData(data);
+      if (data) {
+        setContentData(data);
+      }
     } catch (error) {
       console.error('Error fetching shared content:', error);
     } finally {
@@ -68,9 +97,9 @@ const SharedContentPreview = ({ contentType, contentId }: SharedContentPreviewPr
 
   const handleViewContent = () => {
     const routes = {
-      post: `/feed`, // Posts are usually in feed
+      post: `/feed`,
       event: `/event/${contentId}`,
-      reel: `/feed` // Reels are usually in feed
+      reel: `/feed`
     };
     
     window.open(routes[contentType], '_blank');
@@ -104,7 +133,7 @@ const SharedContentPreview = ({ contentType, contentId }: SharedContentPreviewPr
   const getIcon = () => {
     switch (contentType) {
       case 'post':
-        return contentData.image_url ? <Image className="h-5 w-5" /> : <FileText className="h-5 w-5" />;
+        return (contentData as PostData).image_url ? <Image className="h-5 w-5" /> : <FileText className="h-5 w-5" />;
       case 'event':
         return <Calendar className="h-5 w-5" />;
       case 'reel':
@@ -115,11 +144,31 @@ const SharedContentPreview = ({ contentType, contentId }: SharedContentPreviewPr
   };
 
   const getTitle = () => {
-    return contentData.title || contentData.name || `Shared ${contentType}`;
+    switch (contentType) {
+      case 'post':
+        return (contentData as PostData).caption || 'Shared post';
+      case 'event':
+        return (contentData as EventData).title || 'Shared event';
+      case 'reel':
+        return (contentData as ReelData).caption || 'Shared reel';
+      default:
+        return `Shared ${contentType}`;
+    }
   };
 
   const getDescription = () => {
-    const desc = contentData.description || contentData.content || '';
+    let desc = '';
+    switch (contentType) {
+      case 'post':
+        desc = (contentData as PostData).caption || '';
+        break;
+      case 'event':
+        desc = (contentData as EventData).description || '';
+        break;
+      case 'reel':
+        desc = (contentData as ReelData).caption || '';
+        break;
+    }
     return desc.length > 100 ? desc.substring(0, 100) + '...' : desc;
   };
 
