@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -114,16 +113,15 @@ const ShareDialog = ({ open, onOpenChange, contentId, contentType, isForward = f
         );
 
         if (conversationId) {
-          // Send message with shared content
+          // Create a proper shareable message format
           const shareMessage = message || `Check out this ${contentType}!`;
-          const fullMessage = `${shareMessage} [Shared ${contentType}: ${contentId}]`;
           
           await supabase
             .from('messages')
             .insert({
               conversation_id: conversationId,
               sender_id: user?.id,
-              content: fullMessage
+              content: `${shareMessage}\n\n🔗 SHARED_CONTENT:${contentType}:${contentId}`
             });
         }
       }

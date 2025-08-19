@@ -4,8 +4,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from 'date-fns';
-import { Check, CheckCheck, Download, FileText, SmilePlus } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { Check, CheckCheck, Download, FileText, SmilePlus, Play, Pause } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '../ui/skeleton';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
@@ -13,6 +13,7 @@ import { Button } from '../ui/button';
 import EmojiPicker from './EmojiPicker';
 import ReactionsDisplay from './ReactionsDisplay';
 import { useMutation } from '@tanstack/react-query';
+import SharedContentPreview from './SharedContentPreview';
 
 interface MessageBubbleProps {
   message: MessageWithSender;
@@ -21,6 +22,8 @@ interface MessageBubbleProps {
 const AttachmentDisplay = ({ message }: { message: MessageWithSender }) => {
     const [url, setUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioRef = useRef<HTMLAudioElement>(null);
 
     useEffect(() => {
         if (message.attachment_url) {
@@ -30,11 +33,27 @@ const AttachmentDisplay = ({ message }: { message: MessageWithSender }) => {
         setLoading(false);
     }, [message.attachment_url]);
 
+    const handleAudioPlay = () => {
+        if (audioRef.current) {
+            if (isPlaying) {
+                audioRef.current.pause();
+            } else {
+                audioRef.current.play();
+            }
+            setIsPlaying(!isPlaying);
+        }
+    };
+
+    const handleAudioEnded = () => {
+        setIsPlaying(false);
+    };
+
     if (loading || !url) {
         return <Skeleton className="w-48 h-24 rounded-lg" />;
     }
 
     const isImage = message.attachment_type?.startsWith('image/');
+    const isAudio = message.attachment_type?.startsWith('audio/');
     const fileName = message.attachment_url?.split('/').pop() || 'attachment';
 
     if (isImage) {
@@ -42,6 +61,35 @@ const AttachmentDisplay = ({ message }: { message: MessageWithSender }) => {
             <a href={url} target="_blank" rel="noopener noreferrer">
                 <img src={url} alt="attachment" className="rounded-lg max-w-full h-auto object-cover cursor-pointer" />
             </a>
+        );
+    }
+
+    if (isAudio) {
+        return (
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50 max-w-xs">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleAudioPlay}
+                    className="shrink-0"
+                >
+                    {isPlaying ? (
+                        <Pause className="h-5 w-5" />
+                    ) : (
+                        <Play className="h-5 w-5" />
+                    )}
+                </Button>
+                <div className="flex-1">
+                    <p className="text-sm font-medium">Audio Message</p>
+                    <audio
+                        ref={audioRef}
+                        src={url}
+                        onEnded={handleAudioEnded}
+                        className="hidden"
+                        preload="metadata"
+                    />
+                </div>
+            </div>
         );
     }
 
@@ -63,6 +111,15 @@ const MessageBubble = ({ message }: MessageBubbleProps) => {
     const senderProfile = message.sender as any;
     const isImageAttachment = message.attachment_type?.startsWith('image/');
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+    // Check if message contains shared content
+    const sharedContentMatch = message.content?.match(/🔗 SHARED_CONTENT:(\w+):([a-zA-Z0-9-]+)/);
+    const isSharedContent = !!sharedContentMatch;
+    const sharedContentType = sharedContentMatch?.[1] as 'post' | 'event' | 'reel';
+    const sharedContentId = sharedContentMatch?.[2];
+    
+    // Extract the actual message text (without the shared content marker)
+    const messageText = message.content?.replace(/🔗 SHARED_CONTENT:\w+:[a-zA-Z0-9-]+/, '').trim();
 
     const addReactionMutation = useMutation({
         mutationFn: ({ messageId, emoji }: { messageId: string, emoji: string }) => addReaction(messageId, emoji),
@@ -103,16 +160,28 @@ const MessageBubble = ({ message }: MessageBubbleProps) => {
                             isSender 
                                 ? "bg-primary text-primary-foreground rounded-br-none" 
                                 : "bg-muted rounded-bl-none",
-                            { 'p-1': isImageAttachment && !message.content },
-                            { 'px-4 py-2': !isImageAttachment || message.content }
+                            { 'p-1': isImageAttachment && !messageText && !isSharedContent },
+                            { 'px-4 py-2': !isImageAttachment || messageText || isSharedContent }
                         )}
                     >
                         {message.attachment_url && (
-                            <div className={cn({ "pb-2": message.content })}>
+                            <div className={cn({ "pb-2": messageText || isSharedContent })}>
                                 <AttachmentDisplay message={message} />
                             </div>
                         )}
-                        {message.content && <p className="whitespace-pre-wrap">{message.content}</p>}
+                        
+                        {messageText && (
+                            <p className="whitespace-pre-wrap mb-2">{messageText}</p>
+                        )}
+                        
+                        {isSharedContent && sharedContentType && sharedContentId && (
+                            <div className="mt-2">
+                                <SharedContentPreview 
+                                    contentType={sharedContentType} 
+                                    contentId={sharedContentId}
+                                />
+                            </div>
+                        )}
                     </div>
                     <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
                         <PopoverTrigger asChild>
