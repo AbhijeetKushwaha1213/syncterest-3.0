@@ -1,48 +1,138 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link } from 'react-router-dom';
-import { LifeBuoy, Mail, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ExternalLink, MessageCircle, BookOpen, Bug, Mail } from 'lucide-react';
 
 const HelpSettingsPage = () => {
+  const handleContactSupport = () => {
+    window.open('mailto:support@yourapp.com?subject=Support Request', '_blank');
+  };
+
+  const handleReportBug = () => {
+    window.open('mailto:bugs@yourapp.com?subject=Bug Report', '_blank');
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Help & Support</CardTitle>
-        <CardDescription>
-          Find help and information about our service.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <a href="#" className="flex items-center p-4 border rounded-lg hover:bg-accent transition-colors">
-            <LifeBuoy className="h-6 w-6 mr-4 text-primary" />
-            <div>
-              <h3 className="font-semibold">Help Center & FAQ</h3>
-              <p className="text-sm text-muted-foreground">Find answers to frequently asked questions.</p>
-            </div>
-          </a>
-          <a href="mailto:support@example.com" className="flex items-center p-4 border rounded-lg hover:bg-accent transition-colors">
-            <Mail className="h-6 w-6 mr-4 text-primary" />
-            <div>
-              <h3 className="font-semibold">Contact Us</h3>
-              <p className="text-sm text-muted-foreground">Get in touch with our support team.</p>
-            </div>
-          </a>
-        </div>
-        <div className="space-y-2 pt-4 border-t">
-            <h3 className="text-lg font-semibold">Legal</h3>
-            <div className="space-y-2">
-                <Link to="/terms-of-service" className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
-                    <FileText className="h-4 w-4 mr-2" /> Terms of Service
-                </Link>
-                <Link to="/privacy-policy" className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
-                    <FileText className="h-4 w-4 mr-2" /> Privacy Policy
-                </Link>
-            </div>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Help & Support</CardTitle>
+          <CardDescription>
+            Get help, report issues, or provide feedback.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Button
+              variant="outline"
+              className="h-auto p-4 flex flex-col items-start text-left"
+              onClick={handleContactSupport}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <MessageCircle className="h-5 w-5" />
+                <span className="font-semibold">Contact Support</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Get help with your account or app usage
+              </p>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-auto p-4 flex flex-col items-start text-left"
+              onClick={handleReportBug}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Bug className="h-5 w-5" />
+                <span className="font-semibold">Report a Bug</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Help us improve by reporting issues
+              </p>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-auto p-4 flex flex-col items-start text-left"
+              asChild
+            >
+              <a href="#" onClick={(e) => e.preventDefault()}>
+                <div className="flex items-center gap-2 mb-2">
+                  <BookOpen className="h-5 w-5" />
+                  <span className="font-semibold">Documentation</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Learn how to use all features
+                </p>
+              </a>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-auto p-4 flex flex-col items-start text-left"
+              asChild
+            >
+              <a href="#" onClick={(e) => e.preventDefault()}>
+                <div className="flex items-center gap-2 mb-2">
+                  <ExternalLink className="h-5 w-5" />
+                  <span className="font-semibold">Community Forum</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Connect with other users
+                </p>
+              </a>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>App Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Version</span>
+            <span>1.0.0</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Last Updated</span>
+            <span>Today</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Platform</span>
+            <span>Web</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Legal</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Button variant="ghost" className="w-full justify-start" asChild>
+            <a href="#" onClick={(e) => e.preventDefault()}>
+              Privacy Policy
+              <ExternalLink className="ml-auto h-4 w-4" />
+            </a>
+          </Button>
+          <Button variant="ghost" className="w-full justify-start" asChild>
+            <a href="#" onClick={(e) => e.preventDefault()}>
+              Terms of Service
+              <ExternalLink className="ml-auto h-4 w-4" />
+            </a>
+          </Button>
+          <Button variant="ghost" className="w-full justify-start" asChild>
+            <a href="#" onClick={(e) => e.preventDefault()}>
+              Cookie Policy
+              <ExternalLink className="ml-auto h-4 w-4" />
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

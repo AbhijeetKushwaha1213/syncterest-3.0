@@ -1,37 +1,88 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useUserSettings } from '@/hooks/useUserSettings';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const languages = [
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+  { code: 'pt', name: 'Português', flag: '🇵🇹' },
+  { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+  { code: 'ja', name: '日本語', flag: '🇯🇵' },
+  { code: 'ko', name: '한국어', flag: '🇰🇷' },
+  { code: 'zh', name: '中文', flag: '🇨🇳' },
+];
 
 const LanguageSettingsPage = () => {
+  const { settings, isLoading, updateSetting } = useUserSettings();
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Language</CardTitle>
+          <CardDescription>
+            Choose your preferred language for the app interface.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!settings) return null;
+
+  const selectedLanguage = languages.find(lang => lang.code === settings.language) || languages[0];
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Language</CardTitle>
         <CardDescription>
-          Choose your preferred language for the interface.
+          Choose your preferred language for the app interface.
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <RadioGroup defaultValue="en" className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="en" id="en" />
-            <Label htmlFor="en">English</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="es" id="es" />
-            <Label htmlFor="es">Español</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="fr" id="fr" />
-            <Label htmlFor="fr">Français</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="de" id="de" />
-            <Label htmlFor="de">Deutsch</Label>
-          </div>
-        </RadioGroup>
+      <CardContent className="space-y-6">
+        <div className="space-y-3">
+          <Label>Interface Language</Label>
+          <Select
+            value={settings.language}
+            onValueChange={(value) => updateSetting('language', value)}
+          >
+            <SelectTrigger>
+              <SelectValue>
+                <div className="flex items-center">
+                  <span className="mr-2">{selectedLanguage.flag}</span>
+                  {selectedLanguage.name}
+                </div>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {languages.map((language) => (
+                <SelectItem key={language.code} value={language.code}>
+                  <div className="flex items-center">
+                    <span className="mr-2">{language.flag}</span>
+                    {language.name}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-sm text-muted-foreground">
+            Note: Language translations are not yet implemented. This setting will be functional in a future update.
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
