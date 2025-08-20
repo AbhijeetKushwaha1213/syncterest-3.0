@@ -70,7 +70,18 @@ export const useUserSettings = () => {
 
       if (data) {
         setSettings({
-          ...data,
+          // Cast profile_visibility to the correct type with fallback
+          profile_visibility: (data.profile_visibility as 'public' | 'friends_only' | 'private') || 'public',
+          location_sharing_enabled: data.location_sharing_enabled ?? true,
+          show_location_on_profile: data.show_location_on_profile ?? false,
+          show_activity_status: data.show_activity_status ?? true,
+          email_notifications_enabled: data.email_notifications_enabled ?? true,
+          push_notifications_enabled: data.push_notifications_enabled ?? true,
+          new_message_notifications: data.new_message_notifications ?? true,
+          new_follower_notifications: data.new_follower_notifications ?? true,
+          group_activity_notifications: data.group_activity_notifications ?? true,
+          event_reminder_notifications: data.event_reminder_notifications ?? true,
+          language: data.language || 'en',
           // Default values for settings not yet in database
           discovery_radius: 50,
           min_age: 18,
