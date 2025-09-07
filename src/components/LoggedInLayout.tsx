@@ -3,6 +3,7 @@ import { useState } from "react";
 import AppHeader from "./AppHeader";
 import DesktopSidebar from "./DesktopSidebar";
 import MobileBottomNav from "./MobileBottomNav";
+import InstallPrompt from "./mobile/InstallPrompt";
 import { usePresence } from "@/hooks/usePresence";
 import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
 import ErrorBoundary from "./ErrorBoundary";
@@ -29,7 +30,7 @@ const LoggedInLayoutContent = () => {
           />
         </SectionErrorBoundary>
         
-        <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">
+        <main className="flex-1 overflow-y-auto pb-20 lg:pb-0 px-safe">
           <ErrorBoundary>
             <Outlet />
           </ErrorBoundary>
@@ -38,6 +39,10 @@ const LoggedInLayoutContent = () => {
       
       <SectionErrorBoundary sectionName="Mobile Navigation">
         <MobileBottomNav />
+      </SectionErrorBoundary>
+      
+      <SectionErrorBoundary sectionName="Install Prompt">
+        <InstallPrompt />
       </SectionErrorBoundary>
     </div>
   );

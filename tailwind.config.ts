@@ -19,6 +19,16 @@ export default {
 			}
 		},
 		extend: {
+			screens: {
+				'xs': '475px',
+				'safe': { 'raw': 'screen and (display-mode: standalone)' },
+			},
+			spacing: {
+				'safe-top': 'env(safe-area-inset-top)',
+				'safe-bottom': 'env(safe-area-inset-bottom)',
+				'safe-left': 'env(safe-area-inset-left)',
+				'safe-right': 'env(safe-area-inset-right)',
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -131,6 +141,16 @@ export default {
 					'100%': {
 						opacity: '1'
 					}
+				},
+				'scale-in': {
+					'0%': {
+						transform: 'scale(0.95)',
+						opacity: '0'
+					},
+					'100%': {
+						transform: 'scale(1)',
+						opacity: '1'
+					}
 				}
 			},
 			animation: {
@@ -140,9 +160,48 @@ export default {
 				'fade-in-words': 'fade-in-words 0.8s ease-out',
 				'marquee': 'marquee 20s linear infinite',
 				'slide-up': 'slide-up 0.6s ease-out',
-				'fade-in': 'fade-in 0.5s ease-out'
+				'fade-in': 'fade-in 0.5s ease-out',
+				'scale-in': 'scale-in 0.2s ease-out'
 			}
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [
+		require("tailwindcss-animate"),
+		function({ addUtilities }: { addUtilities: Function }) {
+			const newUtilities = {
+				'.safe-area-pt': {
+					paddingTop: 'env(safe-area-inset-top)'
+				},
+				'.safe-area-pb': {
+					paddingBottom: 'env(safe-area-inset-bottom)'
+				},
+				'.safe-area-pl': {
+					paddingLeft: 'env(safe-area-inset-left)'
+				},
+				'.safe-area-pr': {
+					paddingRight: 'env(safe-area-inset-right)'
+				},
+				'.px-safe': {
+					paddingLeft: 'env(safe-area-inset-left)',
+					paddingRight: 'env(safe-area-inset-right)'
+				},
+				'.py-safe': {
+					paddingTop: 'env(safe-area-inset-top)',
+					paddingBottom: 'env(safe-area-inset-bottom)'
+				},
+				'.p-safe': {
+					padding: 'env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)'
+				},
+				'.touch-target': {
+					minHeight: '44px',
+					minWidth: '44px'
+				},
+				'.mobile-scroll': {
+					'-webkit-overflow-scrolling': 'touch',
+					'overscroll-behavior': 'contain'
+				}
+			}
+			addUtilities(newUtilities)
+		}
+	],
 } satisfies Config;
