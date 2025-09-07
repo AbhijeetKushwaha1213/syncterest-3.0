@@ -544,6 +544,39 @@ export type Database = {
           },
         ]
       }
+      location_access_audit: {
+        Row: {
+          access_type: string
+          accessor_id: string
+          activity_id: string | null
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          target_user_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          access_type: string
+          accessor_id: string
+          activity_id?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          target_user_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          access_type?: string
+          accessor_id?: string
+          activity_id?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          target_user_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       location_sharing_permissions: {
         Row: {
           created_at: string | null
@@ -1002,6 +1035,14 @@ export type Database = {
         Args: { user1_id: string; user2_id: string }
         Returns: boolean
       }
+      audit_location_access: {
+        Args: {
+          p_access_type?: string
+          p_activity_id?: string
+          p_target_user_id: string
+        }
+        Returns: undefined
+      }
       calculate_compatibility_score: {
         Args: { user1_id: string; user2_id: string }
         Returns: number
@@ -1117,6 +1158,10 @@ export type Database = {
       grant_location_access: {
         Args: { duration_hours?: number; to_user_id: string }
         Returns: undefined
+      }
+      has_location_permission: {
+        Args: { target_user_id: string }
+        Returns: boolean
       }
       is_channel_admin: {
         Args: { p_channel_id: string; p_user_id: string }

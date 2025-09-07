@@ -55,8 +55,8 @@ const LiveUsersTab = () => {
   const [selectedDistance, setSelectedDistance] = useState('all');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-  const otherActivities = activities?.filter(a => a.user_id !== user?.id) || [];
-  const userActivity = activities?.find(a => a.user_id === user?.id);
+  const otherActivities = (activities || []).filter(a => a.user_id !== user?.id);
+  const userActivity = (activities || []).find(a => a.user_id === user?.id);
 
   // Apply filters to activities
   const filteredActivities = otherActivities.filter(activity => {
