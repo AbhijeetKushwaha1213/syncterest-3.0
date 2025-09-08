@@ -43,23 +43,23 @@ const AppearanceSettingsPage = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Appearance</CardTitle>
-        <CardDescription>
+    <Card className="mx-2 sm:mx-0">
+      <CardHeader className="px-4 sm:px-6">
+        <CardTitle className="text-lg sm:text-xl">Appearance</CardTitle>
+        <CardDescription className="text-sm">
           Customize how your app looks and feels.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 px-4 sm:px-6 pb-4 sm:pb-6">
         <div className="space-y-3">
-          <Label>Theme</Label>
+          <Label className="text-sm font-medium">Theme</Label>
           <Select
             value={settings.theme}
             onValueChange={(value: 'light' | 'dark' | 'system') => 
               updateSetting('theme', value)
             }
           >
-            <SelectTrigger>
+            <SelectTrigger className="min-h-[44px]">
               <SelectValue>
                 <div className="flex items-center">
                   {getThemeIcon(settings.theme)}
@@ -88,7 +88,7 @@ const AppearanceSettingsPage = () => {
               </SelectItem>
             </SelectContent>
           </Select>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Choose your preferred theme or sync with your system settings.
           </p>
         </div>

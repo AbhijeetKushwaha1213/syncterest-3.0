@@ -131,16 +131,16 @@ const AccountSettingsPage = () => {
   }
 
   return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Account</CardTitle>
-          <CardDescription>
+      <Card className="mx-2 sm:mx-0">
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-lg sm:text-xl">Account</CardTitle>
+          <CardDescription className="text-sm">
             This is how others will see you on the site.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
               <FormItem>
                 <FormLabel>Profile Picture</FormLabel>
                 <AvatarUploader initialAvatarUrl={profile?.avatar_url} username={profile?.username} />
@@ -154,7 +154,11 @@ const AccountSettingsPage = () => {
               
               <PersonalityFormSection control={form.control} />
               
-              <Button type="submit" disabled={formLoading || isSaving || !profile}>
+              <Button 
+                type="submit" 
+                disabled={formLoading || isSaving || !profile}
+                className="w-full sm:w-auto min-h-[44px]"
+              >
                 {formLoading || isSaving ? 'Saving...' : 'Update profile'}
               </Button>
             </form>

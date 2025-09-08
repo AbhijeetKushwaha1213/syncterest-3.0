@@ -46,25 +46,25 @@ const LanguageSettingsPage = () => {
   const selectedLanguage = languages.find(lang => lang.code === settings.language) || languages[0];
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Language</CardTitle>
-        <CardDescription>
+    <Card className="mx-2 sm:mx-0">
+      <CardHeader className="px-4 sm:px-6">
+        <CardTitle className="text-lg sm:text-xl">Language</CardTitle>
+        <CardDescription className="text-sm">
           Choose your preferred language for the app interface.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 px-4 sm:px-6 pb-4 sm:pb-6">
         <div className="space-y-3">
-          <Label>Interface Language</Label>
+          <Label className="text-sm font-medium">Interface Language</Label>
           <Select
             value={settings.language}
             onValueChange={(value) => updateSetting('language', value)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="min-h-[44px]">
               <SelectValue>
                 <div className="flex items-center">
                   <span className="mr-2">{selectedLanguage.flag}</span>
-                  {selectedLanguage.name}
+                  <span className="text-sm sm:text-base">{selectedLanguage.name}</span>
                 </div>
               </SelectValue>
             </SelectTrigger>
@@ -73,13 +73,13 @@ const LanguageSettingsPage = () => {
                 <SelectItem key={language.code} value={language.code}>
                   <div className="flex items-center">
                     <span className="mr-2">{language.flag}</span>
-                    {language.name}
+                    <span className="text-sm sm:text-base">{language.name}</span>
                   </div>
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Note: Language translations are not yet implemented. This setting will be functional in a future update.
           </p>
         </div>

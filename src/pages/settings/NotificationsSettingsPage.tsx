@@ -36,18 +36,18 @@ const NotificationsSettingsPage = () => {
   if (!settings) return null;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Notifications</CardTitle>
-        <CardDescription>
+    <Card className="mx-2 sm:mx-0">
+      <CardHeader className="px-4 sm:px-6">
+        <CardTitle className="text-lg sm:text-xl">Notifications</CardTitle>
+        <CardDescription className="text-sm">
           Configure how you want to be notified about activity.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label>Push Notifications</Label>
-            <p className="text-sm text-muted-foreground">Receive push notifications on your device</p>
+      <CardContent className="space-y-6 px-4 sm:px-6 pb-4 sm:pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-2">
+          <div className="space-y-1">
+            <Label className="text-sm font-medium">Push Notifications</Label>
+            <p className="text-xs sm:text-sm text-muted-foreground">Receive push notifications on your device</p>
           </div>
           <Switch
             checked={settings.push_notifications_enabled}
@@ -55,10 +55,10 @@ const NotificationsSettingsPage = () => {
           />
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label>Email Notifications</Label>
-            <p className="text-sm text-muted-foreground">Receive notifications via email</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-2">
+          <div className="space-y-1">
+            <Label className="text-sm font-medium">Email Notifications</Label>
+            <p className="text-xs sm:text-sm text-muted-foreground">Receive notifications via email</p>
           </div>
           <Switch
             checked={settings.email_notifications_enabled}
@@ -66,10 +66,10 @@ const NotificationsSettingsPage = () => {
           />
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label>Message Notifications</Label>
-            <p className="text-sm text-muted-foreground">Get notified about new messages</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-2">
+          <div className="space-y-1">
+            <Label className="text-sm font-medium">Message Notifications</Label>
+            <p className="text-xs sm:text-sm text-muted-foreground">Get notified about new messages</p>
           </div>
           <Switch
             checked={settings.new_message_notifications}
@@ -77,10 +77,10 @@ const NotificationsSettingsPage = () => {
           />
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label>New Follower Notifications</Label>
-            <p className="text-sm text-muted-foreground">Get notified when someone follows you</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-2">
+          <div className="space-y-1">
+            <Label className="text-sm font-medium">New Follower Notifications</Label>
+            <p className="text-xs sm:text-sm text-muted-foreground">Get notified when someone follows you</p>
           </div>
           <Switch
             checked={settings.new_follower_notifications}
@@ -88,10 +88,10 @@ const NotificationsSettingsPage = () => {
           />
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label>Group Activity Notifications</Label>
-            <p className="text-sm text-muted-foreground">Get notified about group activities</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-2">
+          <div className="space-y-1">
+            <Label className="text-sm font-medium">Group Activity Notifications</Label>
+            <p className="text-xs sm:text-sm text-muted-foreground">Get notified about group activities</p>
           </div>
           <Switch
             checked={settings.group_activity_notifications}
@@ -99,10 +99,10 @@ const NotificationsSettingsPage = () => {
           />
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label>Event Reminder Notifications</Label>
-            <p className="text-sm text-muted-foreground">Get reminded about upcoming events</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-2">
+          <div className="space-y-1">
+            <Label className="text-sm font-medium">Event Reminder Notifications</Label>
+            <p className="text-xs sm:text-sm text-muted-foreground">Get reminded about upcoming events</p>
           </div>
           <Switch
             checked={settings.event_reminder_notifications}

@@ -106,17 +106,17 @@ const DataManagementSettingsPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 mx-2 sm:mx-0">
       <Card>
-        <CardHeader>
-          <CardTitle>Export Data</CardTitle>
-          <CardDescription>
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-lg sm:text-xl">Export Data</CardTitle>
+          <CardDescription className="text-sm">
             Download a copy of your data including profile, messages, posts, and activity.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
           <Button 
-            className="w-full sm:w-auto" 
+            className="w-full sm:w-auto min-h-[44px]" 
             onClick={handleDataExport}
             disabled={isExporting}
           >
@@ -127,7 +127,7 @@ const DataManagementSettingsPage = () => {
             )}
             {isExporting ? 'Exporting Data...' : 'Request Data Export'}
           </Button>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-2">
             Your data will be exported as a JSON file containing all your profile information, 
             posts, messages, and other data.
           </p>
@@ -135,35 +135,35 @@ const DataManagementSettingsPage = () => {
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-destructive">Danger Zone</CardTitle>
-          <CardDescription>
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-destructive text-lg sm:text-xl">Danger Zone</CardTitle>
+          <CardDescription className="text-sm">
             These actions are permanent and cannot be undone.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="border border-destructive/20 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-destructive mt-0.5" />
-              <div className="flex-1">
-                <h4 className="font-semibold text-destructive">Delete Account</h4>
-                <p className="text-sm text-muted-foreground mt-1">
+        <CardContent className="space-y-4 px-4 sm:px-6 pb-4 sm:pb-6">
+          <div className="border border-destructive/20 rounded-lg p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold text-destructive text-sm sm:text-base">Delete Account</h4>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   Permanently delete your account and all associated data. This action cannot be reversed.
                 </p>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="sm" className="mt-3">
+                    <Button variant="destructive" size="sm" className="mt-3 w-full sm:w-auto min-h-[36px]">
                       <Trash2 className="h-4 w-4 mr-2" />
                       Delete Account
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent>
+                  <AlertDialogContent className="mx-2 sm:mx-0 max-w-md sm:max-w-lg">
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
+                      <AlertDialogTitle className="text-base sm:text-lg">Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription className="text-sm">
                         This action cannot be undone. This will permanently delete your account
                         and remove all your data from our servers including:
-                        <ul className="list-disc list-inside mt-2 space-y-1">
+                        <ul className="list-disc list-inside mt-2 space-y-1 text-xs sm:text-sm">
                           <li>Your profile and personal information</li>
                           <li>All your posts, messages, and content</li>
                           <li>Your connections and followers</li>
@@ -171,12 +171,12 @@ const DataManagementSettingsPage = () => {
                         </ul>
                       </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                      <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={handleAccountDeletion}
                         disabled={isDeleting}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full sm:w-auto"
                       >
                         {isDeleting ? 'Processing...' : 'Yes, delete my account'}
                       </AlertDialogAction>

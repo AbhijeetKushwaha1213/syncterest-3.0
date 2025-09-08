@@ -14,55 +14,55 @@ const HelpSettingsPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 mx-2 sm:mx-0">
       <Card>
-        <CardHeader>
-          <CardTitle>Help & Support</CardTitle>
-          <CardDescription>
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-lg sm:text-xl">Help & Support</CardTitle>
+          <CardDescription className="text-sm">
             Get help, report issues, or provide feedback.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+        <CardContent className="space-y-4 px-4 sm:px-6 pb-4 sm:pb-6">
+          <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
             <Button
               variant="outline"
-              className="h-auto p-4 flex flex-col items-start text-left"
+              className="h-auto p-3 sm:p-4 flex flex-col items-start text-left min-h-[80px]"
               onClick={handleContactSupport}
             >
               <div className="flex items-center gap-2 mb-2">
-                <MessageCircle className="h-5 w-5" />
-                <span className="font-semibold">Contact Support</span>
+                <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                <span className="font-semibold text-sm sm:text-base">Contact Support</span>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Get help with your account or app usage
               </p>
             </Button>
 
             <Button
               variant="outline"
-              className="h-auto p-4 flex flex-col items-start text-left"
+              className="h-auto p-3 sm:p-4 flex flex-col items-start text-left min-h-[80px]"
               onClick={handleReportBug}
             >
               <div className="flex items-center gap-2 mb-2">
-                <Bug className="h-5 w-5" />
-                <span className="font-semibold">Report a Bug</span>
+                <Bug className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                <span className="font-semibold text-sm sm:text-base">Report a Bug</span>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Help us improve by reporting issues
               </p>
             </Button>
 
             <Button
               variant="outline"
-              className="h-auto p-4 flex flex-col items-start text-left"
+              className="h-auto p-3 sm:p-4 flex flex-col items-start text-left min-h-[80px]"
               asChild
             >
               <a href="#" onClick={(e) => e.preventDefault()}>
                 <div className="flex items-center gap-2 mb-2">
-                  <BookOpen className="h-5 w-5" />
-                  <span className="font-semibold">Documentation</span>
+                  <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                  <span className="font-semibold text-sm sm:text-base">Documentation</span>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Learn how to use all features
                 </p>
               </a>
@@ -70,15 +70,15 @@ const HelpSettingsPage = () => {
 
             <Button
               variant="outline"
-              className="h-auto p-4 flex flex-col items-start text-left"
+              className="h-auto p-3 sm:p-4 flex flex-col items-start text-left min-h-[80px]"
               asChild
             >
               <a href="#" onClick={(e) => e.preventDefault()}>
                 <div className="flex items-center gap-2 mb-2">
-                  <ExternalLink className="h-5 w-5" />
-                  <span className="font-semibold">Community Forum</span>
+                  <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                  <span className="font-semibold text-sm sm:text-base">Community Forum</span>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Connect with other users
                 </p>
               </a>
@@ -88,19 +88,19 @@ const HelpSettingsPage = () => {
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>App Information</CardTitle>
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-lg sm:text-xl">App Information</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex justify-between">
+        <CardContent className="space-y-3 px-4 sm:px-6 pb-4 sm:pb-6">
+          <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Version</span>
             <span>1.0.0</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Last Updated</span>
             <span>Today</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Platform</span>
             <span>Web</span>
           </div>
@@ -108,25 +108,25 @@ const HelpSettingsPage = () => {
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Legal</CardTitle>
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-lg sm:text-xl">Legal</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
-          <Button variant="ghost" className="w-full justify-start" asChild>
+        <CardContent className="space-y-2 px-4 sm:px-6 pb-4 sm:pb-6">
+          <Button variant="ghost" className="w-full justify-start min-h-[44px]" asChild>
             <a href="#" onClick={(e) => e.preventDefault()}>
-              Privacy Policy
+              <span className="text-sm sm:text-base">Privacy Policy</span>
               <ExternalLink className="ml-auto h-4 w-4" />
             </a>
           </Button>
-          <Button variant="ghost" className="w-full justify-start" asChild>
+          <Button variant="ghost" className="w-full justify-start min-h-[44px]" asChild>
             <a href="#" onClick={(e) => e.preventDefault()}>
-              Terms of Service
+              <span className="text-sm sm:text-base">Terms of Service</span>
               <ExternalLink className="ml-auto h-4 w-4" />
             </a>
           </Button>
-          <Button variant="ghost" className="w-full justify-start" asChild>
+          <Button variant="ghost" className="w-full justify-start min-h-[44px]" asChild>
             <a href="#" onClick={(e) => e.preventDefault()}>
-              Cookie Policy
+              <span className="text-sm sm:text-base">Cookie Policy</span>
               <ExternalLink className="ml-auto h-4 w-4" />
             </a>
           </Button>
