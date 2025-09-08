@@ -62,26 +62,26 @@ export const ContentCard = ({ item, currentUserProfile }: ContentCardProps) => {
     <>
       <Card className="w-full transition-all duration-300 hover:shadow-lg">
         {/* Header */}
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-3 px-3 sm:px-6">
           <div className="flex items-start gap-3">
             <Link to={`/profile/${creator.id}`}>
-              <Avatar className="h-12 w-12 transition-transform duration-300 hover:scale-110">
+              <Avatar className="h-10 w-10 sm:h-12 sm:w-12 transition-transform duration-300 hover:scale-110">
                 <AvatarImage src={creator.avatar_url ?? ""} />
                 <AvatarFallback>{creator.username?.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
             </Link>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <Link 
                   to={`/profile/${creator.id}`} 
-                  className="font-semibold hover:underline transition-colors duration-200 hover:text-primary"
+                  className="font-semibold hover:underline transition-colors duration-200 hover:text-primary text-sm sm:text-base truncate"
                 >
                   {creator.username}
                 </Link>
-                {isEvent && <Calendar className="h-4 w-4 text-primary" />}
-                {isReel && <Video className="h-4 w-4 text-primary" />}
+                {isEvent && <Calendar className="h-4 w-4 text-primary flex-shrink-0" />}
+                {isReel && <Video className="h-4 w-4 text-primary flex-shrink-0" />}
               </div>
-              <div className="text-sm text-muted-foreground flex items-center gap-2">
+              <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
                 <span>{formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}</span>
                 {distance !== null && <span>· {distance.toFixed(1)} km away</span>}
               </div>
@@ -90,20 +90,20 @@ export const ContentCard = ({ item, currentUserProfile }: ContentCardProps) => {
         </CardHeader>
 
         {/* Content */}
-        <CardContent className="pt-0">
+        <CardContent className="pt-0 px-3 sm:px-6">
           {description && (
             <div className="mb-4">
-              <p className="text-sm leading-relaxed">{description}</p>
+              <p className="text-sm sm:text-base leading-relaxed break-words">{description}</p>
             </div>
           )}
           
           {/* Media */}
           {mediaUrl && (
-            <div className="relative overflow-hidden rounded-lg">
+            <div className="relative overflow-hidden rounded-lg -mx-3 sm:mx-0">
               {isReel ? (
                 <video 
                   src={mediaUrl} 
-                  className="w-full h-auto max-h-96 object-cover"
+                  className="w-full h-auto max-h-[70vh] sm:max-h-96 object-cover"
                   controls 
                   muted 
                   playsInline 
@@ -112,7 +112,7 @@ export const ContentCard = ({ item, currentUserProfile }: ContentCardProps) => {
                 <img 
                   src={mediaUrl} 
                   alt={title || ""} 
-                  className="w-full h-auto max-h-96 object-cover"
+                  className="w-full h-auto max-h-[70vh] sm:max-h-96 object-cover"
                 />
               )}
             </div>
@@ -120,12 +120,12 @@ export const ContentCard = ({ item, currentUserProfile }: ContentCardProps) => {
         </CardContent>
 
         {/* Action Bar */}
-        <CardFooter className="pt-0 pb-3">
-          <div className="flex items-center gap-1 w-full">
+        <CardFooter className="pt-0 pb-3 px-3 sm:px-6">
+          <div className="flex items-center justify-between w-full gap-1 sm:gap-2">
             <Button 
               variant="ghost" 
               size="sm" 
-              className={`gap-2 transition-colors ${
+              className={`gap-1 sm:gap-2 transition-colors min-w-0 flex-1 sm:flex-none ${
                 isLiked 
                   ? 'text-red-500 hover:text-red-600' 
                   : 'text-muted-foreground hover:text-red-500'
@@ -133,44 +133,44 @@ export const ContentCard = ({ item, currentUserProfile }: ContentCardProps) => {
               onClick={handleLike}
             >
               <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
-              Like
+              <span className="hidden sm:inline">Like</span>
             </Button>
             
             <Button 
               variant="ghost" 
               size="sm" 
-              className="text-muted-foreground gap-2 hover:text-primary"
+              className="text-muted-foreground gap-1 sm:gap-2 hover:text-primary min-w-0 flex-1 sm:flex-none"
               onClick={() => setShowComments(!showComments)}
             >
               <MessageCircle className="h-4 w-4" />
-              Comment
+              <span className="hidden sm:inline">Comment</span>
             </Button>
             
             <Button 
               variant="ghost" 
               size="sm" 
-              className="text-muted-foreground gap-2 hover:text-blue-500"
+              className="text-muted-foreground gap-1 sm:gap-2 hover:text-blue-500 min-w-0 flex-1 sm:flex-none"
               onClick={() => setShowShareDialog(true)}
             >
               <Share2 className="h-4 w-4" />
-              Share
+              <span className="hidden sm:inline">Share</span>
             </Button>
             
             <Button 
               variant="ghost" 
               size="sm" 
-              className="text-muted-foreground gap-2 hover:text-green-500"
+              className="text-muted-foreground gap-1 sm:gap-2 hover:text-green-500 min-w-0 flex-1 sm:flex-none"
               onClick={() => setShowForwardDialog(true)}
             >
               <Forward className="h-4 w-4" />
-              Forward
+              <span className="hidden sm:inline">Forward</span>
             </Button>
           </div>
         </CardFooter>
 
         {/* Comments Section */}
         {showComments && (
-          <div className="border-t px-6 py-4">
+          <div className="border-t px-3 sm:px-6 py-4">
             <CommentSection contentId={item.id} contentType={item.item_type} />
           </div>
         )}

@@ -48,7 +48,7 @@ const HomePage = () => {
       isLoading={loading}
       loadingComponent={<HomePageSkeleton />}
     >
-      <div className={`p-4 sm:p-6 grid gap-6 md:gap-8 transition-all duration-300 ${
+      <div className={`p-2 sm:p-4 lg:p-6 grid gap-4 sm:gap-6 md:gap-8 transition-all duration-300 ${
         rightSidebarCollapsed ? 'lg:grid-cols-1' : 'lg:grid-cols-[1fr_350px]'
       }`}>
         <div className="flex flex-col gap-6">
