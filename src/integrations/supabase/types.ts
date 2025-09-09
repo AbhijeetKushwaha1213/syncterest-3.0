@@ -98,13 +98,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "channel_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "safe_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       channel_message_reactions: {
@@ -182,13 +175,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "channel_messages_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "safe_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       channels: {
@@ -237,13 +223,6 @@ export type Database = {
             columns: ["creator_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "channels_creator_id_fkey"
-            columns: ["creator_id"]
-            isOneToOne: false
-            referencedRelation: "safe_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -305,13 +284,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "comments_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "safe_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       conversation_participants: {
@@ -346,13 +318,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversation_participants_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "safe_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -423,13 +388,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "events_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "safe_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       followers: {
@@ -457,24 +415,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "followers_follower_id_fkey"
-            columns: ["follower_id"]
-            isOneToOne: false
-            referencedRelation: "safe_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "followers_following_id_fkey"
             columns: ["following_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "followers_following_id_fkey"
-            columns: ["following_id"]
-            isOneToOne: false
-            referencedRelation: "safe_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -598,13 +542,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "live_activities_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "safe_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       location_access_audit: {
@@ -708,13 +645,6 @@ export type Database = {
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "safe_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -849,13 +779,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "posts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "safe_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1026,13 +949,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "reels_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "safe_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       stories: {
@@ -1065,121 +981,11 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "stories_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "safe_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
     }
     Views: {
-      safe_profiles: {
-        Row: {
-          avatar_url: string | null
-          bio: string | null
-          created_at: string | null
-          cultural_preferences: Json | null
-          email_notifications_enabled: boolean | null
-          event_reminder_notifications: boolean | null
-          full_name: string | null
-          group_activity_notifications: boolean | null
-          id: string | null
-          intent: string | null
-          interests: string[] | null
-          language: string | null
-          last_active_at: string | null
-          latitude: number | null
-          location_city: string | null
-          location_postal_code: string | null
-          location_sharing_enabled: boolean | null
-          longitude: number | null
-          new_follower_notifications: boolean | null
-          new_message_notifications: boolean | null
-          personality_tags: string[] | null
-          profile_visibility: string | null
-          push_notifications_enabled: boolean | null
-          search_vector: unknown | null
-          show_activity_status: boolean | null
-          show_location_on_profile: boolean | null
-          status: string | null
-          updated_at: string | null
-          username: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string | null
-          cultural_preferences?: Json | null
-          email_notifications_enabled?: boolean | null
-          event_reminder_notifications?: boolean | null
-          full_name?: string | null
-          group_activity_notifications?: boolean | null
-          id?: string | null
-          intent?: string | null
-          interests?: string[] | null
-          language?: string | null
-          last_active_at?: string | null
-          latitude?: never
-          location_city?: string | null
-          location_postal_code?: string | null
-          location_sharing_enabled?: boolean | null
-          longitude?: never
-          new_follower_notifications?: boolean | null
-          new_message_notifications?: boolean | null
-          personality_tags?: string[] | null
-          profile_visibility?: string | null
-          push_notifications_enabled?: boolean | null
-          search_vector?: unknown | null
-          show_activity_status?: boolean | null
-          show_location_on_profile?: boolean | null
-          status?: string | null
-          updated_at?: string | null
-          username?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string | null
-          cultural_preferences?: Json | null
-          email_notifications_enabled?: boolean | null
-          event_reminder_notifications?: boolean | null
-          full_name?: string | null
-          group_activity_notifications?: boolean | null
-          id?: string | null
-          intent?: string | null
-          interests?: string[] | null
-          language?: string | null
-          last_active_at?: string | null
-          latitude?: never
-          location_city?: string | null
-          location_postal_code?: string | null
-          location_sharing_enabled?: boolean | null
-          longitude?: never
-          new_follower_notifications?: boolean | null
-          new_message_notifications?: boolean | null
-          personality_tags?: string[] | null
-          profile_visibility?: string | null
-          push_notifications_enabled?: boolean | null
-          search_vector?: unknown | null
-          show_activity_status?: boolean | null
-          show_location_on_profile?: boolean | null
-          status?: string | null
-          updated_at?: string | null
-          username?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_intent"
-            columns: ["intent"]
-            isOneToOne: false
-            referencedRelation: "intent_options"
-            referencedColumns: ["name"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       advanced_search_users: {
