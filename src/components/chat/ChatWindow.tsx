@@ -23,7 +23,7 @@ interface ChatWindowProps {
 }
 
 const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [messages, setMessages] = useState<MessageWithSender[]>([]);
@@ -118,10 +118,12 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
 
               if (newMessage) {
                 setMessages(currentMessages => {
-                  if (currentMessages.some(m => m.id === newMessage.id)) {
-                    return currentMessages;
+                  // Remove any temporary message and add real message
+                  const withoutTemp = currentMessages.filter(m => !m.id.startsWith('temp-'));
+                  if (withoutTemp.some(m => m.id === newMessage.id)) {
+                    return withoutTemp;
                   }
-                  return [...currentMessages, newMessage as MessageWithSender];
+                  return [...withoutTemp, newMessage as MessageWithSender];
                 });
                 
                 // Mark as read if it's an incoming message
@@ -259,7 +261,6 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
   const sendMessageMutation = useMutation({
     mutationFn: sendMessage,
     onSuccess: () => {
-      form.reset();
       setAttachment(null);
     },
     onError: (error) => {
@@ -269,6 +270,8 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
         title: "Failed to send message",
         description: error.message,
       });
+      // Remove optimistic message on error
+      setMessages(prev => prev.filter(msg => !msg.id.startsWith('temp-')));
     },
     onSettled: () => {
       setIsUploading(false);
@@ -321,6 +324,29 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
 
   const onSubmit = (values: z.infer<typeof messageFormSchema>) => {
     if ((!values.content.trim()) && !attachment) return;
+    
+    // Optimistic update - show message immediately
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage: MessageWithSender = {
+      id: tempId,
+      conversation_id: conversation!.id,
+      sender_id: user!.id,
+      content: values.content,
+      created_at: new Date().toISOString(),
+      read_at: null,
+      attachment_url: attachment ? URL.createObjectURL(attachment) : null,
+      attachment_type: attachment?.type || null,
+      sender: {
+        id: user!.id,
+        username: profile?.username || '',
+        avatar_url: profile?.avatar_url || null,
+      },
+      reactions: [],
+    };
+    
+    setMessages(prev => [...prev, optimisticMessage]);
+    form.reset();
+    
     uploadAndSendMessage(values);
   };
   

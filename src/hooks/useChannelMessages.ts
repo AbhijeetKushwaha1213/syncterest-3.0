@@ -41,9 +41,10 @@ export const useChannelMessages = (channelId: string | undefined) => {
 
             if(newMessage) {
                 queryClient.setQueryData(queryKey, (oldData: ChannelMessageWithSender[] | undefined) => {
-                    if (!oldData) return [newMessage as ChannelMessageWithSender];
-                    if (oldData.some(m => m.id === newMessage.id)) return oldData;
-                    return [...oldData, newMessage as ChannelMessageWithSender];
+                    // Remove any temporary messages and add the real message
+                    const withoutTemp = oldData ? oldData.filter(m => !String(m.id).startsWith('temp-')) : [];
+                    if (withoutTemp.some(m => m.id === newMessage.id)) return withoutTemp;
+                    return [...withoutTemp, newMessage as ChannelMessageWithSender];
                 });
                 
                 if (newMessage.user_id === user.id) {

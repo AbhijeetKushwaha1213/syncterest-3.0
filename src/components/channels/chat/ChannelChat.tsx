@@ -21,7 +21,7 @@ interface ChannelChatProps {
 }
 
 const ChannelChat = ({ channel }: ChannelChatProps) => {
-    const { user } = useAuth();
+    const { user, profile } = useAuth();
     const queryClient = useQueryClient();
     const { toast } = useToast();
     const [attachment, setAttachment] = useState<File | null>(null);
@@ -83,7 +83,6 @@ const ChannelChat = ({ channel }: ChannelChatProps) => {
             }
         },
         onSuccess: () => {
-            form.reset();
             setAttachment(null);
         },
         onError: (error) => {
@@ -93,6 +92,11 @@ const ChannelChat = ({ channel }: ChannelChatProps) => {
                 title: "Failed to send message",
                 description: error.message,
             });
+            // Remove optimistic message on error
+            queryClient.setQueryData(['channel-messages', channel.id], (oldData: any) => {
+                if (!oldData) return [];
+                return oldData.filter((msg: any) => !msg.id.startsWith('temp-'));
+            });
         },
         onSettled: () => {
             setIsUploading(false);
@@ -100,6 +104,31 @@ const ChannelChat = ({ channel }: ChannelChatProps) => {
     });
 
     const onSubmit = (values: z.infer<typeof channelMessageFormSchema>) => {
+        // Optimistic update - add message immediately to query cache
+        const tempId = `temp-${Date.now()}`;
+        const optimisticMessage = {
+            id: tempId,
+            channel_id: channel.id,
+            user_id: user!.id,
+            content: values.content,
+            created_at: new Date().toISOString(),
+            attachment_url: attachment ? URL.createObjectURL(attachment) : null,
+            attachment_type: attachment?.type || null,
+            sender: {
+                id: user!.id,
+                username: profile?.username || '',
+                avatar_url: profile?.avatar_url || null,
+            },
+            channel_message_reactions: [],
+        };
+        
+        // Add optimistic message to cache
+        queryClient.setQueryData(['channel-messages', channel.id], (oldData: any) => {
+            if (!oldData) return [optimisticMessage];
+            return [...oldData, optimisticMessage];
+        });
+        
+        form.reset();
         sendMessageMutation.mutate({ content: values.content, attachment });
     };
 
