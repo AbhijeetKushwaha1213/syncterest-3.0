@@ -54,6 +54,7 @@ const AppContent = () => {
         element={user ? <OnboardingPage /> : <Navigate to="/login" replace />} 
       />
       
+      {/* Main protected routes */}
       <Route 
         path="/*" 
         element={user ? <LoggedInLayout /> : <Navigate to="/login" replace />}
