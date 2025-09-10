@@ -1,10 +1,8 @@
 
 import { ConversationWithOtherParticipant, Reaction } from '@/api/chat';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getMessages, sendMessage, MessageWithSender, markMessagesAsRead, uploadAttachment } from '@/api/chat';
+import { useMessages } from '@/hooks/useMessages';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useChannelPresence } from '@/hooks/useChannelPresence';
@@ -24,9 +22,14 @@ interface ChatWindowProps {
 
 const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
   const { user, profile } = useAuth();
-  const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [messages, setMessages] = useState<MessageWithSender[]>([]);
+  const { 
+    messages, 
+    setMessages, 
+    isLoading: isLoadingMessages, 
+    sendMessage: sendMessageMutation, 
+    isSending 
+  } = useMessages(conversation?.id);
   const [attachment, setAttachment] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -56,141 +59,7 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
     defaultValues: { content: "" },
   });
 
-  const { data: initialMessages, isLoading: isLoadingMessages } = useQuery({
-    queryKey: ['messages', conversation?.id],
-    queryFn: () => getMessages(conversation!.id),
-    enabled: !!conversation,
-  });
-
-  const markAsReadMutation = useMutation({
-    mutationFn: markMessagesAsRead,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['conversations', user?.id] });
-    },
-    onError: (error) => {
-      console.error("Failed to mark messages as read", error);
-    }
-  });
-  const { mutate: doMarkAsRead } = markAsReadMutation;
-
-  useEffect(() => {
-    if (initialMessages) {
-      setMessages(initialMessages);
-    }
-  }, [initialMessages]);
-
-  useEffect(() => {
-    if (conversation?.id) {
-      doMarkAsRead(conversation.id);
-    }
-  }, [conversation?.id, doMarkAsRead]);
-
-  useEffect(() => {
-    if (!conversation?.id || !user?.id) return;
-    
-    const conversationId = conversation.id;
-    let messageChannel: any = null;
-    let reactionChannel: any = null;
-
-    try {
-      messageChannel = supabase
-        .channel(`chat-messages-${conversationId}-${Date.now()}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'messages',
-            filter: `conversation_id=eq.${conversationId}`,
-          },
-          async (payload) => {
-            try {
-              const { data: newMessage, error } = await supabase
-                .from('messages')
-                .select('*, sender:profiles (id, username, avatar_url), reactions(*)')
-                .eq('id', payload.new.id)
-                .single();
-              
-              if (error) {
-                console.error("Error fetching new message:", error);
-                return;
-              }
-
-              if (newMessage) {
-                setMessages(currentMessages => {
-                  // Remove any temporary message and add real message
-                  const withoutTemp = currentMessages.filter(m => !m.id.startsWith('temp-'));
-                  if (withoutTemp.some(m => m.id === newMessage.id)) {
-                    return withoutTemp;
-                  }
-                  return [...withoutTemp, newMessage as MessageWithSender];
-                });
-                
-                // Mark as read if it's an incoming message
-                if (newMessage.sender_id !== user.id) {
-                    doMarkAsRead(conversationId);
-                } else {
-                    // If we sent the message, just invalidate conversations to update list
-                    queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
-                }
-              }
-            } catch (error) {
-              console.error("Error processing new message:", error);
-            }
-          }
-        )
-        .subscribe();
-
-      reactionChannel = supabase
-        .channel(`chat-reactions-${conversationId}-${Date.now()}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'reactions' },
-          (payload) => {
-            try {
-              setMessages(currentMessages => {
-                const messageInState = currentMessages.some(m => m.conversation_id === conversationId);
-                if (!messageInState) return currentMessages;
-
-                if (payload.eventType === 'INSERT') {
-                  const newReaction = payload.new as Reaction;
-                  return currentMessages.map(m => {
-                    if (m.id === newReaction.message_id) {
-                      // Avoid duplicates
-                      if (m.reactions.some(r => r.id === newReaction.id)) return m;
-                      return { ...m, reactions: [...m.reactions, newReaction] };
-                    }
-                    return m;
-                  });
-                }
-
-                if (payload.eventType === 'DELETE') {
-                  const oldReaction = payload.old as Partial<Reaction>;
-                  return currentMessages.map(m => {
-                    if (m.id === oldReaction.message_id) {
-                      return { ...m, reactions: m.reactions.filter(r => r.id !== oldReaction.id) };
-                    }
-                    return m;
-                  });
-                }
-                return currentMessages;
-              });
-            } catch (error) {
-              console.error("Error processing reaction:", error);
-            }
-          }
-        ).subscribe();
-    } catch (error) {
-      console.error("Error setting up chat subscriptions:", error);
-    }
-
-    return () => {
-      try {
-        if (messageChannel) supabase.removeChannel(messageChannel);
-        if (reactionChannel) supabase.removeChannel(reactionChannel);
-      } catch (error) {
-        console.warn("Error cleaning up chat subscriptions:", error);
-      }
-    };
-  }, [conversation?.id, user?.id, queryClient, doMarkAsRead]);
+  // Real-time subscriptions and message loading is now handled by useMessages hook
   
   // Typing indicator logic
   useEffect(() => {
@@ -258,25 +127,7 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
     setTimeout(scrollToBottom, 100);
   }, [messages]);
 
-  const sendMessageMutation = useMutation({
-    mutationFn: sendMessage,
-    onSuccess: () => {
-      setAttachment(null);
-    },
-    onError: (error) => {
-      console.error("Failed to send message", error);
-      toast({
-        variant: "destructive",
-        title: "Failed to send message",
-        description: error.message,
-      });
-      // Remove optimistic message on error
-      setMessages(prev => prev.filter(msg => !msg.id.startsWith('temp-')));
-    },
-    onSettled: () => {
-      setIsUploading(false);
-    }
-  });
+  // Message sending is now handled by useMessages hook
 
   const handleFileSelect = (file: File) => {
     if (file.size > 5 * 1024 * 1024) { // 5MB limit
@@ -314,7 +165,7 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
       }
     }
     
-    sendMessageMutation.mutate({ 
+    sendMessageMutation({ 
         conversationId: conversation.id, 
         content: values.content, 
         attachmentPath,
@@ -400,7 +251,7 @@ const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
         <MessageForm 
           form={form}
           onSubmit={onSubmit}
-          isSending={sendMessageMutation.isPending || isUploading}
+          isSending={isSending || isUploading}
           attachment={attachment}
           onFileSelect={handleFileSelect}
           onRemoveAttachment={() => setAttachment(null)}

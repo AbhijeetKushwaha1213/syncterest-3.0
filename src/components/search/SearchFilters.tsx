@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Loader2, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 
 type IntentOption = Tables<'intent_options'>;
@@ -44,6 +46,7 @@ const sortOptions = [
 ];
 
 const SearchFilters = ({ filters, onFiltersChange }: SearchFiltersProps) => {
+    const [isOpen, setIsOpen] = useState(false);
     const { data: intentOptions, isLoading: isLoadingIntents } = useQuery({ queryKey: ['intentOptions'], queryFn: fetchIntentOptions });
     const { data: personalityTags, isLoading: isLoadingTags } = useQuery({ queryKey: ['personalityTags'], queryFn: fetchPersonalityTags });
 
@@ -69,70 +72,83 @@ const SearchFilters = ({ filters, onFiltersChange }: SearchFiltersProps) => {
     }
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Filter & Sort</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                 <div className="space-y-2">
-                    <Label htmlFor="sort-by">Sort By</Label>
-                    <Select value={filters.sortBy} onValueChange={(value) => onFiltersChange({ sortBy: value })}>
-                        <SelectTrigger id="sort-by">
-                            <SelectValue placeholder="Sort results by..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {sortOptions.map(option => (
-                                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+            <CollapsibleTrigger asChild>
+                <Button 
+                    variant="outline" 
+                    className="w-full flex items-center justify-between p-4 h-auto"
+                >
+                    <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4" />
+                        <span className="font-medium">Filters & Sort</span>
+                    </div>
+                    {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-4">
+                <Card>
+                    <CardContent className="space-y-6 pt-6">
+                         <div className="space-y-2">
+                            <Label htmlFor="sort-by">Sort By</Label>
+                            <Select value={filters.sortBy} onValueChange={(value) => onFiltersChange({ sortBy: value })}>
+                                <SelectTrigger id="sort-by">
+                                    <SelectValue placeholder="Sort results by..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {sortOptions.map(option => (
+                                        <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                <div className="space-y-2">
-                    <Label htmlFor="intent-filter">User Intent</Label>
-                    <Select value={filters.intent} onValueChange={(value) => onFiltersChange({ intent: value })}>
-                        <SelectTrigger id="intent-filter">
-                            <SelectValue placeholder="What do you want to do?" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Any Intent</SelectItem>
-                            {intentOptions?.map(option => (
-                                <SelectItem key={option.id} value={option.name}>{option.description}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                
-                <div className="space-y-2">
-                    <Label>Personality Vibe</Label>
-                    <ToggleGroup 
-                        type="multiple" 
-                        variant="outline" 
-                        className="flex-wrap justify-start"
-                        value={filters.personality_tags}
-                        onValueChange={handlePersonalityChange}
-                    >
-                        {personalityTags?.map(tag => (
-                            <ToggleGroupItem key={tag.id} value={tag.name} aria-label={tag.description || tag.name} className="h-auto text-wrap">
-                                {tag.description}
-                            </ToggleGroupItem>
-                        ))}
-                    </ToggleGroup>
-                </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="intent-filter">User Intent</Label>
+                            <Select value={filters.intent} onValueChange={(value) => onFiltersChange({ intent: value })}>
+                                <SelectTrigger id="intent-filter">
+                                    <SelectValue placeholder="What do you want to do?" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">Any Intent</SelectItem>
+                                    {intentOptions?.map(option => (
+                                        <SelectItem key={option.id} value={option.name}>{option.description}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <Label>Personality Vibe</Label>
+                            <ToggleGroup 
+                                type="multiple" 
+                                variant="outline" 
+                                className="flex-wrap justify-start"
+                                value={filters.personality_tags}
+                                onValueChange={handlePersonalityChange}
+                            >
+                                {personalityTags?.map(tag => (
+                                    <ToggleGroupItem key={tag.id} value={tag.name} aria-label={tag.description || tag.name} className="h-auto text-wrap">
+                                        {tag.description}
+                                    </ToggleGroupItem>
+                                ))}
+                            </ToggleGroup>
+                        </div>
 
-                <div className="space-y-2">
-                    <Label htmlFor="distance-slider">Distance ({filters.distance} km)</Label>
-                    <Slider
-                        id="distance-slider"
-                        min={1}
-                        max={100}
-                        step={1}
-                        value={[filters.distance]}
-                        onValueChange={handleDistanceChange}
-                    />
-                </div>
-            </CardContent>
-        </Card>
+                        <div className="space-y-2">
+                            <Label htmlFor="distance-slider">Distance ({filters.distance} km)</Label>
+                            <Slider
+                                id="distance-slider"
+                                min={1}
+                                max={100}
+                                step={1}
+                                value={[filters.distance]}
+                                onValueChange={handleDistanceChange}
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
+            </CollapsibleContent>
+        </Collapsible>
     );
 };
 

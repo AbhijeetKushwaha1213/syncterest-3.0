@@ -15,9 +15,10 @@ interface BasicInfoStepProps {
   };
   updateData: (data: any) => void;
   onNext: () => void;
+  onSkip?: () => void;
 }
 
-const BasicInfoStep = ({ data, updateData, onNext }: BasicInfoStepProps) => {
+const BasicInfoStep = ({ data, updateData, onNext, onSkip }: BasicInfoStepProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validateAndNext = () => {
@@ -147,9 +148,27 @@ const BasicInfoStep = ({ data, updateData, onNext }: BasicInfoStepProps) => {
         </div>
       </div>
 
-      <Button onClick={validateAndNext} className="w-full">
-        Continue
-      </Button>
+      <div className="flex gap-4">
+        {onSkip && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onSkip}
+            size="lg"
+            className="flex-1"
+          >
+            Skip
+          </Button>
+        )}
+        <Button
+          type="button"
+          onClick={validateAndNext}
+          size="lg"
+          className="flex-1"
+        >
+          Continue
+        </Button>
+      </div>
     </div>
   );
 };

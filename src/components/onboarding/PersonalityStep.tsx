@@ -65,9 +65,11 @@ const questions = [
 
 interface PersonalityStepProps {
   onComplete: () => void;
+  onPrev?: () => void;
+  onSkip?: () => void;
 }
 
-const PersonalityStep = ({ onComplete }: PersonalityStepProps) => {
+const PersonalityStep = ({ onComplete, onPrev, onSkip }: PersonalityStepProps) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);

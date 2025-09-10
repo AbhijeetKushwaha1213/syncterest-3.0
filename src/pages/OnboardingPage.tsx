@@ -140,6 +140,10 @@ const OnboardingPage = () => {
     }
   };
 
+  const handleSkipStep = () => {
+    setCurrentStep(prev => prev + 1);
+  };
+
   const handlePersonalityComplete = async () => {
     if (!user) {
       toast({
@@ -188,6 +192,7 @@ const OnboardingPage = () => {
             data={basicInfo}
             updateData={updateBasicInfo}
             onNext={handleBasicInfoNext}
+            onSkip={handleSkipStep}
           />
         );
       case 2:
@@ -198,10 +203,17 @@ const OnboardingPage = () => {
             onPrev={() => setCurrentStep(1)}
             onComplete={handleInterestsComplete}
             isSubmitting={false}
+            onSkip={handleSkipStep}
           />
         );
       case 3:
-        return <PersonalityStep onComplete={handlePersonalityComplete} />;
+        return (
+          <PersonalityStep 
+            onComplete={handlePersonalityComplete}
+            onPrev={() => setCurrentStep(2)}
+            onSkip={handlePersonalityComplete}
+          />
+        );
       default:
         return (
           <BasicInfoStep 

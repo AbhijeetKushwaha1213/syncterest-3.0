@@ -13,9 +13,10 @@ interface InterestsStepProps {
   onPrev: () => void;
   onComplete: () => void;
   isSubmitting: boolean;
+  onSkip?: () => void;
 }
 
-const InterestsStep = ({ data, updateData, onPrev, onComplete, isSubmitting }: InterestsStepProps) => {
+const InterestsStep = ({ data, updateData, onPrev, onComplete, isSubmitting, onSkip }: InterestsStepProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const availableInterests = [
@@ -94,12 +95,35 @@ const InterestsStep = ({ data, updateData, onPrev, onComplete, isSubmitting }: I
         </div>
       )}
 
-      <div className="flex gap-4">
-        <Button variant="outline" onClick={onPrev} className="flex-1" disabled={isSubmitting}>
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onPrev}
+          size="lg"
+          className="flex-1"
+        >
           Back
         </Button>
-        <Button onClick={validateAndComplete} className="flex-1" disabled={isSubmitting}>
-          {isSubmitting ? "Setting up your profile..." : "Complete Setup"}
+        {onSkip && (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onSkip}
+            size="lg"
+            className="flex-1"
+          >
+            Skip
+          </Button>
+        )}
+        <Button
+          type="button"
+          onClick={validateAndComplete}
+          size="lg"
+          className="flex-1"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Setting up...' : 'Complete Setup'}
         </Button>
       </div>
     </div>
