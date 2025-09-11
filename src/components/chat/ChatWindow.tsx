@@ -1,11 +1,12 @@
 
-import { ConversationWithOtherParticipant, Reaction } from '@/api/chat';
+import { ConversationWithOtherParticipant, Reaction, MessageWithSender, uploadAttachment } from '@/api/chat';
 import { useMessages } from '@/hooks/useMessages';
 import { useAuth } from '@/hooks/useAuth';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useChannelPresence } from '@/hooks/useChannelPresence';
+import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
 import ChatHeader from './ChatHeader';
 import MessageList from './MessageList';
