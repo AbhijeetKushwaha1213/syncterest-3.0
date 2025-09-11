@@ -33,8 +33,10 @@ const SearchPage = () => {
     setFilters(prev => ({ ...prev, ...newFilters }));
   };
 
-  const handleViewChange = (value: 'grid' | 'list') => {
-    if (value) setViewMode(value);
+  const handleViewChange = (value: string | undefined) => {
+    if (value && (value === 'grid' || value === 'list')) {
+      setViewMode(value);
+    }
   };
   
   const getMatchingPersonalityTags = (profileTags: string[] | null) => {
