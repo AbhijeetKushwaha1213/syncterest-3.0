@@ -7,7 +7,11 @@ import { Database } from '@/integrations/supabase/types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
-export type ProfileWithCompatibility = Profile & { compatibility_score: number | null };
+export type ProfileWithCompatibility = Profile & { 
+  compatibility_score: number | null;
+  search_rank: number | null;
+  distance_km: number | null;
+};
 
 export const useAdvancedSearch = (searchTerm: string, filters: SearchFiltersState) => {
   const { profileLocation } = useLocation();
@@ -24,7 +28,7 @@ export const useAdvancedSearch = (searchTerm: string, filters: SearchFiltersStat
       // The RPC function expects personality_tags to be null if empty, not an empty array.
       const personalityTags = filters.personality_tags.length > 0 ? filters.personality_tags : null;
 
-      const { data, error } = await supabase.rpc('advanced_search_users', {
+      const { data, error } = await supabase.rpc('enhanced_search_users', {
         p_search_term: searchTerm.trim(),
         p_intent: filters.intent === 'all' ? null : filters.intent,
         p_personality_tags: personalityTags,

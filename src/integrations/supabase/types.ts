@@ -1047,6 +1047,51 @@ export type Database = {
         Args: { user1_id: string; user2_id: string }
         Returns: number
       }
+      enhanced_search_users: {
+        Args: {
+          p_intent: string
+          p_latitude: number
+          p_longitude: number
+          p_personality_tags: string[]
+          p_radius_km: number
+          p_search_term: string
+          p_sort_by: string
+        }
+        Returns: {
+          avatar_url: string
+          bio: string
+          compatibility_score: number
+          created_at: string
+          cultural_preferences: Json
+          distance_km: number
+          email_notifications_enabled: boolean
+          event_reminder_notifications: boolean
+          full_name: string
+          group_activity_notifications: boolean
+          id: string
+          intent: string
+          interests: string[]
+          language: string
+          last_active_at: string
+          latitude: number
+          location_city: string
+          location_postal_code: string
+          location_sharing_enabled: boolean
+          longitude: number
+          new_follower_notifications: boolean
+          new_message_notifications: boolean
+          personality_tags: string[]
+          profile_visibility: string
+          push_notifications_enabled: boolean
+          search_rank: number
+          search_vector: unknown
+          show_activity_status: boolean
+          show_location_on_profile: boolean
+          status: string
+          updated_at: string
+          username: string
+        }[]
+      }
       find_or_create_conversation: {
         Args: { p_other_user_id: string }
         Returns: string

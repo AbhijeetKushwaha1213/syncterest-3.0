@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAdvancedSearch, ProfileWithCompatibility } from '@/hooks/useAdvancedSearch';
 import SearchResultItem from '@/components/search/SearchResultItem';
+import SearchDebugInfo from '@/components/search/SearchDebugInfo';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Search, LayoutGrid, List, Heart, Tag } from 'lucide-react';
 import SearchFilters, { SearchFiltersState } from '@/components/search/SearchFilters';
@@ -131,14 +132,15 @@ const SearchPage = () => {
                       const matchingInterests = getMatchingInterests(profile.interests);
                       
                       return (
-                        <div key={profile.id} className="relative group">
-                          <UserCard profile={profile} />
-                          {filters.sortBy === 'compatible' && typeof profile.compatibility_score === 'number' && profile.compatibility_score > 0 && (
-                            <Badge variant="destructive" className="absolute top-2 right-2 flex items-center gap-1 bg-pink-500 hover:bg-pink-600">
-                              <Heart className="h-3 w-3" />
-                              {Math.round(profile.compatibility_score * 100)}%
-                            </Badge>
-                          )}
+                         <div key={profile.id} className="relative group">
+                           <UserCard profile={profile} />
+                           <SearchDebugInfo profile={profile} searchTerm={query} />
+                           {filters.sortBy === 'compatible' && typeof profile.compatibility_score === 'number' && profile.compatibility_score > 0 && (
+                             <Badge variant="destructive" className="absolute top-2 right-2 flex items-center gap-1 bg-pink-500 hover:bg-pink-600">
+                               <Heart className="h-3 w-3" />
+                               {Math.round(profile.compatibility_score * 100)}%
+                             </Badge>
+                           )}
                           {(matchingTags.length > 0 || matchingInterests.length > 0) && (
                             <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
                               {matchingTags.length > 0 && (
