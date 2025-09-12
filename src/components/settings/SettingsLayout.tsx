@@ -1,9 +1,12 @@
 
 import React from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { User, Shield, Bell, Paintbrush, Languages, Link, DatabaseZap, CircleSlash, HelpCircle, Compass } from 'lucide-react';
+import { User, Shield, Bell, Paintbrush, Languages, Link, DatabaseZap, CircleSlash, HelpCircle, Compass, LogOut } from 'lucide-react';
 import SectionErrorBoundary from '../SectionErrorBoundary';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 const sidebarNavItems = [
   {
@@ -59,6 +62,20 @@ const sidebarNavItems = [
 ];
 
 const SettingsLayout = () => {
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success('Logged out successfully');
+      navigate('/');
+    } catch (error) {
+      toast.error('Failed to logout');
+      console.error('Logout error:', error);
+    }
+  };
+
   return (
     <div className="container max-w-5xl mx-auto p-2 sm:p-4 md:p-6 lg:p-8">
         <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 px-2 sm:px-0">Settings</h1>
@@ -82,6 +99,18 @@ const SettingsLayout = () => {
                           <span className="text-xs sm:text-sm lg:text-sm">{item.title}</span>
                       </NavLink>
                   ))}
+                  
+                  {/* Logout Button */}
+                  <div className="lg:mt-4 pt-2 lg:pt-4 border-t border-border/40">
+                    <Button
+                      onClick={handleLogout}
+                      variant="ghost"
+                      className="w-full justify-start px-3 py-2 sm:px-4 text-xs sm:text-sm lg:text-sm text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <LogOut className="mr-2 h-4 w-4 flex-shrink-0" />
+                      <span>Logout</span>
+                    </Button>
+                  </div>
                   </nav>
                 </SectionErrorBoundary>
             </aside>
