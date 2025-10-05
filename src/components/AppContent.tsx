@@ -22,8 +22,9 @@ import LanguageSettingsPage from "@/pages/settings/LanguageSettingsPage";
 import BlockedUsersSettingsPage from "@/pages/settings/BlockedUsersSettingsPage";
 import LinkedAccountsSettingsPage from "@/pages/settings/LinkedAccountsSettingsPage";
 import DataManagementSettingsPage from "@/pages/settings/DataManagementSettingsPage";
-import DiscoverySettingsPage from "@/pages/settings/DiscoverySettingsPage";
 import HelpSettingsPage from "@/pages/settings/HelpSettingsPage";
+import DiscoverySettingsPage from "@/pages/settings/DiscoverySettingsPage";
+import GroupsPage from "@/pages/GroupsPage";
 
 const AppContent = () => {
   const { user, loading } = useAuth();
@@ -63,7 +64,9 @@ const AppContent = () => {
         <Route path="chat/:conversationId?" element={<ChatPage />} />
         <Route path="profile/:id" element={<UserProfilePage />} />
         <Route path="search" element={<SearchPage />} />
+        <Route path="groups" element={<GroupsPage />} />
         <Route path="events/:eventId" element={<EventDetailPage />} />
+        
         
         {/* Settings routes with nested layout */}
         <Route path="settings" element={<SettingsLayout />}>

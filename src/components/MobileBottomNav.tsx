@@ -2,7 +2,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { Home, Search, MessageCircle, User } from "lucide-react";
+import { Home, Search, MessageCircle, User, Users } from "lucide-react";
 
 const MobileBottomNav = () => {
   const location = useLocation();
@@ -11,6 +11,7 @@ const MobileBottomNav = () => {
   const navigation = [
     { name: "Home", href: "/home", icon: Home },
     { name: "Search", href: "/search", icon: Search },
+    { name: "Groups", href: "/groups", icon: Users },
     { name: "Messages", href: "/chat", icon: MessageCircle },
     { name: "Profile", href: user?.id ? `/profile/${user.id}` : "/settings/account", icon: User },
   ];

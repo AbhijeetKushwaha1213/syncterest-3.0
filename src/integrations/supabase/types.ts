@@ -450,69 +450,6 @@ export type Database = {
             referencedRelation: "groups"
             referencedColumns: ["id"]
           },
-        ]
-      }
-      groups: {
-        Row: {
-          created_at: string
-          created_by: string
-          description: string | null
-          id: string
-          image_url: string | null
-          name: string
-          search_vector: unknown | null
-        }
-        Insert: {
-          created_at?: string
-          created_by: string
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          name: string
-          search_vector?: unknown | null
-        }
-        Update: {
-          created_at?: string
-          created_by?: string
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          name?: string
-          search_vector?: unknown | null
-        }
-        Relationships: []
-      }
-      intent_options: {
-        Row: {
-          description: string | null
-          id: number
-          name: string
-        }
-        Insert: {
-          description?: string | null
-          id?: number
-          name: string
-        }
-        Update: {
-          description?: string | null
-          id?: number
-          name?: string
-        }
-        Relationships: []
-      }
-      live_activities: {
-        Row: {
-          activity_type: string
-          created_at: string
-          custom_message: string | null
-          expires_at: string
-          id: string
-          latitude: number | null
-          longitude: number | null
-          search_vector: unknown | null
-          user_id: string
-        }
-        Insert: {
           activity_type: string
           created_at?: string
           custom_message?: string | null
@@ -951,31 +888,85 @@ export type Database = {
           },
         ]
       }
-      stories: {
+      groups: {
         Row: {
-          created_at: string
-          expires_at: string
           id: string
-          image_url: string
-          user_id: string
+          name: string
+          description: string
+          interest_tags: string[]
+          location_name: string
+          latitude: number
+          longitude: number
+          meeting_time: string
+          created_by: string
+          created_at: string
+          updated_at: string
         }
         Insert: {
-          created_at?: string
-          expires_at?: string
           id?: string
-          image_url: string
-          user_id: string
+          name: string
+          description: string
+          interest_tags?: string[]
+          location_name: string
+          latitude: number
+          longitude: number
+          meeting_time: string
+          created_by: string
+          created_at?: string
+          updated_at?: string
         }
         Update: {
-          created_at?: string
-          expires_at?: string
           id?: string
-          image_url?: string
-          user_id?: string
+          name?: string
+          description?: string
+          interest_tags?: string[]
+          location_name?: string
+          latitude?: number
+          longitude?: number
+          meeting_time?: string
+          created_by?: string
+          created_at?: string
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "stories_user_id_fkey"
+            foreignKeyName: "groups_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_members: {
+        Row: {
+          id: string
+          group_id: string
+          user_id: string
+          joined_at: string
+        }
+        Insert: {
+          id?: string
+          group_id: string
+          user_id: string
+          joined_at?: string
+        }
+        Update: {
+          id?: string
+          group_id?: string
+          user_id?: string
+          joined_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_members_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -1228,11 +1219,28 @@ export type Database = {
         Args: { p_conversation_id: string }
         Returns: undefined
       }
-      revoke_location_access: {
-        Args: { from_user_id: string }
-        Returns: undefined
+      search_groups: {
+        Args: {
+          search_query?: string
+          search_lat?: number
+          search_long?: number
+          search_radius_km?: number
+        }
+        Returns: {
+          id: string
+          name: string
+          description: string
+          interest_tags: string[]
+          location_name: string
+          latitude: number
+          longitude: number
+          meeting_time: string
+          created_by: string
+          created_at: string
+          member_count: number
+          distance_km: number | null
+        }[]
       }
-    }
     Enums: {
       channel_genre: "general" | "music" | "reading" | "gaming" | "tech"
       channel_role: "admin" | "moderator" | "member"

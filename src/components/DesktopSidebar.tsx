@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
-import { Home, Search, MessageCircle, User, Settings } from "lucide-react";
+import { Home, Search, MessageCircle, User, Settings, Users } from "lucide-react";
 
 const DesktopSidebar = () => {
   const location = useLocation();
@@ -12,6 +12,7 @@ const DesktopSidebar = () => {
   const navigation = [
     { name: "Home", href: "/home", icon: Home },
     { name: "Search", href: "/search", icon: Search },
+    { name: "Groups", href: "/groups", icon: Users },
     { name: "Messages", href: "/chat", icon: MessageCircle },
     { name: "Profile", href: `/profile/${user?.id}`, icon: User },
     { name: "Settings", href: "/settings", icon: Settings },
